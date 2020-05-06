@@ -148,6 +148,12 @@ declare class Plyr {
    */
   readonly embed?: any;
 
+  readonly editor: Plyr.EditorControl;
+
+  readonly markers: Plyr.MarkersControl;
+
+  readonly trim: Plyr.TrimControl;
+
   readonly fullscreen: Plyr.FullscreenControl;
 
   /**
@@ -260,8 +266,6 @@ declare namespace Plyr {
     | 'seeked'
     | 'ratechange'
     | 'ended'
-    | 'entertrim'
-    | 'exittrim'
     | 'enterfullscreen'
     | 'exitfullscreen'
     | 'captionsenabled'
@@ -282,6 +286,77 @@ declare namespace Plyr {
     | 'cuechange'
     | 'error';
   type YoutubeEvent = 'statechange' | 'qualitychange' | 'qualityrequested';
+
+  interface EditorControl {
+    /**
+     * Indicates if the current player has the editor enabled.
+     */
+    readonly enabled: boolean;
+
+    /**
+     * Indicates if the current player is displaying the editor tool.
+     */
+    readonly active: boolean;
+
+    /**
+     * Enter Editor.
+     */
+    enter(): void;
+
+    /**
+     * Exit Editor.
+     */
+    exit(): void;
+
+    /**
+     * Toggle Editor.
+     */
+    toggle(): void;
+  }
+
+  interface MarkersControl {
+    /**
+     * Indicates if the current player has the video marker enabled.
+     */
+    readonly enabled: boolean;
+
+    /**
+     * Indicates if the current player is displaying video markers on the timeline.
+     */
+    readonly active: boolean;
+
+    /**
+     * Add a marker to the timeline.
+     */
+    addMarker(): void;
+  }
+
+  interface TrimControl {
+    /**
+     * Indicates if the current player has the trimming tool enabled.
+     */
+    readonly enabled: boolean;
+
+    /**
+     * Indicates if the current player is displaying the trimming tool tool.
+     */
+    readonly active: boolean;
+
+    /**
+     * Enter trimming tool.
+     */
+    enter(): void;
+
+    /**
+     * Exit trimming tool.
+     */
+    exit(): void;
+
+    /**
+     * Toggle trimming tool.
+     */
+    toggle(): void;
+  }
 
   interface FullscreenControl {
     /**
@@ -455,6 +530,16 @@ declare namespace Plyr {
     /**
      * enabled: Toggles whether trimming should be enabled.
      */
+    editor?: EditorOptions;
+
+    /**
+     * enabled: Toggles whether trimming should be enabled.
+     */
+    markers?: MarkersOptions;
+
+    /**
+     * enabled: Toggles whether trimming should be enabled.
+     */
     trim?: TrimOptions;
 
     /**
@@ -534,10 +619,17 @@ declare namespace Plyr {
     seek?: boolean;
   }
 
+  interface EditorOptions {
+    enabled?: boolean;
+  }
+
+  interface MarkersOptions {
+    enabled?: boolean;
+  }
+
   interface TrimOptions {
     enabled?: boolean;
-    active?: boolean;
-    trimTime?: TrimTime;
+    closeEditor?: boolean;
   }
 
   interface TrimTime {
