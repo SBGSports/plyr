@@ -264,21 +264,29 @@ class Trim {
     if ((type === 'mouseup' || type === 'touchend') && this.editing === leftThumb) {
       this.editing = null;
       this.toggleTimeContainer(bar.leftThumb, false);
-      this.player.previewThumbnails.endScrubbing(event);
+      if (this.player.previewThumbnails) {
+        this.player.previewThumbnails.endScrubbing(event);
+      }
       triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
     } else if ((type === 'mouseup' || type === 'touchend') && this.editing === rightThumb) {
       this.editing = null;
       this.toggleTimeContainer(bar.rightThumb, false);
-      this.player.previewThumbnails.endScrubbing(event);
+      if (this.player.previewThumbnails) {
+        this.player.previewThumbnails.endScrubbing(event);
+      }
       triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
     } else if ((type === 'mousedown' || type === 'touchstart') && target.classList.contains(leftThumb)) {
       this.editing = leftThumb;
       this.toggleTimeContainer(bar.leftThumb, true);
-      this.player.previewThumbnails.startScrubbing(event);
+      if (this.player.previewThumbnails) {
+        this.player.previewThumbnails.startScrubbing(event);
+      }
     } else if ((type === 'mousedown' || type === 'touchstart') && target.classList.contains(rightThumb)) {
       this.editing = rightThumb;
       this.toggleTimeContainer(bar.rightThumb, true);
-      this.player.previewThumbnails.startScrubbing(event);
+      if (this.player.previewThumbnails) {
+        this.player.previewThumbnails.startScrubbing(event);
+      }
     }
   }
 
@@ -335,8 +343,10 @@ class Trim {
     this.setShadedRegions();
 
     // Show the seek thumbnail
-    const seekTime = this.player.media.duration * (percentage / 100);
-    this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+    if (this.player.previewThumbnails) {
+      const seekTime = this.player.media.duration * (percentage / 100);
+      this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+    }
   }
 
   toggleTimeContainer(element, toggle = false) {

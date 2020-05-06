@@ -208,11 +208,16 @@ class Editor {
   setVideoTimelimeContent() {
     const { previewThumbnails } = this.player;
     const { timeline } = this.elements.container;
-    const { videoContainer } = timeline.videoContainerParent;
     // Total number of images needed to fill the timeline width
     const clientRect = timeline.getBoundingClientRect();
     const imageCount = Math.ceil(clientRect.width / this.videoContainerWidth);
     let time = 0;
+
+    if (!previewThumbnails) {
+      return;
+    }
+
+    const { videoContainer } = timeline.videoContainerParent;
 
     if (is.nullOrUndefined(videoContainer.previewThumbs)) {
       videoContainer.previewThumbs = [];
@@ -353,10 +358,12 @@ class Editor {
 
   triggerSeekEvent(event) {
     if (this.seeking) {
-      this.player.previewThumbnails.startScrubbing(event);
+      if (this.player.previewThumbnails) {
+        this.player.previewThumbnails.startScrubbing(event);
+      }
       triggerEvent.call(this.player, this.player.media, 'seeking');
       this.setSeekTime(event);
-    } else {
+    } else if (this.player.previewThumbnails) {
       this.player.previewThumbnails.endScrubbing(event);
     }
   }
@@ -407,9 +414,12 @@ class Editor {
 
       // Set the video seek position
       triggerEvent.call(this.player, this.player.media, 'seeked');
+
       // Show the seek thumbnail
-      const seekTime = this.player.media.duration * (percentage / 100);
-      this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+      if (this.player.previewThumbnails) {
+        const seekTime = this.player.media.duration * (percentage / 100);
+        this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+      }
     }
   }
 
@@ -450,7 +460,7 @@ class Editor {
     container.timeline.seekHandle.style.left = `${seekPercentage}%`;
 
     // Show the corresponding preview thumbnail for the updated seek position
-    if (this.seeking) {
+    if (this.seeking && this.player.previewThumbnails) {
       const seekTime = this.player.media.duration * (seekPercentage / 100);
       this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
     }
