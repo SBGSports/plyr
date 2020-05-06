@@ -7514,12 +7514,17 @@ typeof navigator === "object" && (function (global, factory) {
       key: "setVideoTimelimeContent",
       value: function setVideoTimelimeContent() {
         var previewThumbnails = this.player.previewThumbnails;
-        var timeline = this.elements.container.timeline;
-        var videoContainer = timeline.videoContainerParent.videoContainer; // Total number of images needed to fill the timeline width
+        var timeline = this.elements.container.timeline; // Total number of images needed to fill the timeline width
 
         var clientRect = timeline.getBoundingClientRect();
         var imageCount = Math.ceil(clientRect.width / this.videoContainerWidth);
         var time = 0;
+
+        if (!previewThumbnails) {
+          return;
+        }
+
+        var videoContainer = timeline.videoContainerParent.videoContainer;
 
         if (is$1.nullOrUndefined(videoContainer.previewThumbs)) {
           videoContainer.previewThumbs = [];
@@ -7654,10 +7659,13 @@ typeof navigator === "object" && (function (global, factory) {
       key: "triggerSeekEvent",
       value: function triggerSeekEvent(event) {
         if (this.seeking) {
-          this.player.previewThumbnails.startScrubbing(event);
+          if (this.player.previewThumbnails) {
+            this.player.previewThumbnails.startScrubbing(event);
+          }
+
           triggerEvent.call(this.player, this.player.media, 'seeking');
           this.setSeekTime(event);
-        } else {
+        } else if (this.player.previewThumbnails) {
           this.player.previewThumbnails.endScrubbing(event);
         }
       }
@@ -7704,8 +7712,10 @@ typeof navigator === "object" && (function (global, factory) {
 
           triggerEvent.call(this.player, this.player.media, 'seeked'); // Show the seek thumbnail
 
-          var seekTime = this.player.media.duration * (percentage / 100);
-          this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+          if (this.player.previewThumbnails) {
+            var seekTime = this.player.media.duration * (percentage / 100);
+            this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+          }
         }
       } // If the seek handle is near the end of the visible timeline window, shift the timeline
 
@@ -7746,7 +7756,7 @@ typeof navigator === "object" && (function (global, factory) {
         var seekPercentage = parseFloat(seekHandleOffset) + 100 / timelineRect.width * (seekPos.left - seekPosUpdated);
         container.timeline.seekHandle.style.left = "".concat(seekPercentage, "%"); // Show the corresponding preview thumbnail for the updated seek position
 
-        if (this.seeking) {
+        if (this.seeking && this.player.previewThumbnails) {
           var seekTime = this.player.media.duration * (seekPercentage / 100);
           this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
         }
@@ -8228,21 +8238,35 @@ typeof navigator === "object" && (function (global, factory) {
         if ((type === 'mouseup' || type === 'touchend') && this.editing === leftThumb) {
           this.editing = null;
           this.toggleTimeContainer(bar.leftThumb, false);
-          this.player.previewThumbnails.endScrubbing(event);
+
+          if (this.player.previewThumbnails) {
+            this.player.previewThumbnails.endScrubbing(event);
+          }
+
           triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
         } else if ((type === 'mouseup' || type === 'touchend') && this.editing === rightThumb) {
           this.editing = null;
           this.toggleTimeContainer(bar.rightThumb, false);
-          this.player.previewThumbnails.endScrubbing(event);
+
+          if (this.player.previewThumbnails) {
+            this.player.previewThumbnails.endScrubbing(event);
+          }
+
           triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
         } else if ((type === 'mousedown' || type === 'touchstart') && target.classList.contains(leftThumb)) {
           this.editing = leftThumb;
           this.toggleTimeContainer(bar.leftThumb, true);
-          this.player.previewThumbnails.startScrubbing(event);
+
+          if (this.player.previewThumbnails) {
+            this.player.previewThumbnails.startScrubbing(event);
+          }
         } else if ((type === 'mousedown' || type === 'touchstart') && target.classList.contains(rightThumb)) {
           this.editing = rightThumb;
           this.toggleTimeContainer(bar.rightThumb, true);
-          this.player.previewThumbnails.startScrubbing(event);
+
+          if (this.player.previewThumbnails) {
+            this.player.previewThumbnails.startScrubbing(event);
+          }
         }
       }
     }, {
@@ -8303,8 +8327,10 @@ typeof navigator === "object" && (function (global, factory) {
 
         this.setShadedRegions(); // Show the seek thumbnail
 
-        var seekTime = this.player.media.duration * (percentage / 100);
-        this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+        if (this.player.previewThumbnails) {
+          var seekTime = this.player.media.duration * (percentage / 100);
+          this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+        }
       }
     }, {
       key: "toggleTimeContainer",
