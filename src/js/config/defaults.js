@@ -110,9 +110,19 @@ const defaults = {
     update: false,
   },
 
+  // Editor settings
+  editor: {
+    enabled: true, // Allow Editor?
+  },
+
+  markers: {
+    enabled: true, // Allow timeline markers?
+  },
+
   // Trim settings
   trim: {
     enabled: true, // Allow trim?
+    closeEditor: true, // Close editor, on close of trimming tool
   },
 
   // Fullscreen settings
@@ -172,10 +182,15 @@ const defaults = {
     enableCaptions: 'Enable captions',
     disableCaptions: 'Disable captions',
     download: 'Download',
+    enterEditor: 'Enter Editor',
+    exitEditor: 'Exit Editor',
+    editorCurrentTime: 'Current time',
+    zoom: 'Zoom Timeline',
     enterTrim: 'Enter trim',
     exitTrim: 'Exit trim',
     trimStart: 'Trim Start',
     trimEnd: 'Trim End',
+    marker: 'Video Marker',
     enterFullscreen: 'Enter fullscreen',
     exitFullscreen: 'Exit fullscreen',
     frameTitle: 'Player for {title}',
@@ -232,6 +247,7 @@ const defaults = {
     mute: null,
     volume: null,
     captions: null,
+    editor: null,
     trim: null,
     download: null,
     fullscreen: null,
@@ -295,6 +311,14 @@ const defaults = {
     'adsallcomplete',
     'adsimpression',
     'adsclick',
+
+    // Editor
+    'entereditor',
+    'exiteditor',
+    'zoomchange',
+
+    // Markers
+    'markerchange',
 
     // Trimming
     'entertrim',
@@ -385,11 +409,32 @@ const defaults = {
       enabled: 'plyr--captions-enabled',
       active: 'plyr--captions-active',
     },
+    editor: {
+      container: 'plyr__editor__container',
+      controls: 'plyr__editor__controls',
+      timeContainer: 'plyr__editor__controls__time-container',
+      time: 'plyr__editor__controls__time',
+      zoomContainer: 'plyr__editor__controls__zoom__container',
+      timeline: 'plyr__editor__timeline',
+      videoContainerParent: 'plyr__editor__video-container-parent',
+      videoContainer: 'plyr__editor__video-container',
+      previewThumb: 'plyr__editor__preview-thumb',
+      timeStampsContainer: 'plyr__editor__time-stamps-container',
+      timeStamp: 'plyr__editor__time-stamp',
+      seekHandle: 'plyr__editor__seek-handle',
+      seekHandleHead: 'plyr__editor__seek-handle-head',
+      seekHandleLine: 'plyr__editor__seek-handle-line',
+    },
+    markers: {
+      marker: 'plyr__markers__marker',
+    },
     trim: {
       enabled: 'plyr--trim-enabled',
       active: 'plyr--trim-active',
       // Trim tool
+      container: 'plyr__trim__container',
       trimTool: 'plyr__trim-tool',
+      shadedRegion: 'plyr__trim-tool__shaded-region',
       leftThumb: 'plyr__trim-tool__thumb-left',
       rightThumb: 'plyr__trim-tool__thumb-right',
       timeContainer: 'plyr__trim-tool__time-container',

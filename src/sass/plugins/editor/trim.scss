@@ -1,0 +1,98 @@
+// --------------------------------------------------------------
+// Trim Tool
+// --------------------------------------------------------------
+
+$plyr-trim-border-height: var(--plyr-trim-border-height, 4px) !default;
+$plyr-trim-border: var(--plyr-trim-border, $plyr-trim-border-height solid $plyr-color-main) !default;
+
+$plyr-trim-height: calc(#{$plyr-editor-height} - #{$plyr-editor-controls-height} - #{$plyr-editor-timestamp-height});
+$plyr-trim-bar-height: $plyr-trim-height;
+
+$plyr-trim-shaded-region: var(--plyr-trim-shaded-region, hsla(0, 0%, 0%, 0.3)) !default;
+
+$plyr-trim-thumb-height: $plyr-trim-height !default;
+$plyr-trim-thumb-width: var(--plyr-trim-thumb-width, 6px) !default;
+$plyr-trim-thumb-border-radius: var(--plyr-trim-thumb-border-radius, 8px);
+$plyr-trim-thumb-box-shadow: var(--plyr-trim-thumb-box-shadow, inset 0 0 0 0.5px $plyr-color-main) !default;
+
+$plyr-trim-time-bg: var(--plyr-trim-time-bg, rgba(0, 0, 0, 0.55)) !default;
+$plyr-trim-time-radius: $plyr-tooltip-radius !default;
+$plyr-trim-time-color: var(--plyr-trim-time-color, #fff);
+$plyr-trim-time-font-size: $plyr-font-size-time !default;
+$plyr-trim-time-padding: var(--plyr-trim-time-padding, 3px 6px);
+$plyr-trim-time-bottom-offset: var(--plyr-trim-time-bottom-offset, 1px);
+
+.plyr__trim__container {
+  height: $plyr-trim-bar-height;
+  position: absolute;
+  width: 100%;
+}
+
+.plyr__trim-tool {
+  border-bottom: $plyr-trim-border;
+  border-top: $plyr-trim-border;
+  display: block;
+  height: $plyr-trim-bar-height;
+  left: 0;
+  position: absolute;
+  top: 0;
+
+  &__shaded-region {
+    background-color: $plyr-trim-shaded-region;
+    height: 100%;
+    left: 0;
+    position: absolute;
+  }
+
+  &__thumb-left {
+    border-bottom-left-radius: $plyr-trim-thumb-border-radius;
+    border-top-left-radius: $plyr-trim-thumb-border-radius;
+    left: calc(#{$plyr-trim-thumb-width} * -1);
+  }
+
+  &__thumb-right {
+    border-bottom-right-radius: $plyr-trim-thumb-border-radius;
+    border-top-right-radius: $plyr-trim-thumb-border-radius;
+    right: calc(#{$plyr-trim-thumb-width} * -1);
+  }
+
+  &__thumb-left,
+  &__thumb-right {
+    background: $plyr-color-main;
+    box-shadow: $plyr-trim-thumb-box-shadow;
+    height: $plyr-trim-thumb-height;
+    margin-top: calc(#{$plyr-trim-border-height} * -1);
+    position: absolute;
+    touch-action: none;
+    user-select: none;
+    width: $plyr-trim-thumb-width;
+    z-index: 2;
+
+    &:active {
+      @include plyr-range-thumb-active($plyr-color-main);
+    }
+  }
+
+  &__time-container {
+    bottom: calc(#{$plyr-trim-thumb-height} + #{$plyr-trim-time-bottom-offset});
+    left: 50%;
+    opacity: 0;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
+    z-index: 2;
+
+    &--is-shown {
+      opacity: 1;
+    }
+
+    span {
+      background-color: $plyr-trim-time-bg;
+      border-radius: $plyr-trim-time-radius;
+      color: $plyr-trim-time-color;
+      font-size: $plyr-trim-time-font-size;
+      padding: $plyr-trim-time-padding;
+    }
+  }
+}

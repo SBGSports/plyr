@@ -1,0 +1,26 @@
+// --------------------------------------------------------------
+// Video Markers
+// --------------------------------------------------------------
+
+$plyr-marker-height: calc(
+  #{$plyr-editor-height} - #{$plyr-editor-controls-height} - #{$plyr-editor-timestamp-height}
+) !default;
+$plyr-marker-width: var(--plyr-marker-width, 7px) !default;
+$plyr-marker-background: $plyr-color-main !default;
+$plyr-marker-border-radius: var(--plyr-marker-border-radius, 7px);
+$plyr-marker-box-shadow: var(--plyr-marker-box-shadow, inset 0 0 0 0.5px $plyr-color-main) !default;
+
+.plyr__markers__marker {
+  background-color: $plyr-marker-background;
+  border-radius: $plyr-marker-border-radius;
+  height: $plyr-marker-height;
+  position: absolute;
+  touch-action: none;
+  user-select: none;
+  width: $plyr-marker-width;
+  z-index: 3;
+
+  &:active {
+    @include plyr-range-thumb-active($plyr-color-main);
+  }
+}

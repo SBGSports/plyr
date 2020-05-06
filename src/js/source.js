@@ -5,8 +5,10 @@
 import { providers } from './config/types';
 import html5 from './html5';
 import media from './media';
+import Editor from './plugins/editor/editor';
+import Markers from './plugins/editor/markers';
+import Trim from './plugins/editor/trim';
 import PreviewThumbnails from './plugins/preview-thumbnails';
-import Trim from './plugins/trim';
 import support from './support';
 import ui from './ui';
 import { createElement, insertElement, removeElement } from './utils/elements';
@@ -100,7 +102,7 @@ const source = {
         }
 
         // Restore class hook
-        ui.addStyleHook.call(this);
+        ui.addStyleHook.call(this, this.elements.container);
 
         // Set new sources for html5
         if (this.isHTML5) {
@@ -146,6 +148,28 @@ const source = {
           if (this.config.previewThumbnails.enabled) {
             this.previewThumbnails = new PreviewThumbnails(this);
           }
+        }
+
+        // Create new instance of trim plugin
+        if (this.editor && this.editor.loaded) {
+          this.editor.destroy();
+          this.editor = null;
+        }
+
+        // Create new instance if it is still enabled
+        if (this.config.editor.enabled) {
+          this.editor = new Editor(this);
+        }
+
+        // Create new instance of video markers
+        if (this.markers) {
+          this.markers.destroy();
+          this.markers = null;
+        }
+
+        // Create new instance if it is still enabled
+        if (this.config.markers.enabled) {
+          this.markers = new Markers(this);
         }
 
         // Create new instance of trim plugin

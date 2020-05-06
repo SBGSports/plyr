@@ -89,11 +89,13 @@ class PreviewThumbnails {
     this.loaded = false;
     this.lastMouseMoveTime = Date.now();
     this.mouseDown = false;
+    this.editor = false;
     this.loadedImages = [];
 
     this.elements = {
       thumb: {},
       scrubbing: {},
+      editor: {},
     };
 
     this.load();
@@ -350,7 +352,7 @@ class PreviewThumbnails {
     }
   }
 
-  showImageAtCurrentTime() {
+  showImageAtCurrentTime(time = this.seekTime) {
     if (this.mouseDown) {
       this.setScrubbingContainerSize();
     } else {
@@ -359,14 +361,12 @@ class PreviewThumbnails {
 
     // Find the desired thumbnail index
     // TODO: Handle a video longer than the thumbs where thumbNum is null
-    const thumbNum = this.thumbnails[0].frames.findIndex(
-      frame => this.seekTime >= frame.startTime && this.seekTime <= frame.endTime,
-    );
+    const thumbNum = this.thumbnails[0].frames.findIndex(frame => time >= frame.startTime && time <= frame.endTime);
     const hasThumb = thumbNum >= 0;
     let qualityIndex = 0;
 
-    // Show the thumb container if we're not scrubbing
-    if (!this.mouseDown) {
+    // Show the thumb container if we're not scrubbing or setting the editing timeline content
+    if (!this.mouseDown && !this.editor) {
       this.toggleThumbContainer(hasThumb);
     }
 
@@ -397,8 +397,9 @@ class PreviewThumbnails {
     const frame = thumbnail.frames[thumbNum];
     const thumbFilename = thumbnail.frames[thumbNum].text;
     const thumbUrl = urlPrefix + thumbFilename;
+    const currentImageElement = this.editor ? this.currentImageContainer.previewImage : this.currentImageElement;
 
-    if (!this.currentImageElement || this.currentImageElement.dataset.filename !== thumbFilename) {
+    if (!currentImageElement || currentImageElement.dataset.filename !== thumbFilename) {
       // If we're already loading a previous image, remove its onload handler - we don't want it to load after this one
       // Only do this if not using sprites. Without sprites we really want to show as many images as possible, as a best-effort
       if (this.loadingImage && this.usingSprites) {
@@ -409,38 +410,86 @@ class PreviewThumbnails {
       // is instead used. But this causes issues with larger images in Firefox and Safari - switching between background
       // images causes a flicker. Putting a new image over the top does not
       const previewImage = new Image();
-      previewImage.src = thumbUrl;
       previewImage.dataset.index = thumbNum;
       previewImage.dataset.filename = thumbFilename;
       this.showingThumbFilename = thumbFilename;
+      const { currentImageContainer, editor } = this;
 
       this.player.debug.log(`Loading image: ${thumbUrl}`);
 
       // For some reason, passing the named function directly causes it to execute immediately. So I've wrapped it in an anonymous function...
-      previewImage.onload = () => this.showImage(previewImage, frame, qualityIndex, thumbNum, thumbFilename, true);
+      previewImage.addEventListener(
+        'load',
+        () => {
+          this.showImage(
+            // For the editor timeline, we need the most recent container however, if the event has changed between seeking and hover we should use the new container
+            editor ? currentImageContainer : this.currentImageContainer,
+            previewImage,
+            frame,
+            qualityIndex,
+            thumbNum,
+            thumbFilename,
+            true,
+            editor,
+          );
+        },
+        { once: true },
+      );
+
+      previewImage.src = thumbUrl;
+
       this.loadingImage = previewImage;
       this.removeOldImages(previewImage);
     } else {
       // Update the existing image
-      this.showImage(this.currentImageElement, frame, qualityIndex, thumbNum, thumbFilename, false);
-      this.currentImageElement.dataset.index = thumbNum;
-      this.removeOldImages(this.currentImageElement);
+      this.showImage(
+        this.currentImageContainer,
+        currentImageElement,
+        frame,
+        qualityIndex,
+        thumbNum,
+        thumbFilename,
+        false,
+        this.editor,
+      );
+      if (this.editor) {
+        this.currentImageContainer.previewImage.dataset.index = thumbNum;
+      } else {
+        this.currentImageElement.dataset.index = thumbNum;
+      }
+
+      this.removeOldImages(currentImageElement);
     }
   }
 
-  showImage(previewImage, frame, qualityIndex, thumbNum, thumbFilename, newImage = true) {
+  showImage(
+    currentImageContainer,
+    previewImage,
+    frame,
+    qualityIndex,
+    thumbNum,
+    thumbFilename,
+    newImage = true,
+    editor = false,
+  ) {
     this.player.debug.log(
       `Showing thumb: ${thumbFilename}. num: ${thumbNum}. qual: ${qualityIndex}. newimg: ${newImage}`,
     );
     this.setImageSizeAndOffset(previewImage, frame);
 
     if (newImage) {
-      this.currentImageContainer.appendChild(previewImage);
+      currentImageContainer.appendChild(previewImage);
       this.currentImageElement = previewImage;
 
       if (!this.loadedImages.includes(thumbFilename)) {
         this.loadedImages.push(thumbFilename);
       }
+    }
+
+    if (editor) {
+      // Store in the container as in the editor we have a list of images rather than a single image and makes it easier to index
+      // eslint-disable-next-line no-param-reassign
+      currentImageContainer.previewImage = previewImage;
     }
 
     // Preload images before and after the current one
@@ -555,6 +604,10 @@ class PreviewThumbnails {
   get currentImageContainer() {
     if (this.mouseDown) {
       return this.elements.scrubbing.container;
+    }
+
+    if (this.editor) {
+      return this.elements.editor.container;
     }
 
     return this.elements.thumb.imageContainer;
