@@ -17,6 +17,7 @@ $plyr-editor-timestamp-marker: var(--plyr-editor-timestamp-color, 1px solid hsl(
 
 $plyr-editor-preview-thumb-height: var(--plyr-editor-preview-thumb-height, 67.5px);
 $plyr-editor-preview-thumb-border-radius: var(--plyr-editor-preview-thumb-border-radius, 5px);
+$plyr-editor-preview-thumb-background: var(--plyr-editor-preview-thumb-background, hsla(0, 0%, 0%, 0.03));
 
 $plyr-editor-height: calc(
   #{$plyr-editor-controls-height} + #{$plyr-editor-timestamp-height} + #{$plyr-editor-preview-thumb-height}
@@ -121,6 +122,7 @@ $plyr-editor-seek-handle-line-width: calc(#{$plyr-editor-seek-handle-width} / 4)
 }
 
 .plyr__editor__preview-thumb {
+  background: $plyr-editor-preview-thumb-background;
   border-radius: 5px;
   display: inline-block;
   height: $plyr-editor-preview-thumb-height;

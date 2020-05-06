@@ -184,10 +184,6 @@ class Editor {
     const { previewThumbnails } = this.player;
     const { timeline } = this.elements.container;
 
-    if (!this.player.config.previewThumbnails.enabled || !previewThumbnails.loaded) {
-      return;
-    }
-
     // Create video timeline wrapper
     timeline.videoContainerParent = createElement('div', {
       class: this.player.config.classNames.editor.videoContainerParent,
@@ -210,21 +206,18 @@ class Editor {
     const { timeline } = this.elements.container;
     // Total number of images needed to fill the timeline width
     const clientRect = timeline.getBoundingClientRect();
+    const { videoContainer } = timeline.videoContainerParent;
     const imageCount = Math.ceil(clientRect.width / this.videoContainerWidth);
     let time = 0;
-
-    if (!previewThumbnails) {
-      return;
-    }
-
-    const { videoContainer } = timeline.videoContainerParent;
 
     if (is.nullOrUndefined(videoContainer.previewThumbs)) {
       videoContainer.previewThumbs = [];
     }
 
     // Enable editor mode in preview thumbnails
-    previewThumbnails.editor = true;
+    if (previewThumbnails) {
+      previewThumbnails.editor = true;
+    }
 
     // Append images to video timeline
     for (let i = 0; i < imageCount; i += 1) {
@@ -243,19 +236,25 @@ class Editor {
         previewThumb = videoContainer.previewThumbs[i];
       }
 
-      // set the current editor container
-      previewThumbnails.elements.editor.container = previewThumb;
+      // If preview thumbnails is enabled append an image to the previewThumb
+      if (previewThumbnails) {
+        // set the current editor container
+        previewThumbnails.elements.editor.container = previewThumb;
 
-      // Append the image to the container
-      previewThumbnails.showImageAtCurrentTime(time);
+        // Append the image to the container
+        previewThumbnails.showImageAtCurrentTime(time);
+      }
+
       time += this.player.duration / (clientRect.width / this.videoContainerWidth);
     }
 
-    // Disable editor mode in preview thumbnails
-    previewThumbnails.editor = false;
+    if (previewThumbnails) {
+      // Disable editor mode in preview thumbnails
+      previewThumbnails.editor = false;
 
-    // Once all images are loaded remove the container from the preview thumbs
-    previewThumbnails.elements.editor = {};
+      // Once all images are loaded remove the container from the preview thumbs
+      previewThumbnails.elements.editor = {};
+    }
 
     // Once all images are loaded set the width of the parent video container to display them
     videoContainer.style.width = `${imageCount * this.videoContainerWidth}px`;
