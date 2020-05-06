@@ -13870,12 +13870,7 @@ var Editor = /*#__PURE__*/function () {
     key: "createVideoTimeline",
     value: function createVideoTimeline() {
       var previewThumbnails = this.player.previewThumbnails;
-      var timeline = this.elements.container.timeline;
-
-      if (!this.player.config.previewThumbnails.enabled || !previewThumbnails.loaded) {
-        return;
-      } // Create video timeline wrapper
-
+      var timeline = this.elements.container.timeline; // Create video timeline wrapper
 
       timeline.videoContainerParent = createElement('div', {
         class: this.player.config.classNames.editor.videoContainerParent
@@ -13895,21 +13890,19 @@ var Editor = /*#__PURE__*/function () {
       var timeline = this.elements.container.timeline; // Total number of images needed to fill the timeline width
 
       var clientRect = timeline.getBoundingClientRect();
+      var videoContainer = timeline.videoContainerParent.videoContainer;
       var imageCount = Math.ceil(clientRect.width / this.videoContainerWidth);
       var time = 0;
-
-      if (!previewThumbnails) {
-        return;
-      }
-
-      var videoContainer = timeline.videoContainerParent.videoContainer;
 
       if (is$1.nullOrUndefined(videoContainer.previewThumbs)) {
         videoContainer.previewThumbs = [];
       } // Enable editor mode in preview thumbnails
 
 
-      previewThumbnails.editor = true; // Append images to video timeline
+      if (previewThumbnails) {
+        previewThumbnails.editor = true;
+      } // Append images to video timeline
+
 
       for (var i = 0; i < imageCount; i += 1) {
         var previewThumb = void 0;
@@ -13925,19 +13918,26 @@ var Editor = /*#__PURE__*/function () {
         } else {
           // Retrieve the existing container
           previewThumb = videoContainer.previewThumbs[i];
-        } // set the current editor container
+        } // If preview thumbnails is enabled append an image to the previewThumb
 
 
-        previewThumbnails.elements.editor.container = previewThumb; // Append the image to the container
+        if (previewThumbnails) {
+          // set the current editor container
+          previewThumbnails.elements.editor.container = previewThumb; // Append the image to the container
 
-        previewThumbnails.showImageAtCurrentTime(time);
+          previewThumbnails.showImageAtCurrentTime(time);
+        }
+
         time += this.player.duration / (clientRect.width / this.videoContainerWidth);
-      } // Disable editor mode in preview thumbnails
+      }
 
+      if (previewThumbnails) {
+        // Disable editor mode in preview thumbnails
+        previewThumbnails.editor = false; // Once all images are loaded remove the container from the preview thumbs
 
-      previewThumbnails.editor = false; // Once all images are loaded remove the container from the preview thumbs
+        previewThumbnails.elements.editor = {};
+      } // Once all images are loaded set the width of the parent video container to display them
 
-      previewThumbnails.elements.editor = {}; // Once all images are loaded set the width of the parent video container to display them
 
       videoContainer.style.width = "".concat(imageCount * this.videoContainerWidth, "px");
     }
