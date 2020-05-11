@@ -8187,6 +8187,16 @@ var controls = {
         props.iconPressed = 'captions-on';
         break;
 
+      case 'zoomOut':
+        props.label = 'zoomOut';
+        props.icon = 'zoom-out';
+        break;
+
+      case 'zoomIn':
+        props.label = 'zoomIn';
+        props.icon = 'zoom-in';
+        break;
+
       case 'trim':
         props.toggle = true;
         props.label = 'enterTrim';
@@ -10068,8 +10078,7 @@ var defaults$1 = {
   'play', // 'fast-forward',
   'progress', 'current-time', // 'duration',
   'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', // 'download',
-  // 'trim',
-  'fullscreen'],
+  'trim', 'fullscreen'],
   settings: ['captions', 'quality', 'speed'],
   // Localisation
   i18n: {
@@ -10094,6 +10103,8 @@ var defaults$1 = {
     exitEditor: 'Exit Editor',
     editorCurrentTime: 'Current time',
     zoom: 'Zoom Timeline',
+    zoomOut: 'Zoom Out',
+    zoomIn: 'Zoom In',
     enterTrim: 'Enter trim',
     exitTrim: 'Exit trim',
     trimStart: 'Trim Start',
@@ -10173,7 +10184,7 @@ var defaults$1 = {
   'qualitychange', // Ads
   'adsloaded', 'adscontentpause', 'adscontentresume', 'adstarted', 'adsmidpoint', 'adscomplete', 'adsallcomplete', 'adsimpression', 'adsclick', // Editor
   'entereditor', 'exiteditor', 'zoomchange', // Markers
-  'markerchange', // Trimming
+  'markeradded', 'markerchange', // Trimming
   'entertrim', 'exittrim', 'trimchange'],
   // Selectors
   // Change these to match your template if using custom HTML
@@ -11517,6 +11528,14 @@ var Listeners = /*#__PURE__*/function () {
         if (editor.active) {
           editor.setZoom(event);
         }
+      }); // Zoom Out Control
+
+      this.bind(editor.elements.container.controls.zoomContainer.zoomOut, 'click', function (event) {
+        editor.setZoom(event);
+      }); // Zoom Out Control
+
+      this.bind(editor.elements.container.controls.zoomContainer.zoomIn, 'click', function (event) {
+        editor.setZoom(event);
       }); // Zoom timeline
 
       this.bind(editor.elements.container, 'wheel', function (event) {
@@ -13728,6 +13747,7 @@ var Editor = /*#__PURE__*/function () {
     this.timeline = {
       lowerSeek: 10,
       upperSeek: 90,
+      upperPlaying: 60,
       scrollSpeed: 1.5
     };
     this.videoContainerWidth = 123;
@@ -13817,7 +13837,10 @@ var Editor = /*#__PURE__*/function () {
       container.controls.zoomContainer = createElement('div', {
         class: "plyr__controls__item ".concat(this.player.config.classNames.editor.zoomContainer)
       });
-      container.controls.appendChild(container.controls.zoomContainer); // Create zoom slider
+      container.controls.appendChild(container.controls.zoomContainer); // Create minus icon
+
+      container.controls.zoomContainer.zoomOut = controls.createButton.call(this.player, 'zoomOut', 'plyr__controls__item');
+      container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoomOut); // Create zoom slider
 
       container.controls.zoomContainer.zoom = controls.createRange.call(this.player, 'zoom', {
         id: "plyr__editor__zoom",
@@ -13829,7 +13852,10 @@ var Editor = /*#__PURE__*/function () {
         'aria-valuemax': 4,
         'aria-valuenow': 1
       });
-      container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoom);
+      container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoom); // Create plus icon
+
+      container.controls.zoomContainer.zoomIn = controls.createButton.call(this.player, 'zoomIn', 'plyr__controls__item');
+      container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoomIn);
     }
   }, {
     key: "createTimeline",
@@ -13869,7 +13895,6 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "createVideoTimeline",
     value: function createVideoTimeline() {
-      var previewThumbnails = this.player.previewThumbnails;
       var timeline = this.elements.container.timeline; // Create video timeline wrapper
 
       timeline.videoContainerParent = createElement('div', {
@@ -13976,15 +14001,14 @@ var Editor = /*#__PURE__*/function () {
       var xPos = timeline.seekHandle.getBoundingClientRect().left;
       var percentage = 100 / clientRect.width * (xPos - clientRect.left);
 
-      if (!(event.type === 'wheel' || event.type === 'input')) {
+      if (!(event.type === 'wheel' || event.type === 'input' || event.type === 'click')) {
         return;
       } // Calculate zoom Delta for mousewheel
 
 
       if (event.type === 'wheel') {
         var delta = clamp(event.deltaY * -1, -1, 1);
-        this.zoom.scale += delta * 0.1 * this.zoom.scale;
-        this.zoom.scale = clamp(this.zoom.scale, 1, 4); // Restrict bounds of zoom for wheel
+        this.zoom.scale += delta * 0.1 * this.zoom.scale; // Restrict bounds of zoom for wheel
 
         if (this.zoom.scale === 4 && delta < 0 || this.zoom.scale === 1 && delta > 0) {
           return;
@@ -13993,8 +14017,16 @@ var Editor = /*#__PURE__*/function () {
       } else if (event.type === 'input') {
         var value = event.target.value;
         this.zoom.scale = value;
-      } // Apply zoom scale
+      } else if (event.type === 'click') {
+        if (event.target === this.elements.container.controls.zoomContainer.zoomIn) {
+          this.zoom.scale += 1;
+        } else {
+          this.zoom.scale -= 1;
+        }
+      } // Limit zoom to be between 1 and 4 times zoom
 
+
+      this.zoom.scale = clamp(this.zoom.scale, 1, 4); // Apply zoom scale
 
       timeline.style.width = "".concat(this.zoom.scale * 100, "%"); // Position the element based on the mouse position
 
@@ -14105,6 +14137,7 @@ var Editor = /*#__PURE__*/function () {
       var _this$timeline = this.timeline,
           lowerSeek = _this$timeline.lowerSeek,
           upperSeek = _this$timeline.upperSeek,
+          upperPlaying = _this$timeline.upperPlaying,
           scrollSpeed = _this$timeline.scrollSpeed; // Retrieve the container positions for the container, timeline and seek handle
 
       var clientRect = container.getBoundingClientRect();
@@ -14115,10 +14148,12 @@ var Editor = /*#__PURE__*/function () {
       var offset = parseFloat(container.timeline.style.left);
       var seekHandleOffset = parseFloat(container.timeline.seekHandle.style.left); // Retrieve the hover position in the editor container, else retrieve the seek value
 
-      var percentage = clamp(100 / clientRect.width * (seekPos.left - clientRect.left), 0, 100); // Calculate the timeline offset position
+      var percentage = 100 / clientRect.width * (seekPos.left - clientRect.left); // If playing set lower upper bound to when we shift the timeline
 
-      if (percentage > upperSeek && zoom - offset > 100) {
-        offset = Math.max(offset - (percentage - upperSeek) / scrollSpeed, (zoom - 100) * -1);
+      var upperBound = this.player.playing ? upperPlaying : upperSeek; // Calculate the timeline offset position
+
+      if (percentage > upperBound && zoom - offset > 100) {
+        offset = Math.max(offset - (percentage - upperBound) / scrollSpeed, (zoom - 100) * -1);
       } else if (percentage < lowerSeek) {
         offset = Math.min(offset - (lowerSeek - percentage) / -scrollSpeed, 0);
       }
@@ -14185,7 +14220,7 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "enter",
     value: function enter() {
-      if (!this.enabled || this.shown) {
+      if (!this.enabled || this.active) {
         return;
       }
 
@@ -14263,7 +14298,12 @@ var Markers = /*#__PURE__*/function () {
     value: function addMarker() {
       var timeline = this.player.editor.elements.container.timeline;
       var seekTime = this.player.elements.inputs.seek.value;
-      var marker = createElement('span', extend({
+
+      if (!timeline) {
+        return;
+      }
+
+      var marker = createElement('div', extend({
         class: this.player.config.classNames.markers.marker,
         'aria-valuemin': 0,
         'aria-valuemax': this.player.duration,
@@ -14275,7 +14315,23 @@ var Markers = /*#__PURE__*/function () {
       timeline.appendChild(marker); // Set the markers default position to be at the current seek point
 
       marker.style.left = "".concat(seekTime, "%");
-      this.addMarkerListeners(marker);
+      this.addMarkerListeners(marker); // Marker added event
+
+      triggerEvent.call(this.player, this.player.media, 'markeradded', true, {
+        time: seekTime
+      });
+    }
+  }, {
+    key: "removeMarker",
+    value: function removeMarker(marker) {
+      this.markers[marker].remove();
+    }
+  }, {
+    key: "removeMarkers",
+    value: function removeMarkers() {
+      this.elements.markers.forEach(function (marker) {
+        marker.remove();
+      });
     }
   }, {
     key: "addMarkerListeners",
@@ -14308,7 +14364,9 @@ var Markers = /*#__PURE__*/function () {
 
       if (type === 'mouseup' || type === 'touchend') {
         var value = marker.getAttribute('aria-valuenow');
-        triggerEvent.call(this.player, this.player.media, 'markerchange', false, value);
+        triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
+          time: value
+        });
         this.editing = null;
       } else if (type === 'mousedown' || type === 'touchstart') {
         this.editing = target;
@@ -14317,7 +14375,7 @@ var Markers = /*#__PURE__*/function () {
   }, {
     key: "setMarkerPosition",
     value: function setMarkerPosition(event) {
-      if (is$1.empty(this.editing)) return; // Calculate hover position
+      if (is$1.nullOrUndefined(this.editing)) return; // Calculate hover position
 
       var timeline = this.player.editor.elements.container.timeline;
       var clientRect = timeline.getBoundingClientRect();
@@ -14432,13 +14490,15 @@ var Trim = /*#__PURE__*/function () {
   }, {
     key: "showTrimTool",
     value: function showTrimTool() {
-      this.player.editor.enter();
+      if (this.player.editor && !this.player.editor.active) {
+        this.player.editor.enter();
+      }
 
       if (is$1.empty(this.elements.container.bar)) {
         this.createTrimTool();
       }
 
-      toggleHidden(this.elements.container.bar, false);
+      toggleHidden(this.elements.container, false);
     } // Hide the trim toolbar from the timeline
 
   }, {
@@ -14448,7 +14508,7 @@ var Trim = /*#__PURE__*/function () {
         this.player.editor.exit();
       }
 
-      toggleHidden(this.elements.container.bar, true);
+      toggleHidden(this.elements.container, true);
     } // Add trim toolbar to the timeline
 
   }, {
@@ -16405,7 +16465,8 @@ var Plyr = /*#__PURE__*/function () {
             removeElement(_this3.elements.buttons.play);
             removeElement(_this3.elements.captions);
             removeElement(_this3.elements.controls);
-            removeElement(_this3.elements.wrapper); // Clear for GC
+            removeElement(_this3.elements.wrapper);
+            removeElement(_this3.editor.elements.container); // Clear for GC
 
             _this3.elements.buttons.play = null;
             _this3.elements.captions = null;
@@ -16421,7 +16482,10 @@ var Plyr = /*#__PURE__*/function () {
           // Unbind listeners
           unbindListeners.call(_this3); // Replace the container with the original element provided
 
-          replaceElement(_this3.elements.original, _this3.elements.container); // Event
+          replaceElement(_this3.elements.original, _this3.elements.container); // Destroy the editor (editor is inserted after the container element)
+
+          _this3.editor.destroy(); // Event
+
 
           triggerEvent.call(_this3, _this3.elements.original, 'destroyed', true); // Callback
 
