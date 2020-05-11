@@ -23,6 +23,7 @@
   }
 }
 
-.plyr [hidden] {
+.plyr [hidden],
+.plyr[hidden] {
   display: none !important;
 }

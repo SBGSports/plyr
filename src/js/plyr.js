@@ -1136,6 +1136,7 @@ class Plyr {
           removeElement(this.elements.captions);
           removeElement(this.elements.controls);
           removeElement(this.elements.wrapper);
+          removeElement(this.editor.elements.container);
 
           // Clear for GC
           this.elements.buttons.play = null;
@@ -1154,6 +1155,9 @@ class Plyr {
 
         // Replace the container with the original element provided
         replaceElement(this.elements.original, this.elements.container);
+
+        // Destroy the editor (editor is inserted after the container element)
+        this.editor.destroy();
 
         // Event
         triggerEvent.call(this, this.elements.original, 'destroyed', true);

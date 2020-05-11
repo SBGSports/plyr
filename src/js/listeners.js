@@ -565,6 +565,16 @@ class Listeners {
       }
     });
 
+    // Zoom Out Control
+    this.bind(editor.elements.container.controls.zoomContainer.zoomOut, 'click', event => {
+      editor.setZoom(event);
+    });
+
+    // Zoom Out Control
+    this.bind(editor.elements.container.controls.zoomContainer.zoomIn, 'click', event => {
+      editor.setZoom(event);
+    });
+
     // Zoom timeline
     this.bind(
       editor.elements.container,

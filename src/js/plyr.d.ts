@@ -284,7 +284,13 @@ declare namespace Plyr {
     | 'waiting'
     | 'emptied'
     | 'cuechange'
-    | 'error';
+    | 'error'
+    | 'entereditor'
+    | 'exiteditor'
+    | 'zoomchange'
+    | 'trimchange'
+    | 'markeradded'
+    | 'markerchange';
   type YoutubeEvent = 'statechange' | 'qualitychange' | 'qualityrequested';
 
   interface EditorControl {
@@ -329,6 +335,11 @@ declare namespace Plyr {
      * Add a marker to the timeline.
      */
     addMarker(): void;
+
+    /**
+     * Remove all markers from the timeline.
+     */
+    removeMarkers(): void;
   }
 
   interface TrimControl {

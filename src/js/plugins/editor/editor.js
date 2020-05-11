@@ -18,6 +18,7 @@ class Editor {
     this.timeline = {
       lowerSeek: 10,
       upperSeek: 90,
+      upperPlaying: 60,
       scrollSpeed: 1.5,
     };
     this.videoContainerWidth = 123;
@@ -126,6 +127,14 @@ class Editor {
 
     container.controls.appendChild(container.controls.zoomContainer);
 
+    // Create minus icon
+    container.controls.zoomContainer.zoomOut = controls.createButton.call(
+      this.player,
+      'zoomOut',
+      'plyr__controls__item',
+    );
+    container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoomOut);
+
     // Create zoom slider
     container.controls.zoomContainer.zoom = controls.createRange.call(this.player, 'zoom', {
       id: `plyr__editor__zoom`,
@@ -139,6 +148,10 @@ class Editor {
     });
 
     container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoom);
+
+    // Create plus icon
+    container.controls.zoomContainer.zoomIn = controls.createButton.call(this.player, 'zoomIn', 'plyr__controls__item');
+    container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoomIn);
   }
 
   createTimeline() {
@@ -181,7 +194,6 @@ class Editor {
   }
 
   createVideoTimeline() {
-    const { previewThumbnails } = this.player;
     const { timeline } = this.elements.container;
 
     // Create video timeline wrapper
@@ -297,7 +309,7 @@ class Editor {
     const xPos = timeline.seekHandle.getBoundingClientRect().left;
     const percentage = (100 / clientRect.width) * (xPos - clientRect.left);
 
-    if (!(event.type === 'wheel' || event.type === 'input')) {
+    if (!(event.type === 'wheel' || event.type === 'input' || event.type === 'click')) {
       return;
     }
 
@@ -305,7 +317,6 @@ class Editor {
     if (event.type === 'wheel') {
       const delta = clamp(event.deltaY * -1, -1, 1);
       this.zoom.scale += delta * 0.1 * this.zoom.scale;
-      this.zoom.scale = clamp(this.zoom.scale, 1, 4);
 
       // Restrict bounds of zoom for wheel
       if ((this.zoom.scale === 4 && delta < 0) || (this.zoom.scale === 1 && delta > 0)) {
@@ -316,7 +327,16 @@ class Editor {
     } else if (event.type === 'input') {
       const { value } = event.target;
       this.zoom.scale = value;
+    } else if (event.type === 'click') {
+      if (event.target === this.elements.container.controls.zoomContainer.zoomIn) {
+        this.zoom.scale += 1;
+      } else {
+        this.zoom.scale -= 1;
+      }
     }
+
+    // Limit zoom to be between 1 and 4 times zoom
+    this.zoom.scale = clamp(this.zoom.scale, 1, 4);
 
     // Apply zoom scale
     timeline.style.width = `${this.zoom.scale * 100}%`;
@@ -426,7 +446,7 @@ class Editor {
   setTimelineOffset() {
     const { container } = this.elements;
     // Values defining the speed of scrolling and at what points triggering the offset
-    const { lowerSeek, upperSeek, scrollSpeed } = this.timeline;
+    const { lowerSeek, upperSeek, upperPlaying, scrollSpeed } = this.timeline;
     // Retrieve the container positions for the container, timeline and seek handle
     const clientRect = container.getBoundingClientRect();
     const timelineRect = container.timeline.getBoundingClientRect();
@@ -436,11 +456,13 @@ class Editor {
     let offset = parseFloat(container.timeline.style.left);
     const seekHandleOffset = parseFloat(container.timeline.seekHandle.style.left);
     // Retrieve the hover position in the editor container, else retrieve the seek value
-    const percentage = clamp((100 / clientRect.width) * (seekPos.left - clientRect.left), 0, 100);
+    const percentage = (100 / clientRect.width) * (seekPos.left - clientRect.left);
+    // If playing set lower upper bound to when we shift the timeline
+    const upperBound = this.player.playing ? upperPlaying : upperSeek;
 
     // Calculate the timeline offset position
-    if (percentage > upperSeek && zoom - offset > 100) {
-      offset = Math.max(offset - (percentage - upperSeek) / scrollSpeed, (zoom - 100) * -1);
+    if (percentage > upperBound && zoom - offset > 100) {
+      offset = Math.max(offset - (percentage - upperBound) / scrollSpeed, (zoom - 100) * -1);
     } else if (percentage < lowerSeek) {
       offset = Math.min(offset - (lowerSeek - percentage) / -scrollSpeed, 0);
     }
@@ -502,7 +524,7 @@ class Editor {
 
   // Enter Editor
   enter() {
-    if (!this.enabled || this.shown) {
+    if (!this.enabled || this.active) {
       return;
     }
     this.shown = true;

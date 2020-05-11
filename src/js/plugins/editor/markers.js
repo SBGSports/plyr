@@ -43,8 +43,12 @@ class Markers {
     const { timeline } = this.player.editor.elements.container;
     const seekTime = this.player.elements.inputs.seek.value;
 
+    if (!timeline) {
+      return;
+    }
+
     const marker = createElement(
-      'span',
+      'div',
       extend({
         class: this.player.config.classNames.markers.marker,
         'aria-valuemin': 0,
@@ -61,6 +65,19 @@ class Markers {
     // Set the markers default position to be at the current seek point
     marker.style.left = `${seekTime}%`;
     this.addMarkerListeners(marker);
+
+    // Marker added event
+    triggerEvent.call(this.player, this.player.media, 'markeradded', true, { time: seekTime });
+  }
+
+  removeMarker(marker) {
+    this.markers[marker].remove();
+  }
+
+  removeMarkers() {
+    this.elements.markers.forEach(marker => {
+      marker.remove();
+    });
   }
 
   addMarkerListeners(marker) {
@@ -90,7 +107,7 @@ class Markers {
 
     if (type === 'mouseup' || type === 'touchend') {
       const value = marker.getAttribute('aria-valuenow');
-      triggerEvent.call(this.player, this.player.media, 'markerchange', false, value);
+      triggerEvent.call(this.player, this.player.media, 'markerchange', false, { time: value });
       this.editing = null;
     } else if (type === 'mousedown' || type === 'touchstart') {
       this.editing = target;
@@ -98,7 +115,7 @@ class Markers {
   }
 
   setMarkerPosition(event) {
-    if (is.empty(this.editing)) return;
+    if (is.nullOrUndefined(this.editing)) return;
 
     // Calculate hover position
     const { timeline } = this.player.editor.elements.container;

@@ -74,11 +74,13 @@ class Trim {
 
   // Show the trim toolbar on the timeline
   showTrimTool() {
-    this.player.editor.enter();
+    if (this.player.editor && !this.player.editor.active) {
+      this.player.editor.enter();
+    }
     if (is.empty(this.elements.container.bar)) {
       this.createTrimTool();
     }
-    toggleHidden(this.elements.container.bar, false);
+    toggleHidden(this.elements.container, false);
   }
 
   // Hide the trim toolbar from the timeline
@@ -87,7 +89,7 @@ class Trim {
       this.player.editor.exit();
     }
 
-    toggleHidden(this.elements.container.bar, true);
+    toggleHidden(this.elements.container, true);
   }
 
   // Add trim toolbar to the timeline

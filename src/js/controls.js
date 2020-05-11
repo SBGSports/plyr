@@ -230,6 +230,16 @@ const controls = {
         props.iconPressed = 'captions-on';
         break;
 
+      case 'zoomOut':
+        props.label = 'zoomOut';
+        props.icon = 'zoom-out';
+        break;
+
+      case 'zoomIn':
+        props.label = 'zoomIn';
+        props.icon = 'zoom-in';
+        break;
+
       case 'trim':
         props.toggle = true;
         props.label = 'enterTrim';

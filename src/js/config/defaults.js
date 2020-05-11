@@ -186,6 +186,8 @@ const defaults = {
     exitEditor: 'Exit Editor',
     editorCurrentTime: 'Current time',
     zoom: 'Zoom Timeline',
+    zoomOut: 'Zoom Out',
+    zoomIn: 'Zoom In',
     enterTrim: 'Enter trim',
     exitTrim: 'Exit trim',
     trimStart: 'Trim Start',
@@ -318,6 +320,7 @@ const defaults = {
     'zoomchange',
 
     // Markers
+    'markeradded',
     'markerchange',
 
     // Trimming
