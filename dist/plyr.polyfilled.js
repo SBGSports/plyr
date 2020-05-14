@@ -10084,7 +10084,8 @@ typeof navigator === "object" && (function (global, factory) {
     'play', // 'fast-forward',
     'progress', 'current-time', // 'duration',
     'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', // 'download',
-    'trim', 'fullscreen'],
+    // 'trim',
+    'fullscreen'],
     settings: ['captions', 'quality', 'speed'],
     // Localisation
     i18n: {
@@ -11497,13 +11498,22 @@ typeof navigator === "object" && (function (global, factory) {
 
         var timelineInterval; // IE doesn't support input event, so we fallback to change
 
-        var inputEvent = browser.isIE ? 'change' : 'input'; // Use event listener to support IE, would be beneficial to change to resize observer
+        var inputEvent = browser.isIE ? 'change' : 'input'; // Use event listener to support IE and Edge
 
-        window.addEventListener('resize', function () {
-          if (editor.active) {
-            editor.setVideoTimelimeContent();
-          }
-        }); // Set seeking start
+        if (browser.isIE || browser.isEdge) {
+          window.addEventListener('resize', function () {
+            if (editor.active) {
+              editor.setVideoTimelimeContent();
+            }
+          });
+        } else {
+          new ResizeObserver(function () {
+            if (editor.active) {
+              editor.setVideoTimelimeContent();
+            }
+          }).observe(timeline);
+        } // Set seeking start
+
 
         this.bind(timeline, 'mousedown touchstart', function (event) {
           if (editor.active) {
@@ -13757,6 +13767,7 @@ typeof navigator === "object" && (function (global, factory) {
         scrollSpeed: 1.5
       };
       this.videoContainerWidth = 123;
+      this.videoContainerHeight = 67.5;
       this.zoom = {
         scale: 1
       };
@@ -13930,7 +13941,7 @@ typeof navigator === "object" && (function (global, factory) {
         } // Enable editor mode in preview thumbnails
 
 
-        if (previewThumbnails) {
+        if (this.previewThumbnailsLoaded) {
           previewThumbnails.editor = true;
         } // Append images to video timeline
 
@@ -13952,7 +13963,7 @@ typeof navigator === "object" && (function (global, factory) {
           } // If preview thumbnails is enabled append an image to the previewThumb
 
 
-          if (previewThumbnails) {
+          if (this.previewThumbnailsLoaded) {
             // set the current editor container
             previewThumbnails.elements.editor.container = previewThumb; // Append the image to the container
 
@@ -13962,7 +13973,7 @@ typeof navigator === "object" && (function (global, factory) {
           time += this.player.duration / (clientRect.width / this.videoContainerWidth);
         }
 
-        if (previewThumbnails) {
+        if (this.previewThumbnailsLoaded) {
           // Disable editor mode in preview thumbnails
           previewThumbnails.editor = false; // Once all images are loaded remove the container from the preview thumbs
 
@@ -14054,7 +14065,7 @@ typeof navigator === "object" && (function (global, factory) {
             rightThumb = _this$player$config$c.rightThumb;
         var marker = this.player.config.classNames.markers.marker; // Disable seeking event if selecting the trimming tool or a marker on the timeline
 
-        if (classList.contains(leftThumb) || classList.contains(rightThumb) || classList.contains(marker)) {
+        if ((event.type === 'mousedown' || event.type === 'touchstart') && classList.contains(leftThumb) || classList.contains(rightThumb) || classList.contains(marker)) {
           return;
         } // Only act on left mouse button (0), or touch device (event.button does not exist or is false)
 
@@ -14075,13 +14086,13 @@ typeof navigator === "object" && (function (global, factory) {
       key: "triggerSeekEvent",
       value: function triggerSeekEvent(event) {
         if (this.seeking) {
-          if (this.player.previewThumbnails) {
+          if (this.previewThumbnailsLoaded) {
             this.player.previewThumbnails.startScrubbing(event);
           }
 
           triggerEvent.call(this.player, this.player.media, 'seeking');
           this.setSeekTime(event);
-        } else if (this.player.previewThumbnails) {
+        } else if (this.previewThumbnailsLoaded) {
           this.player.previewThumbnails.endScrubbing(event);
         }
       }
@@ -14116,6 +14127,7 @@ typeof navigator === "object" && (function (global, factory) {
 
         if (['mousedown', 'touchstart', 'mousemove', 'touchmove'].includes(type)) {
           var timeline = this.elements.container.timeline;
+          var previewThumbnails = this.player.previewThumbnails;
           var clientRect = timeline.getBoundingClientRect();
           var xPos = type === 'touchmove' ? touches[0].pageX : pageX;
           var percentage = clamp(100 / clientRect.width * (xPos - clientRect.left), 0, 100); // Set the editor seek position
@@ -14128,9 +14140,9 @@ typeof navigator === "object" && (function (global, factory) {
 
           triggerEvent.call(this.player, this.player.media, 'seeked'); // Show the seek thumbnail
 
-          if (this.player.previewThumbnails) {
+          if (this.previewThumbnailsLoaded) {
             var seekTime = this.player.media.duration * (percentage / 100);
-            this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+            previewThumbnails.showImageAtCurrentTime(seekTime);
           }
         }
       } // If the seek handle is near the end of the visible timeline window, shift the timeline
@@ -14175,7 +14187,7 @@ typeof navigator === "object" && (function (global, factory) {
         var seekPercentage = parseFloat(seekHandleOffset) + 100 / timelineRect.width * (seekPos.left - seekPosUpdated);
         container.timeline.seekHandle.style.left = "".concat(seekPercentage, "%"); // Show the corresponding preview thumbnail for the updated seek position
 
-        if (this.seeking && this.player.previewThumbnails) {
+        if (this.seeking && this.previewThumbnailsLoaded) {
           var seekTime = this.player.media.duration * (seekPercentage / 100);
           this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
         }
@@ -14273,6 +14285,12 @@ typeof navigator === "object" && (function (global, factory) {
 
         return this.shown;
       }
+    }, {
+      key: "previewThumbnailsLoaded",
+      get: function get() {
+        var previewThumbnails = this.player.previewThumbnails;
+        return previewThumbnails && previewThumbnails.loaded;
+      }
     }]);
 
     return Editor;
@@ -14301,36 +14319,43 @@ typeof navigator === "object" && (function (global, factory) {
       }
     }, {
       key: "addMarker",
-      value: function addMarker() {
+      value: function addMarker(id, time) {
         var timeline = this.player.editor.elements.container.timeline;
-        var seekTime = this.player.elements.inputs.seek.value;
+        var markerTime = time || this.player.currentTime;
+        var percentage = clamp(100 / this.player.duration * parseFloat(markerTime), 0, 100);
 
         if (!timeline) {
           return;
         }
 
         var marker = createElement('div', extend({
+          id: id,
           class: this.player.config.classNames.markers.marker,
           'aria-valuemin': 0,
           'aria-valuemax': this.player.duration,
-          'aria-valuenow': seekTime,
-          'aria-valuetext': formatTime(seekTime),
+          'aria-valuenow': markerTime,
+          'aria-valuetext': formatTime(markerTime),
           'aria-label': i18n.get('marker', this.player.config)
         }));
         this.elements.markers.push(marker);
         timeline.appendChild(marker); // Set the markers default position to be at the current seek point
 
-        marker.style.left = "".concat(seekTime, "%");
+        marker.style.left = "".concat(percentage, "%");
         this.addMarkerListeners(marker); // Marker added event
 
         triggerEvent.call(this.player, this.player.media, 'markeradded', true, {
-          time: seekTime
+          id: id,
+          time: markerTime
         });
       }
     }, {
       key: "removeMarker",
-      value: function removeMarker(marker) {
-        this.markers[marker].remove();
+      value: function removeMarker(id) {
+        this.elements.markers.forEach(function (marker) {
+          if (marker.id === id) {
+            marker.remove();
+          }
+        });
       }
     }, {
       key: "removeMarkers",
@@ -14371,6 +14396,7 @@ typeof navigator === "object" && (function (global, factory) {
         if (type === 'mouseup' || type === 'touchend') {
           var value = marker.getAttribute('aria-valuenow');
           triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
+            id: target.id,
             time: value
           });
           this.editing = null;
@@ -15665,10 +15691,11 @@ typeof navigator === "object" && (function (global, factory) {
       value: function setImageSizeAndOffset(previewImage, frame) {
         if (!this.usingSprites) {
           return;
-        } // Find difference between height and preview container height
+        }
 
+        var container = this.editor ? this.player.editor.videoContainerHeight : this.thumbContainerHeight; // Find difference between height and preview container height
 
-        var multiplier = this.thumbContainerHeight / frame.h; // eslint-disable-next-line no-param-reassign
+        var multiplier = container / frame.h; // eslint-disable-next-line no-param-reassign
 
         previewImage.style.height = "".concat(previewImage.naturalHeight * multiplier, "px"); // eslint-disable-next-line no-param-reassign
 
