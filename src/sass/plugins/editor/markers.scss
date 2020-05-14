@@ -2,9 +2,7 @@
 // Video Markers
 // --------------------------------------------------------------
 
-$plyr-marker-height: calc(
-  #{$plyr-editor-height} - #{$plyr-editor-controls-height} - #{$plyr-editor-timestamp-height}
-) !default;
+$plyr-marker-height: $plyr-editor-video-container-height !default;
 $plyr-marker-width: var(--plyr-marker-width, 7px) !default;
 $plyr-marker-background: $plyr-color-main !default;
 $plyr-marker-border-radius: var(--plyr-marker-border-radius, 7px);

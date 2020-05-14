@@ -5,7 +5,7 @@
 $plyr-trim-border-height: var(--plyr-trim-border-height, 4px) !default;
 $plyr-trim-border: var(--plyr-trim-border, $plyr-trim-border-height solid $plyr-color-main) !default;
 
-$plyr-trim-height: calc(#{$plyr-editor-height} - #{$plyr-editor-controls-height} - #{$plyr-editor-timestamp-height});
+$plyr-trim-height: $plyr-editor-preview-thumb-height;
 $plyr-trim-bar-height: $plyr-trim-height;
 
 $plyr-trim-shaded-region: var(--plyr-trim-shaded-region, hsla(0, 0%, 0%, 0.3)) !default;
@@ -24,6 +24,7 @@ $plyr-trim-time-bottom-offset: var(--plyr-trim-time-bottom-offset, 1px);
 
 .plyr__trim__container {
   height: $plyr-trim-bar-height;
+  margin-top: $plyr-editor-video-container-margin;
   position: absolute;
   width: 100%;
 }

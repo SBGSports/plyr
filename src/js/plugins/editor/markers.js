@@ -39,9 +39,10 @@ class Markers {
     this.update();
   }
 
-  addMarker() {
+  addMarker(id, time) {
     const { timeline } = this.player.editor.elements.container;
-    const seekTime = this.player.elements.inputs.seek.value;
+    const markerTime = time || this.player.currentTime;
+    const percentage = clamp((100 / this.player.duration) * parseFloat(markerTime), 0, 100);
 
     if (!timeline) {
       return;
@@ -50,11 +51,12 @@ class Markers {
     const marker = createElement(
       'div',
       extend({
+        id,
         class: this.player.config.classNames.markers.marker,
         'aria-valuemin': 0,
         'aria-valuemax': this.player.duration,
-        'aria-valuenow': seekTime,
-        'aria-valuetext': formatTime(seekTime),
+        'aria-valuenow': markerTime,
+        'aria-valuetext': formatTime(markerTime),
         'aria-label': i18n.get('marker', this.player.config),
       }),
     );
@@ -63,15 +65,19 @@ class Markers {
     timeline.appendChild(marker);
 
     // Set the markers default position to be at the current seek point
-    marker.style.left = `${seekTime}%`;
+    marker.style.left = `${percentage}%`;
     this.addMarkerListeners(marker);
 
     // Marker added event
-    triggerEvent.call(this.player, this.player.media, 'markeradded', true, { time: seekTime });
+    triggerEvent.call(this.player, this.player.media, 'markeradded', true, { id, time: markerTime });
   }
 
-  removeMarker(marker) {
-    this.markers[marker].remove();
+  removeMarker(id) {
+    this.elements.markers.forEach(marker => {
+      if (marker.id === id) {
+        marker.remove();
+      }
+    });
   }
 
   removeMarkers() {
@@ -107,7 +113,7 @@ class Markers {
 
     if (type === 'mouseup' || type === 'touchend') {
       const value = marker.getAttribute('aria-valuenow');
-      triggerEvent.call(this.player, this.player.media, 'markerchange', false, { time: value });
+      triggerEvent.call(this.player, this.player.media, 'markerchange', false, { id: target.id, time: value });
       this.editing = null;
     } else if (type === 'mousedown' || type === 'touchstart') {
       this.editing = target;

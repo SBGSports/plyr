@@ -524,12 +524,20 @@ class Listeners {
     // IE doesn't support input event, so we fallback to change
     const inputEvent = browser.isIE ? 'change' : 'input';
 
-    // Use event listener to support IE, would be beneficial to change to resize observer
-    window.addEventListener('resize', () => {
-      if (editor.active) {
-        editor.setVideoTimelimeContent();
-      }
-    });
+    // Use event listener to support IE and Edge
+    if (browser.isIE || browser.isEdge) {
+      window.addEventListener('resize', () => {
+        if (editor.active) {
+          editor.setVideoTimelimeContent();
+        }
+      });
+    } else {
+      new ResizeObserver(() => {
+        if (editor.active) {
+          editor.setVideoTimelimeContent();
+        }
+      }).observe(timeline);
+    }
 
     // Set seeking start
     this.bind(timeline, 'mousedown touchstart', event => {

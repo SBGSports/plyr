@@ -3,10 +3,9 @@
 // --------------------------------------------------------------
 
 $plyr-editor-controls-height: var(--plyr-editor-controls-height, 32px) !default;
-$plyr-editor-controls-video-range-track-background: var(
-  --plyr-editor-controls-video-range-track-background,
-  rgba(0, 0, 0, 0.2)
-);
+$plyr-editor-controls-margin: var(--plyr-editor-controls-margin, 7px) !default;
+$plyr-editor-controls-font-size: var(--plyr-editor-font-size, 16px) !default;
+$plyr-editor-controls-track-background: var(--plyr-editor-controls-track-background, rgba(0, 0, 0, 0.2));
 
 $plyr-editor-timestamp-width: var(--plyr-editor-timestamp-width, 20%) !default;
 $plyr-editor-timestamp-height: var(--plyr-editor-timestamp-height, 25px) !default;
@@ -15,27 +14,37 @@ $plyr-editor-timestamp-padding-top: var(--plyr-editor-timestamp-padding-top, 4px
 $plyr-editor-timestamp-padding-left: var(--plyr-editor-timestamp-padding-left, 3px) !default;
 $plyr-editor-timestamp-marker: var(--plyr-editor-timestamp-color, 1px solid hsl(198, 17%, 77%));
 
-$plyr-editor-preview-thumb-height: var(--plyr-editor-preview-thumb-height, 67.5px);
+$plyr-editor-video-container-height: var(--plyr-editor-video-container-height, 67.5px);
+$plyr-editor-video-container-margin: var(--plyr-editor-video-container-margin, 25px);
+$plyr-editor-video-container-total-height: calc(
+  #{$plyr-editor-video-container-height} + #{$plyr-editor-video-container-margin} * 2
+);
+$plyr-editor-preview-thumb-height: $plyr-editor-video-container-height;
 $plyr-editor-preview-thumb-border-radius: var(--plyr-editor-preview-thumb-border-radius, 5px);
 $plyr-editor-preview-thumb-background: var(--plyr-editor-preview-thumb-background, hsla(0, 0%, 0%, 0.03));
 
-$plyr-editor-height: calc(
-  #{$plyr-editor-controls-height} + #{$plyr-editor-timestamp-height} + #{$plyr-editor-preview-thumb-height}
+$plyr-editor-seek-handle-padding: var(--plyr-editor-seek-handle-padding, 10px);
+$plyr-editor-seek-handle-height: calc(
+  #{$plyr-editor-video-container-total-height} - #{$plyr-editor-seek-handle-padding}
 );
-$plyr-editor-padding: var(--plyr-editor-padding, 0 10px);
-$plyr-editor-font-size: var(--plyr-editor-font-size, 10px) !default;
-$plyr-editor-controls-font-size: var(--plyr-editor-font-size, 16px) !default;
-
-$plyr-editor-seek-handle-height: $plyr-editor-height;
 $plyr-editor-seek-handle-width: var(--plyr-editor-seek-handle-width, 10px);
-$plyr-editor-seek-handle-color: var(--plyr-editor-seek-handle-color, #fff);
-$plyr-editor-seek-handle-box-shadow-head: var(--plyr-editor-seek-handle-box-shadow-head, 0 0 3px hsla(0, 0%, 0%, 0.3));
+$plyr-editor-seek-handle-color: var(--plyr-editor-seek-handle-color, hsl(197, 3%, 40%));
+$plyr-editor-seek-handle-box-shadow-head: var(
+  --plyr-editor-seek-handle-box-shadow-head,
+  0 0 3px hsla(0, 0%, 100%, 0.3)
+);
 $plyr-editor-seek-handle-box-shadow-line: var(
   --plyr-editor-seek-handle-box-shadow-line,
-  0 1px 3px hsla(0, 0%, 0%, 0.3)
+  0 1px 3px hsla(0, 0%, 100%, 0.3)
 );
-$plyr-editor-seek-handle-head-width: $plyr-editor-seek-handle-width;
-$plyr-editor-seek-handle-line-width: calc(#{$plyr-editor-seek-handle-width} / 4);
+$plyr-editor-seek-handle-head-size: $plyr-editor-seek-handle-width;
+$plyr-editor-seek-handle-line-width: var(--plyr-editor-seek-handle-line-width, 2px);
+
+$plyr-editor-padding: var(--plyr-editor-padding, 0 10px);
+$plyr-editor-font-size: var(--plyr-editor-font-size, 10px) !default;
+$plyr-editor-height: calc(
+  #{$plyr-editor-controls-height} + #{$plyr-editor-timestamp-height} + #{$plyr-editor-controls-margin} + #{$plyr-editor-video-container-total-height}
+);
 
 .plyr__editor__container {
   box-shadow: none;
@@ -52,6 +61,7 @@ $plyr-editor-seek-handle-line-width: calc(#{$plyr-editor-seek-handle-width} / 4)
   display: flex;
   height: $plyr-editor-controls-height;
   justify-content: flex-start;
+  margin-bottom: $plyr-editor-controls-margin;
   width: inherit;
 
   .plyr__time {
@@ -75,18 +85,17 @@ $plyr-editor-seek-handle-line-width: calc(#{$plyr-editor-seek-handle-width} / 4)
   position: relative;
 
   &::-webkit-slider-runnable-track {
-    background-color: $plyr-editor-controls-video-range-track-background;
+    background-color: $plyr-editor-controls-track-background;
   }
 
   &::-moz-range-track {
-    background-color: $plyr-editor-controls-video-range-track-background;
+    background-color: $plyr-editor-controls-track-background;
   }
 
   &::-ms-track {
-    background-color: $plyr-editor-controls-video-range-track-background;
+    background-color: $plyr-editor-controls-track-background;
   }
 
-  // Pressed styles
   &:active {
     &::-webkit-slider-thumb {
       @include plyr-range-thumb-active($plyr-video-range-thumb-active-shadow-color);
@@ -110,14 +119,19 @@ $plyr-editor-seek-handle-line-width: calc(#{$plyr-editor-seek-handle-width} / 4)
 }
 
 .plyr__editor__video-container-parent {
-  height: calc(#{$plyr-editor-height} - #{$plyr-editor-timestamp-height});
+  display: flex;
+  flex-direction: column;
+  height: $plyr-editor-video-container-height;
+  justify-content: center;
+  margin-bottom: $plyr-editor-video-container-margin;
+  margin-top: $plyr-editor-video-container-margin;
   overflow: hidden;
   position: absolute;
   width: 100%;
 
   .plyr__editor__video-container {
     float: left;
-    height: auto;
+    height: $plyr-editor-preview-thumb-height;
     position: absolute;
   }
 }
@@ -138,9 +152,9 @@ $plyr-editor-seek-handle-line-width: calc(#{$plyr-editor-seek-handle-width} / 4)
     left: 0;
     max-height: none;
     max-width: none;
+    pointer-events: none;
     position: absolute;
     top: 0;
-    -webkit-user-drag: none;
     width: 100%;
   }
 }
@@ -164,23 +178,23 @@ $plyr-editor-seek-handle-line-width: calc(#{$plyr-editor-seek-handle-width} / 4)
 .plyr__editor__seek-handle {
   height: $plyr-editor-seek-handle-height;
   margin-left: calc((#{$plyr-editor-seek-handle-width} / 2 - #{$plyr-editor-seek-handle-line-width} / 2) * -1);
+  margin-top: calc(#{$plyr-editor-seek-handle-padding} / 2);
   position: absolute;
-  top: 0;
   width: $plyr-editor-seek-handle-width;
   z-index: 3;
 
   &-head {
     background: $plyr-editor-seek-handle-color;
-    border-radius: calc(#{$plyr-editor-seek-handle-head-width} / 2);
+    border-radius: calc(#{$plyr-editor-seek-handle-head-size} / 2);
     box-shadow: $plyr-editor-seek-handle-box-shadow-head;
-    height: $plyr-editor-seek-handle-head-width;
-    width: $plyr-editor-seek-handle-head-width;
+    height: $plyr-editor-seek-handle-head-size;
+    width: $plyr-editor-seek-handle-head-size;
   }
 
   &-line {
     background: $plyr-editor-seek-handle-color;
     box-shadow: $plyr-editor-seek-handle-box-shadow-line;
-    height: 100%;
+    height: calc(#{$plyr-editor-seek-handle-height} - #{$plyr-editor-seek-handle-head-size});
     margin-left: auto;
     margin-right: auto;
     width: $plyr-editor-seek-handle-line-width;

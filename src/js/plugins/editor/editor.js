@@ -22,6 +22,7 @@ class Editor {
       scrollSpeed: 1.5,
     };
     this.videoContainerWidth = 123;
+    this.videoContainerHeight = 67.5;
     this.zoom = {
       scale: 1,
     };
@@ -46,6 +47,11 @@ class Editor {
     }
 
     return this.shown;
+  }
+
+  get previewThumbnailsLoaded() {
+    const { previewThumbnails } = this.player;
+    return previewThumbnails && previewThumbnails.loaded;
   }
 
   load() {
@@ -227,7 +233,7 @@ class Editor {
     }
 
     // Enable editor mode in preview thumbnails
-    if (previewThumbnails) {
+    if (this.previewThumbnailsLoaded) {
       previewThumbnails.editor = true;
     }
 
@@ -249,7 +255,7 @@ class Editor {
       }
 
       // If preview thumbnails is enabled append an image to the previewThumb
-      if (previewThumbnails) {
+      if (this.previewThumbnailsLoaded) {
         // set the current editor container
         previewThumbnails.elements.editor.container = previewThumb;
 
@@ -260,7 +266,7 @@ class Editor {
       time += this.player.duration / (clientRect.width / this.videoContainerWidth);
     }
 
-    if (previewThumbnails) {
+    if (this.previewThumbnailsLoaded) {
       // Disable editor mode in preview thumbnails
       previewThumbnails.editor = false;
 
@@ -358,7 +364,11 @@ class Editor {
     const { marker } = this.player.config.classNames.markers;
 
     // Disable seeking event if selecting the trimming tool or a marker on the timeline
-    if (classList.contains(leftThumb) || classList.contains(rightThumb) || classList.contains(marker)) {
+    if (
+      ((event.type === 'mousedown' || event.type === 'touchstart') && classList.contains(leftThumb)) ||
+      classList.contains(rightThumb) ||
+      classList.contains(marker)
+    ) {
       return;
     }
 
@@ -377,12 +387,12 @@ class Editor {
 
   triggerSeekEvent(event) {
     if (this.seeking) {
-      if (this.player.previewThumbnails) {
+      if (this.previewThumbnailsLoaded) {
         this.player.previewThumbnails.startScrubbing(event);
       }
       triggerEvent.call(this.player, this.player.media, 'seeking');
       this.setSeekTime(event);
-    } else if (this.player.previewThumbnails) {
+    } else if (this.previewThumbnailsLoaded) {
       this.player.previewThumbnails.endScrubbing(event);
     }
   }
@@ -418,6 +428,7 @@ class Editor {
 
     if (['mousedown', 'touchstart', 'mousemove', 'touchmove'].includes(type)) {
       const { timeline } = this.elements.container;
+      const { previewThumbnails } = this.player;
       const clientRect = timeline.getBoundingClientRect();
       const xPos = type === 'touchmove' ? touches[0].pageX : pageX;
       const percentage = clamp((100 / clientRect.width) * (xPos - clientRect.left), 0, 100);
@@ -435,9 +446,9 @@ class Editor {
       triggerEvent.call(this.player, this.player.media, 'seeked');
 
       // Show the seek thumbnail
-      if (this.player.previewThumbnails) {
+      if (this.previewThumbnailsLoaded) {
         const seekTime = this.player.media.duration * (percentage / 100);
-        this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+        previewThumbnails.showImageAtCurrentTime(seekTime);
       }
     }
   }
@@ -481,7 +492,7 @@ class Editor {
     container.timeline.seekHandle.style.left = `${seekPercentage}%`;
 
     // Show the corresponding preview thumbnail for the updated seek position
-    if (this.seeking && this.player.previewThumbnails) {
+    if (this.seeking && this.previewThumbnailsLoaded) {
       const seekTime = this.player.media.duration * (seekPercentage / 100);
       this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
     }

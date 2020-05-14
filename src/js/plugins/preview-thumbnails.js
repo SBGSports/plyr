@@ -745,8 +745,9 @@ class PreviewThumbnails {
       return;
     }
 
+    const container = this.editor ? this.player.editor.videoContainerHeight : this.thumbContainerHeight;
     // Find difference between height and preview container height
-    const multiplier = this.thumbContainerHeight / frame.h;
+    const multiplier = container / frame.h;
 
     // eslint-disable-next-line no-param-reassign
     previewImage.style.height = `${previewImage.naturalHeight * multiplier}px`;

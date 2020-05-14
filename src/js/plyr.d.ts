@@ -334,7 +334,7 @@ declare namespace Plyr {
     /**
      * Add a marker to the timeline.
      */
-    addMarker(): void;
+    addMarker(id: string, time?: number): void;
 
     /**
      * Remove all markers from the timeline.
