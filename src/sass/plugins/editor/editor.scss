@@ -40,7 +40,7 @@ $plyr-editor-seek-handle-box-shadow-line: var(
 $plyr-editor-seek-handle-head-size: $plyr-editor-seek-handle-width;
 $plyr-editor-seek-handle-line-width: var(--plyr-editor-seek-handle-line-width, 2px);
 
-$plyr-editor-padding: var(--plyr-editor-padding, 0 10px);
+$plyr-editor-padding: var(--plyr-editor-padding, 10px) !default;
 $plyr-editor-font-size: var(--plyr-editor-font-size, 10px) !default;
 $plyr-editor-height: calc(
   #{$plyr-editor-controls-height} + #{$plyr-editor-timestamp-height} + #{$plyr-editor-controls-margin} + #{$plyr-editor-video-container-total-height}
@@ -51,18 +51,25 @@ $plyr-editor-height: calc(
   display: block;
   font-size: $plyr-editor-font-size;
   height: $plyr-editor-height;
+  min-height: $plyr-editor-height;
   overflow: hidden;
-  padding: $plyr-editor-padding;
+  padding-left: $plyr-editor-padding;
+  padding-right: $plyr-editor-padding;
   position: relative;
   width: 100%;
 }
 
 .plyr__editor__controls {
+  align-items: center;
   display: flex;
   height: $plyr-editor-controls-height;
-  justify-content: flex-start;
   margin-bottom: $plyr-editor-controls-margin;
   width: inherit;
+
+  .plyr__editor__controls__time-container {
+    text-align: left;
+    width: 7em;
+  }
 
   .plyr__time {
     font-size: $plyr-editor-controls-font-size;

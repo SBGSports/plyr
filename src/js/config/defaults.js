@@ -113,6 +113,7 @@ const defaults = {
   // Editor settings
   editor: {
     enabled: true, // Allow Editor?
+    target: null, // Target Container for Editor (if no container is specified, video editor will be appended to the video container)
   },
 
   markers: {
@@ -317,6 +318,7 @@ const defaults = {
     // Editor
     'entereditor',
     'exiteditor',
+    'editorloaded',
     'zoomchange',
 
     // Markers
@@ -430,6 +432,7 @@ const defaults = {
     },
     markers: {
       marker: 'plyr__markers__marker',
+      label: 'plyr__markers__label',
     },
     trim: {
       enabled: 'plyr--trim-enabled',

@@ -115,7 +115,7 @@ class Trim {
   // Add trim bar to the timeline
   createTrimBar() {
     // Set the trim bar from the current seek time percentage to x percent after and limit the end percentage to 100%
-    const start = this.player.elements.inputs.seek.value;
+    const start = clamp((100 / this.player.duration) * parseFloat(this.player.currentTime), 0, 100);
     const end = Math.min(parseFloat(start) + this.defaultTrimLength, 100);
 
     // Store the start and end video percentages in seconds
@@ -407,7 +407,7 @@ class Trim {
     }
 
     // Trigger an event
-    triggerEvent.call(this.player, this.player.media, this.active ? 'entertrim' : 'exittrim', true, this.trimTime);
+    triggerEvent.call(this.player, this.player.media, this.active ? 'entertrim' : 'exittrim', false, this.trimTime);
   }
 
   // Update UI

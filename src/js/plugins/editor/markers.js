@@ -1,3 +1,4 @@
+import controls from '../../controls';
 import { createElement, toggleHidden } from '../../utils/elements';
 import { triggerEvent } from '../../utils/events';
 import i18n from '../../utils/i18n';
@@ -68,8 +69,19 @@ class Markers {
     marker.style.left = `${percentage}%`;
     this.addMarkerListeners(marker);
 
+    // Add label to marker
+    const label = createElement(
+      'div',
+      {
+        class: this.player.config.classNames.markers.label,
+      },
+      id.replace(/_/g, ' '),
+    );
+
+    marker.appendChild(label);
+
     // Marker added event
-    triggerEvent.call(this.player, this.player.media, 'markeradded', true, { id, time: markerTime });
+    triggerEvent.call(this.player, this.player.media, 'markeradded', false, { id, time: markerTime });
   }
 
   removeMarker(id) {
@@ -113,7 +125,10 @@ class Markers {
 
     if (type === 'mouseup' || type === 'touchend') {
       const value = marker.getAttribute('aria-valuenow');
-      triggerEvent.call(this.player, this.player.media, 'markerchange', false, { id: target.id, time: value });
+      triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
+        id: target.id,
+        time: parseFloat(value),
+      });
       this.editing = null;
     } else if (type === 'mousedown' || type === 'touchstart') {
       this.editing = target;

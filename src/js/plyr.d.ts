@@ -287,6 +287,7 @@ declare namespace Plyr {
     | 'error'
     | 'entereditor'
     | 'exiteditor'
+    | 'editorloaded'
     | 'zoomchange'
     | 'trimchange'
     | 'markeradded'
@@ -539,17 +540,17 @@ declare namespace Plyr {
     captions?: CaptionOptions;
 
     /**
-     * enabled: Toggles whether trimming should be enabled.
+     * enabled: Toggles whether the editor should be enabled.
      */
     editor?: EditorOptions;
 
     /**
-     * enabled: Toggles whether trimming should be enabled.
+     * enabled: Toggles whether video markers should be enabled.
      */
     markers?: MarkersOptions;
 
     /**
-     * enabled: Toggles whether trimming should be enabled.
+     * enabled: Toggles whether the trimming should be enabled.
      */
     trim?: TrimOptions;
 
@@ -632,6 +633,7 @@ declare namespace Plyr {
 
   interface EditorOptions {
     enabled?: boolean;
+    target?: NodeList | HTMLElement | HTMLElement[] | string;
   }
 
   interface MarkersOptions {

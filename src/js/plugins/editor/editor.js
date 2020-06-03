@@ -26,6 +26,7 @@ class Editor {
     this.zoom = {
       scale: 1,
     };
+    this.duration = 0;
     this.numOfTimestamps = 5;
     this.elements = {
       container: {},
@@ -88,18 +89,61 @@ class Editor {
       this.createVideoTimeline();
       this.createSeekHandle();
       this.player.listeners.editor();
+      triggerEvent.call(this.player, this.player.media, 'editorloaded');
     }
   }
 
   createContainer(container) {
+    const { config } = this;
+
+    // If no container has been specified append to the video container
+    if (is.nullOrUndefined(config.target)) {
+      this.createNewContainer(container);
+    } else {
+      this.appendTargetContainer();
+    }
+
+    // We need an element to setup
+    if (is.nullOrUndefined(container) || !is.element(container)) {
+      this.debug.error('Editor Creation failed: no suitable element passed');
+      return;
+    }
+
+    // Add style hook
+    ui.addStyleHook.call(this.player, this.elements.container);
+  }
+
+  // Create and append to video Container
+  createNewContainer(container) {
     this.elements.container = createElement('div', {
       class: this.player.config.classNames.editor.container,
     });
 
     insertAfter(this.elements.container, container);
+  }
 
-    // Add style hook
-    ui.addStyleHook.call(this.player, this.elements.container);
+  // Append editor to specified Container
+  appendTargetContainer() {
+    const { config, elements, player } = this;
+    elements.container = config.target;
+
+    // String selector passed
+    if (is.string(elements.container)) {
+      elements.container = document.querySelectorAll(elements.container);
+    }
+
+    // jQuery, NodeList or Array passed, use first element
+    if (
+      (window.jQuery && elements.container instanceof jQuery) ||
+      is.nodeList(elements.container) ||
+      is.array(elements.container)
+    ) {
+      // eslint-disable-next-line
+      this.elements.container = elements.container[0];
+    }
+
+    // set editor container class
+    this.elements.container.classList.add(player.config.classNames.editor.container);
   }
 
   createControls() {
@@ -107,6 +151,7 @@ class Editor {
 
     // Create controls container
     container.controls = createElement('div', {
+      id: `plyr__editor__controls`,
       class: this.player.config.classNames.editor.controls,
     });
 
@@ -197,6 +242,25 @@ class Editor {
 
     // Add list of timestamps to elements object
     timeline.timestampsContainer.timeStamps = timeStamps;
+  }
+
+  updateTimestamps() {
+    const { timeline } = this.elements.container;
+    const { duration } = this.player;
+
+    if (this.player.duration === 0 || this.duration === duration || !is.element(timeline.timestampsContainer)) {
+      return;
+    }
+
+    // Store the current player duration, to avoid setting the editor timestamps if the video length has not changed
+    this.duration = duration;
+
+    const step = duration / this.numOfTimestamps;
+
+    timeline.timestampsContainer.timeStamps.forEach((timestamp, i) => {
+      // eslint-disable-next-line no-param-reassign
+      timestamp.innerText = formatTime(Math.round(step * i));
+    });
   }
 
   createVideoTimeline() {
@@ -402,10 +466,10 @@ class Editor {
       return;
     }
     const { timeline } = this.elements.container;
-    const { seek } = this.player.elements.inputs;
+    const percentage = clamp((100 / this.player.duration) * parseFloat(this.player.currentTime), 0, 100);
 
-    timeline.seekHandle.style.left = `${seek.value}%`;
-    this.setTimelineOffset(seek.value);
+    timeline.seekHandle.style.left = `${percentage}%`;
+    this.setTimelineOffset();
 
     const currentTime = controls.formatTime(this.player.currentTime);
     const duration = controls.formatTime(this.player.duration);
@@ -487,7 +551,11 @@ class Editor {
 
     // Retrieve the position of the seek handle after the timeline shift
     const seekPosUpdated = container.timeline.seekHandle.getBoundingClientRect().left;
-    const seekPercentage = parseFloat(seekHandleOffset) + (100 / timelineRect.width) * (seekPos.left - seekPosUpdated);
+    const seekPercentage = clamp(
+      parseFloat(seekHandleOffset) + (100 / timelineRect.width) * (seekPos.left - seekPosUpdated),
+      0,
+      100,
+    );
 
     container.timeline.seekHandle.style.left = `${seekPercentage}%`;
 
@@ -505,6 +573,13 @@ class Editor {
         this.createEditor();
       }
     });
+
+    // If the duration changes after loading the editor, the corresponding timestamps need to be updated
+    this.player.on('loadeddata loadedmetadata', () => {
+      if (this.loaded && this.shown) {
+        this.updateTimestamps();
+      }
+    });
   }
 
   // On toggle of the editor, trigger event
@@ -514,7 +589,7 @@ class Editor {
     }
 
     // Trigger an event
-    triggerEvent.call(this.player, this.player.media, this.active ? 'enterEditor' : 'exitEditor', true);
+    triggerEvent.call(this.player, this.player.media, this.active ? 'entereditor' : 'exiteditor', false);
   }
 
   // Update UI
@@ -530,6 +605,8 @@ class Editor {
     // Remove the elements with listeners on
     if (this.elements.container && !is.empty(this.elements.container)) {
       this.elements.container.remove();
+
+      this.loaded = false;
     }
   }
 
