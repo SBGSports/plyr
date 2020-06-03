@@ -40,8 +40,7 @@ $plyr-editor-seek-handle-box-shadow-line: var(
 $plyr-editor-seek-handle-head-size: $plyr-editor-seek-handle-width;
 $plyr-editor-seek-handle-line-width: var(--plyr-editor-seek-handle-line-width, 2px);
 
-$plyr-editor-box-shadow: var(--plyr-editor-box-shadow, 0 0 3px #0000001c;) !default;
-
+$plyr-editor-box-shadow: var(--plyr-editor-box-shadow, 0 0 3px #0000001c) !default;
 $plyr-editor-padding: var(--plyr-editor-padding, 10px) !default;
 $plyr-editor-font-size: var(--plyr-editor-font-size, 10px) !default;
 $plyr-editor-height: calc(
@@ -49,7 +48,6 @@ $plyr-editor-height: calc(
 );
 
 .plyr__editor__container {
-  box-shadow: none;
   box-shadow: $plyr-editor-box-shadow;
   display: block;
   font-size: $plyr-editor-font-size;
