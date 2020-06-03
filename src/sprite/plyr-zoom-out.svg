@@ -1,1 +1,21 @@
-<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search-minus" class="svg-inline--fa fa-search-minus fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M304 192v32c0 6.6-5.4 12-12 12H124c-6.6 0-12-5.4-12-12v-32c0-6.6 5.4-12 12-12h168c6.6 0 12 5.4 12 12zm201 284.7L476.7 505c-9.4 9.4-24.6 9.4-33.9 0L343 405.3c-4.5-4.5-7-10.6-7-17V372c-35.3 27.6-79.7 44-128 44C93.1 416 0 322.9 0 208S93.1 0 208 0s208 93.1 208 208c0 48.3-16.4 92.7-44 128h16.3c6.4 0 12.5 2.5 17 7l99.7 99.7c9.3 9.4 9.3 24.6 0 34zM344 208c0-75.2-60.8-136-136-136S72 132.8 72 208s60.8 136 136 136 136-60.8 136-136z"></path></svg>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 24.1.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 16 16" style="enable-background:new 0 0 16 16;" xml:space="preserve">
+<style type="text/css">
+	.st0{display:none;stroke:#000000;stroke-width:9;stroke-miterlimit:10;}
+	.st1{display:none;}
+</style>
+<g id="Layer_1">
+	<path d="M6.9,13.1c-3.4,0-6.2-2.8-6.2-6.2c0-3.4,2.8-6.2,6.2-6.2c3.4,0,6.2,2.8,6.2,6.2C13.1,10.3,10.3,13.1,6.9,13.1z M6.9,2.1
+		c-2.7,0-4.8,2.2-4.8,4.8c0,2.7,2.2,4.8,4.8,4.8c2.7,0,4.8-2.2,4.8-4.8C11.7,4.2,9.5,2.1,6.9,2.1z"/>
+	<path class="st0" d="M0,18"/>
+	<path d="M9.3,7.6h-5c-0.4,0-0.7-0.3-0.7-0.7v0c0-0.4,0.3-0.7,0.7-0.7h5c0.4,0,0.7,0.3,0.7,0.7v0C10,7.3,9.7,7.6,9.3,7.6z"/>
+	<path d="M12.3,11l3.7,3.7c0.2,0.2,0.1,0.4,0,0.6L15.3,16c-0.2,0.2-0.4,0.2-0.6,0L11,12.3c-0.2-0.2-0.1-0.4,0-0.6l0.7-0.7
+		c0.1-0.1,0.1-0.1,0.2-0.1C12.1,10.9,12.3,10.9,12.3,11z"/>
+	<polyline points="10.9,11.4 11.1,11.9 11.9,11.1 11.4,10.9 	"/>
+	<line x1="10.9" y1="11.4" x2="11.4" y2="10.9"/>
+</g>
+<g id="Layer_2" class="st1">
+</g>
+</svg>

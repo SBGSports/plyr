@@ -3726,7 +3726,9 @@ typeof navigator === "object" && (function (global, factory) {
     },
     // Editor settings
     editor: {
-      enabled: true // Allow Editor?
+      enabled: true,
+      // Allow Editor?
+      target: null // Target Container for Editor (if no container is specified, video editor will be appended to the video container)
 
     },
     markers: {
@@ -3869,7 +3871,7 @@ typeof navigator === "object" && (function (global, factory) {
     'statechange', // Quality
     'qualitychange', // Ads
     'adsloaded', 'adscontentpause', 'adscontentresume', 'adstarted', 'adsmidpoint', 'adscomplete', 'adsallcomplete', 'adsimpression', 'adsclick', // Editor
-    'entereditor', 'exiteditor', 'zoomchange', // Markers
+    'entereditor', 'exiteditor', 'editorloaded', 'zoomchange', // Markers
     'markeradded', 'markerchange', // Trimming
     'entertrim', 'exittrim', 'trimchange'],
     // Selectors
@@ -3972,7 +3974,8 @@ typeof navigator === "object" && (function (global, factory) {
         seekHandleLine: 'plyr__editor__seek-handle-line'
       },
       markers: {
-        marker: 'plyr__markers__marker'
+        marker: 'plyr__markers__marker',
+        label: 'plyr__markers__label'
       },
       trim: {
         enabled: 'plyr--trim-enabled',
@@ -7387,6 +7390,7 @@ typeof navigator === "object" && (function (global, factory) {
       this.zoom = {
         scale: 1
       };
+      this.duration = 0;
       this.numOfTimestamps = 5;
       this.elements = {
         container: {}
@@ -7435,17 +7439,59 @@ typeof navigator === "object" && (function (global, factory) {
           this.createVideoTimeline();
           this.createSeekHandle();
           this.player.listeners.editor();
+          triggerEvent.call(this.player, this.player.media, 'editorloaded');
         }
       }
     }, {
       key: "createContainer",
       value: function createContainer(container) {
+        var config = this.config; // If no container has been specified append to the video container
+
+        if (is$1.nullOrUndefined(config.target)) {
+          this.createNewContainer(container);
+        } else {
+          this.appendTargetContainer();
+        } // We need an element to setup
+
+
+        if (is$1.nullOrUndefined(container) || !is$1.element(container)) {
+          this.debug.error('Editor Creation failed: no suitable element passed');
+          return;
+        } // Add style hook
+
+
+        ui.addStyleHook.call(this.player, this.elements.container);
+      } // Create and append to video Container
+
+    }, {
+      key: "createNewContainer",
+      value: function createNewContainer(container) {
         this.elements.container = createElement('div', {
           class: this.player.config.classNames.editor.container
         });
-        insertAfter(this.elements.container, container); // Add style hook
+        insertAfter(this.elements.container, container);
+      } // Append editor to specified Container
 
-        ui.addStyleHook.call(this.player, this.elements.container);
+    }, {
+      key: "appendTargetContainer",
+      value: function appendTargetContainer() {
+        var config = this.config,
+            elements = this.elements,
+            player = this.player;
+        elements.container = config.target; // String selector passed
+
+        if (is$1.string(elements.container)) {
+          elements.container = document.querySelectorAll(elements.container);
+        } // jQuery, NodeList or Array passed, use first element
+
+
+        if (window.jQuery && elements.container instanceof jQuery || is$1.nodeList(elements.container) || is$1.array(elements.container)) {
+          // eslint-disable-next-line
+          this.elements.container = elements.container[0];
+        } // set editor container class
+
+
+        this.elements.container.classList.add(player.config.classNames.editor.container);
       }
     }, {
       key: "createControls",
@@ -7453,6 +7499,7 @@ typeof navigator === "object" && (function (global, factory) {
         var container = this.elements.container; // Create controls container
 
         container.controls = createElement('div', {
+          id: "plyr__editor__controls",
           class: this.player.config.classNames.editor.controls
         });
         container.appendChild(container.controls); // Create time container
@@ -7524,6 +7571,24 @@ typeof navigator === "object" && (function (global, factory) {
 
 
         timeline.timestampsContainer.timeStamps = timeStamps;
+      }
+    }, {
+      key: "updateTimestamps",
+      value: function updateTimestamps() {
+        var timeline = this.elements.container.timeline;
+        var duration = this.player.duration;
+
+        if (this.player.duration === 0 || this.duration === duration || !is$1.element(timeline.timestampsContainer)) {
+          return;
+        } // Store the current player duration, to avoid setting the editor timestamps if the video length has not changed
+
+
+        this.duration = duration;
+        var step = duration / this.numOfTimestamps;
+        timeline.timestampsContainer.timeStamps.forEach(function (timestamp, i) {
+          // eslint-disable-next-line no-param-reassign
+          timestamp.innerText = formatTime(Math.round(step * i));
+        });
       }
     }, {
       key: "createVideoTimeline",
@@ -7720,9 +7785,9 @@ typeof navigator === "object" && (function (global, factory) {
         }
 
         var timeline = this.elements.container.timeline;
-        var seek = this.player.elements.inputs.seek;
-        timeline.seekHandle.style.left = "".concat(seek.value, "%");
-        this.setTimelineOffset(seek.value);
+        var percentage = clamp(100 / this.player.duration * parseFloat(this.player.currentTime), 0, 100);
+        timeline.seekHandle.style.left = "".concat(percentage, "%");
+        this.setTimelineOffset();
         var currentTime = controls.formatTime(this.player.currentTime);
         var duration = controls.formatTime(this.player.duration);
         var format = i18n.get('seekLabel', this.player.config); // Update aria values
@@ -7800,7 +7865,7 @@ typeof navigator === "object" && (function (global, factory) {
         container.timeline.style.left = "".concat(offset, "%"); // Retrieve the position of the seek handle after the timeline shift
 
         var seekPosUpdated = container.timeline.seekHandle.getBoundingClientRect().left;
-        var seekPercentage = parseFloat(seekHandleOffset) + 100 / timelineRect.width * (seekPos.left - seekPosUpdated);
+        var seekPercentage = clamp(parseFloat(seekHandleOffset) + 100 / timelineRect.width * (seekPos.left - seekPosUpdated), 0, 100);
         container.timeline.seekHandle.style.left = "".concat(seekPercentage, "%"); // Show the corresponding preview thumbnail for the updated seek position
 
         if (this.seeking && this.previewThumbnailsLoaded) {
@@ -7819,6 +7884,12 @@ typeof navigator === "object" && (function (global, factory) {
           if (_this2.shown) {
             _this2.createEditor();
           }
+        }); // If the duration changes after loading the editor, the corresponding timestamps need to be updated
+
+        this.player.on('loadeddata loadedmetadata', function () {
+          if (_this2.loaded && _this2.shown) {
+            _this2.updateTimestamps();
+          }
         });
       } // On toggle of the editor, trigger event
 
@@ -7830,7 +7901,7 @@ typeof navigator === "object" && (function (global, factory) {
         } // Trigger an event
 
 
-        triggerEvent.call(this.player, this.player.media, this.active ? 'enterEditor' : 'exitEditor', true);
+        triggerEvent.call(this.player, this.player.media, this.active ? 'entereditor' : 'exiteditor', false);
       } // Update UI
 
     }, {
@@ -7848,6 +7919,7 @@ typeof navigator === "object" && (function (global, factory) {
         // Remove the elements with listeners on
         if (this.elements.container && !is$1.empty(this.elements.container)) {
           this.elements.container.remove();
+          this.loaded = false;
         }
       } // Enter Editor
 
@@ -7957,9 +8029,14 @@ typeof navigator === "object" && (function (global, factory) {
         timeline.appendChild(marker); // Set the markers default position to be at the current seek point
 
         marker.style.left = "".concat(percentage, "%");
-        this.addMarkerListeners(marker); // Marker added event
+        this.addMarkerListeners(marker); // Add label to marker
 
-        triggerEvent.call(this.player, this.player.media, 'markeradded', true, {
+        var label = createElement('div', {
+          class: this.player.config.classNames.markers.label
+        }, id.replace(/_/g, ' '));
+        marker.appendChild(label); // Marker added event
+
+        triggerEvent.call(this.player, this.player.media, 'markeradded', false, {
           id: id,
           time: markerTime
         });
@@ -8013,7 +8090,7 @@ typeof navigator === "object" && (function (global, factory) {
           var value = marker.getAttribute('aria-valuenow');
           triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
             id: target.id,
-            time: value
+            time: parseFloat(value)
           });
           this.editing = null;
         } else if (type === 'mousedown' || type === 'touchstart') {
@@ -8186,7 +8263,7 @@ typeof navigator === "object" && (function (global, factory) {
       key: "createTrimBar",
       value: function createTrimBar() {
         // Set the trim bar from the current seek time percentage to x percent after and limit the end percentage to 100%
-        var start = this.player.elements.inputs.seek.value;
+        var start = clamp(100 / this.player.duration * parseFloat(this.player.currentTime), 0, 100);
         var end = Math.min(parseFloat(start) + this.defaultTrimLength, 100); // Store the start and end video percentages in seconds
 
         this.setStartTime(start);
@@ -8486,7 +8563,7 @@ typeof navigator === "object" && (function (global, factory) {
         } // Trigger an event
 
 
-        triggerEvent.call(this.player, this.player.media, this.active ? 'entertrim' : 'exittrim', true, this.trimTime);
+        triggerEvent.call(this.player, this.player.media, this.active ? 'entertrim' : 'exittrim', false, this.trimTime);
       } // Update UI
 
     }, {
