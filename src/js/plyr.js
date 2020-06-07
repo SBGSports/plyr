@@ -1150,6 +1150,9 @@ class Plyr {
           callback();
         }
       } else {
+        // Event
+        triggerEvent.call(this, this.elements.container, 'destroyed', true);
+
         // Unbind listeners
         unbindListeners.call(this);
 
@@ -1158,9 +1161,6 @@ class Plyr {
 
         // Destroy the editor (editor is inserted after the container element)
         this.editor.destroy();
-
-        // Event
-        triggerEvent.call(this, this.elements.original, 'destroyed', true);
 
         // Callback
         if (is.function(callback)) {
