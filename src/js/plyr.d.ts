@@ -601,6 +601,11 @@ declare namespace Plyr {
      * Youtube Player Options.
      */
     youtube?: object;
+
+    /**
+     * Preview Thumbnails Options.
+     */
+    previewThumbnails?: PreviewThumbnailsOptions;
   }
 
   interface QualityOptions {
@@ -667,6 +672,11 @@ declare namespace Plyr {
   interface StorageOptions {
     enabled?: boolean;
     key?: string;
+  }
+
+  interface PreviewThumbnailsOptions {
+    enabled?: boolean;
+    src?: string;
   }
 
   interface SourceInfo {

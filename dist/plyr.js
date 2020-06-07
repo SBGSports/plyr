@@ -2844,7 +2844,7 @@ typeof navigator === "object" && (function (global, factory) {
           showMenuPanel = controls.showMenuPanel;
       this.elements.controls = null; // Larger overlaid play button
 
-      if (this.config.controls.includes('play-large')) {
+      if (is$1.array(this.config.controls) && this.config.controls.includes('play-large')) {
         this.elements.container.appendChild(createButton.call(this, 'play-large'));
       } // Create the container
 
@@ -2856,7 +2856,7 @@ typeof navigator === "object" && (function (global, factory) {
         class: 'plyr__controls__item'
       }; // Loop through controls in order
 
-      dedupe(this.config.controls).forEach(function (control) {
+      dedupe(is$1.array(this.config.controls) ? this.config.controls : []).forEach(function (control) {
         // Restart button
         if (control === 'restart') {
           container.appendChild(createButton.call(_this10, 'restart', defaultAttributes));
@@ -3180,8 +3180,6 @@ typeof navigator === "object" && (function (global, factory) {
       if (update) {
         if (is$1.string(this.config.controls)) {
           container = replace(container);
-        } else if (is$1.element(container)) {
-          container.innerHTML = replace(container.innerHTML);
         }
       } // Controls container
 
@@ -3719,7 +3717,7 @@ typeof navigator === "object" && (function (global, factory) {
     // Sprite (for icons)
     loadSprite: true,
     iconPrefix: 'plyr',
-    iconUrl: 'https://cdn.plyr.io/3.5.10/plyr.svg',
+    iconUrl: 'https://cdn.plyr.io/3.6.1/plyr.svg',
     // Blank video (used to prevent errors on source change)
     blankVideo: 'https://cdn.plyr.io/static/blank.mp4',
     // Quality default
@@ -4235,10 +4233,12 @@ typeof navigator === "object" && (function (global, factory) {
 
         if (is$1.element(button)) {
           button.pressed = this.active;
-        } // Trigger an event
+        } // Always trigger events on the plyr / media element (not a fullscreen container) and let them bubble up
 
 
-        triggerEvent.call(this.player, this.target, this.active ? 'enterfullscreen' : 'exitfullscreen', true);
+        var target = this.target === this.player.media ? this.target : this.player.elements.container; // Trigger an event
+
+        triggerEvent.call(this.player, target, this.active ? 'enterfullscreen' : 'exitfullscreen', true);
       }
     }, {
       key: "toggleFallback",
@@ -4704,7 +4704,7 @@ typeof navigator === "object" && (function (global, factory) {
       // Loop through values (as they are the keys when the object is spread 🤔)
       Object.values(_objectSpread2({}, this.media.style)) // We're only fussed about Plyr specific properties
       .filter(function (key) {
-        return key.startsWith('--plyr');
+        return !is$1.empty(key) && key.startsWith('--plyr');
       }).forEach(function (key) {
         // Set on the container
         _this5.elements.container.style.setProperty(key, _this5.media.style.getPropertyValue(key)); // Clean up from media element
@@ -8905,24 +8905,53 @@ typeof navigator === "object" && (function (global, factory) {
 
     }, {
       key: "getVttFile",
-      value: function getVttFile(src) {
-        var _this3 = this;
+      value: function () {
+        var _getVttFile = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(src) {
+          var response;
+          return regeneratorRuntime.wrap(function _callee$(_context) {
+            while (1) {
+              switch (_context.prev = _context.next) {
+                case 0:
+                  if (!src.startsWith('WEBVTT')) {
+                    _context.next = 5;
+                    break;
+                  }
 
-        return new Promise(function (resolve) {
-          if (src.startsWith('WEBVTT')) {
-            _this3.getThumbnail(src).then(resolve());
-          } else {
-            fetch(src).then(function (response) {
-              return _this3.getThumbnail(response, src).then(resolve());
-            });
-          }
-        });
-      } // Process thumbnail
+                  _context.next = 3;
+                  return this.getThumbnail(src);
+
+                case 3:
+                  _context.next = 10;
+                  break;
+
+                case 5:
+                  _context.next = 7;
+                  return fetch(src);
+
+                case 7:
+                  response = _context.sent;
+                  _context.next = 10;
+                  return this.getThumbnail(response, src);
+
+                case 10:
+                case "end":
+                  return _context.stop();
+              }
+            }
+          }, _callee, this);
+        }));
+
+        function getVttFile(_x) {
+          return _getVttFile.apply(this, arguments);
+        }
+
+        return getVttFile;
+      }() // Process thumbnail
 
     }, {
       key: "getThumbnail",
       value: function getThumbnail(src, url) {
-        var _this4 = this;
+        var _this3 = this;
 
         return new Promise(function (resolve) {
           var thumbnail = {
@@ -8943,7 +8972,7 @@ typeof navigator === "object" && (function (global, factory) {
             thumbnail.height = tempImage.naturalHeight;
             thumbnail.width = tempImage.naturalWidth;
 
-            _this4.thumbnails.push(thumbnail);
+            _this3.thumbnails.push(thumbnail);
 
             resolve();
           });
@@ -9016,7 +9045,7 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "endScrubbing",
       value: function endScrubbing() {
-        var _this5 = this;
+        var _this4 = this;
 
         this.mouseDown = false; // Hide scrubbing preview. But wait until the video has successfully seeked before hiding the scrubbing preview
 
@@ -9027,8 +9056,8 @@ typeof navigator === "object" && (function (global, factory) {
           // The video hasn't seeked yet. Wait for that
           once.call(this.player, this.player.media, 'timeupdate', function () {
             // Re-check mousedown - we might have already started scrubbing again
-            if (!_this5.mouseDown) {
-              _this5.toggleScrubbingContainer(false);
+            if (!_this4.mouseDown) {
+              _this4.toggleScrubbingContainer(false);
             }
           });
         }
@@ -9040,17 +9069,17 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "listeners",
       value: function listeners() {
-        var _this6 = this;
+        var _this5 = this;
 
         // Hide thumbnail preview - on mouse click, mouse leave (in listeners.js for now), and video play/seek. All four are required, e.g., for buffering
         this.player.on('play', function () {
-          _this6.toggleThumbContainer(false, true);
+          _this5.toggleThumbContainer(false, true);
         });
         this.player.on('seeked', function () {
-          _this6.toggleThumbContainer(false);
+          _this5.toggleThumbContainer(false);
         });
         this.player.on('timeupdate', function () {
-          _this6.lastTime = _this6.player.media.currentTime;
+          _this5.lastTime = _this5.player.media.currentTime;
         });
       }
       /**
@@ -9102,7 +9131,7 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "showImageAtCurrentTime",
       value: function showImageAtCurrentTime() {
-        var _this7 = this;
+        var _this6 = this;
 
         var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.seekTime;
         var container = arguments.length > 1 ? arguments[1] : undefined;
@@ -9119,7 +9148,7 @@ typeof navigator === "object" && (function (global, factory) {
           return time >= frame.startTime && time <= frame.endTime;
         });
         var hasThumb = thumbNum >= 0;
-        var qualityIndex = 0; // Show the thumb container if we're not scrubbing or setting a custom container
+        var qualityIndex = 0; // Show the thumb container if we're not scrubbing and not setting a custom container
 
         if (!this.mouseDown && !container) {
           this.toggleThumbContainer(hasThumb);
@@ -9132,7 +9161,7 @@ typeof navigator === "object" && (function (global, factory) {
 
 
         this.thumbnails.forEach(function (thumbnail, index) {
-          if (_this7.loadedImages.includes(thumbnail.frames[thumbNum].text)) {
+          if (_this6.loadedImages.includes(thumbnail.frames[thumbNum].text)) {
             qualityIndex = index;
           }
         }); // Only proceed if either thumbnum, thumbfilename or container has changed
@@ -9146,7 +9175,7 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "loadImage",
       value: function loadImage() {
-        var _this8 = this;
+        var _this7 = this;
 
         var qualityIndex = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
         var container = arguments.length > 1 ? arguments[1] : undefined;
@@ -9175,8 +9204,8 @@ typeof navigator === "object" && (function (global, factory) {
           this.player.debug.log("Loading image: ".concat(thumbUrl)); // For some reason, passing the named function directly causes it to execute immediately. So I've wrapped it in an anonymous function...
 
           previewImage.addEventListener('load', function () {
-            _this8.showImage( // For the editor timeline, we need the most recent container however, if the event has changed between seeking and hover we should use the new container
-            container || _this8.currentImageContainer, previewImage, frame, qualityIndex, thumbNum, thumbFilename, true, !!container);
+            _this7.showImage( // For the editor timeline, we need the most recent container however, if the event has changed between seeking and hover we should use the new container
+            container || _this7.currentImageContainer, previewImage, frame, qualityIndex, thumbNum, thumbFilename, true, !!container);
           }, {
             once: true
           });
@@ -9221,7 +9250,7 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "removeOldImages",
       value: function removeOldImages(currentImage, container) {
-        var _this9 = this;
+        var _this8 = this;
 
         // This has to be set before the timeout - to prevent issues switching between hover and scrub
         var currentImageContainer = container || this.currentImageContainer; // Get a list of all images, convert it from a DOM list to an array
@@ -9231,7 +9260,7 @@ typeof navigator === "object" && (function (global, factory) {
             return;
           }
 
-          var removeDelay = _this9.usingSprites ? 500 : 1000;
+          var removeDelay = _this8.usingSprites ? 500 : 1000;
 
           if (image.dataset.index !== currentImage.dataset.index && !image.dataset.deleting) {
             // Wait 200ms, as the new image can take some time to show on certain browsers (even though it was downloaded before showing). This will prevent flicker, and show some generosity towards slower clients
@@ -9241,7 +9270,7 @@ typeof navigator === "object" && (function (global, factory) {
             setTimeout(function () {
               currentImageContainer.removeChild(image);
 
-              _this9.player.debug.log("Removing thumb: ".concat(image.dataset.filename));
+              _this8.player.debug.log("Removing thumb: ".concat(image.dataset.filename));
             }, removeDelay);
           }
         });
@@ -9251,21 +9280,21 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "preloadNearby",
       value: function preloadNearby(thumbNum) {
-        var _this10 = this;
+        var _this9 = this;
 
         var forward = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
         return new Promise(function (resolve) {
           setTimeout(function () {
-            var oldThumbFilename = _this10.thumbnails[0].frames[thumbNum].text;
+            var oldThumbFilename = _this9.thumbnails[0].frames[thumbNum].text;
 
-            if (_this10.showingThumbFilename === oldThumbFilename) {
+            if (_this9.showingThumbFilename === oldThumbFilename) {
               // Find the nearest thumbs with different filenames. Sometimes it'll be the next index, but in the case of sprites, it might be 100+ away
               var thumbnailsClone;
 
               if (forward) {
-                thumbnailsClone = _this10.thumbnails[0].frames.slice(thumbNum);
+                thumbnailsClone = _this9.thumbnails[0].frames.slice(thumbNum);
               } else {
-                thumbnailsClone = _this10.thumbnails[0].frames.slice(0, thumbNum).reverse();
+                thumbnailsClone = _this9.thumbnails[0].frames.slice(0, thumbNum).reverse();
               }
 
               var foundOne = false;
@@ -9274,20 +9303,20 @@ typeof navigator === "object" && (function (global, factory) {
 
                 if (newThumbFilename !== oldThumbFilename) {
                   // Found one with a different filename. Make sure it hasn't already been loaded on this page visit
-                  if (!_this10.loadedImages.includes(newThumbFilename)) {
+                  if (!_this9.loadedImages.includes(newThumbFilename)) {
                     foundOne = true;
 
-                    _this10.player.debug.log("Preloading thumb filename: ".concat(newThumbFilename));
+                    _this9.player.debug.log("Preloading thumb filename: ".concat(newThumbFilename));
 
-                    var urlPrefix = _this10.thumbnails[0].urlPrefix;
+                    var urlPrefix = _this9.thumbnails[0].urlPrefix;
                     var thumbURL = urlPrefix + newThumbFilename;
                     var previewImage = new Image();
                     previewImage.src = thumbURL;
 
                     previewImage.onload = function () {
-                      _this10.player.debug.log("Preloaded thumb filename: ".concat(newThumbFilename));
+                      _this9.player.debug.log("Preloaded thumb filename: ".concat(newThumbFilename));
 
-                      if (!_this10.loadedImages.includes(newThumbFilename)) _this10.loadedImages.push(newThumbFilename); // We don't resolve until the thumb is loaded
+                      if (!_this9.loadedImages.includes(newThumbFilename)) _this9.loadedImages.push(newThumbFilename); // We don't resolve until the thumb is loaded
 
                       resolve();
                     };
@@ -9306,7 +9335,7 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "getHigherQuality",
       value: function getHigherQuality(currentQualityIndex, previewImage, frame, thumbFilename) {
-        var _this11 = this;
+        var _this10 = this;
 
         if (currentQualityIndex < this.thumbnails.length - 1) {
           // Only use the higher quality version if it's going to look any better - if the current thumb is of a lower pixel density than the thumbnail container
@@ -9320,10 +9349,10 @@ typeof navigator === "object" && (function (global, factory) {
             // Recurse back to the loadImage function - show a higher quality one, but only if the viewer is on this frame for a while
             setTimeout(function () {
               // Make sure the mouse hasn't already moved on and started hovering at another image
-              if (_this11.showingThumbFilename === thumbFilename) {
-                _this11.player.debug.log("Showing higher quality thumb for: ".concat(thumbFilename));
+              if (_this10.showingThumbFilename === thumbFilename) {
+                _this10.player.debug.log("Showing higher quality thumb for: ".concat(thumbFilename));
 
-                _this11.loadImage(currentQualityIndex + 1);
+                _this10.loadImage(currentQualityIndex + 1);
               }
             }, 300);
           }
@@ -10149,7 +10178,7 @@ typeof navigator === "object" && (function (global, factory) {
 
           var hiding = toggleClass(this.elements.container, this.config.classNames.hideControls, force); // Close menu
 
-          if (hiding && this.config.controls.includes('settings') && !is$1.empty(this.config.settings)) {
+          if (hiding && is$1.array(this.config.controls) && this.config.controls.includes('settings') && !is$1.empty(this.config.settings)) {
             controls.toggleMenu.call(this, false);
           } // Trigger event on change
 
