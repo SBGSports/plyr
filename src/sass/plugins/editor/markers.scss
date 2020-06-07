@@ -25,4 +25,5 @@ $plyr-marker-border-width: var(--plyr-marker-border-width, 3px) !default;
 
 .plyr__markers__label {
   transform: rotate(45deg) translateX(calc(#{$plyr-marker-size} + 3px));
+  white-space: nowrap;
 }

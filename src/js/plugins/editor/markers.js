@@ -130,8 +130,15 @@ class Markers {
         time: parseFloat(value),
       });
       this.editing = null;
+
+      if (this.player.previewThumbnails) {
+        this.player.previewThumbnails.endScrubbing(event);
+      }
     } else if (type === 'mousedown' || type === 'touchstart') {
       this.editing = target;
+      if (this.player.previewThumbnails) {
+        this.player.previewThumbnails.startScrubbing(event);
+      }
     }
   }
 
@@ -151,6 +158,12 @@ class Markers {
     marker.style.left = `${percentage}%`;
     marker.setAttribute('aria-valuenow', time);
     marker.setAttribute('aria-valuetext', formatTime(time));
+
+    // Show the seek thumbnail
+    if (this.player.previewThumbnails) {
+      const seekTime = this.player.media.duration * (percentage / 100);
+      this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+    }
   }
 
   toggleMarkers(show = true) {
