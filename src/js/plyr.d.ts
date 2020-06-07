@@ -148,6 +148,12 @@ declare class Plyr {
    */
   readonly embed?: any;
 
+  readonly editor: Plyr.EditorControl;
+
+  readonly markers: Plyr.MarkersControl;
+
+  readonly trim: Plyr.TrimControl;
+
   readonly fullscreen: Plyr.FullscreenControl;
 
   /**
@@ -260,8 +266,6 @@ declare namespace Plyr {
     | 'seeked'
     | 'ratechange'
     | 'ended'
-    | 'entertrim'
-    | 'exittrim'
     | 'enterfullscreen'
     | 'exitfullscreen'
     | 'captionsenabled'
@@ -269,7 +273,8 @@ declare namespace Plyr {
     | 'languagechange'
     | 'controlshidden'
     | 'controlsshown'
-    | 'ready';
+    | 'ready'
+    | 'destroyed';
   type Html5Event =
     | 'loadstart'
     | 'loadeddata'
@@ -280,8 +285,91 @@ declare namespace Plyr {
     | 'waiting'
     | 'emptied'
     | 'cuechange'
-    | 'error';
+    | 'error'
+    | 'entereditor'
+    | 'exiteditor'
+    | 'editorloaded'
+    | 'zoomchange'
+    | 'trimchange'
+    | 'markeradded'
+    | 'markerchange';
   type YoutubeEvent = 'statechange' | 'qualitychange' | 'qualityrequested';
+
+  interface EditorControl {
+    /**
+     * Indicates if the current player has the editor enabled.
+     */
+    readonly enabled: boolean;
+
+    /**
+     * Indicates if the current player is displaying the editor tool.
+     */
+    readonly active: boolean;
+
+    /**
+     * Enter Editor.
+     */
+    enter(): void;
+
+    /**
+     * Exit Editor.
+     */
+    exit(): void;
+
+    /**
+     * Toggle Editor.
+     */
+    toggle(): void;
+  }
+
+  interface MarkersControl {
+    /**
+     * Indicates if the current player has the video marker enabled.
+     */
+    readonly enabled: boolean;
+
+    /**
+     * Indicates if the current player is displaying video markers on the timeline.
+     */
+    readonly active: boolean;
+
+    /**
+     * Add a marker to the timeline.
+     */
+    addMarker(id: string, time?: number): void;
+
+    /**
+     * Remove all markers from the timeline.
+     */
+    removeMarkers(): void;
+  }
+
+  interface TrimControl {
+    /**
+     * Indicates if the current player has the trimming tool enabled.
+     */
+    readonly enabled: boolean;
+
+    /**
+     * Indicates if the current player is displaying the trimming tool tool.
+     */
+    readonly active: boolean;
+
+    /**
+     * Enter trimming tool.
+     */
+    enter(): void;
+
+    /**
+     * Exit trimming tool.
+     */
+    exit(): void;
+
+    /**
+     * Toggle trimming tool.
+     */
+    toggle(): void;
+  }
 
   interface FullscreenControl {
     /**
@@ -453,7 +541,17 @@ declare namespace Plyr {
     captions?: CaptionOptions;
 
     /**
-     * enabled: Toggles whether trimming should be enabled.
+     * enabled: Toggles whether the editor should be enabled.
+     */
+    editor?: EditorOptions;
+
+    /**
+     * enabled: Toggles whether video markers should be enabled.
+     */
+    markers?: MarkersOptions;
+
+    /**
+     * enabled: Toggles whether the trimming should be enabled.
      */
     trim?: TrimOptions;
 
@@ -534,10 +632,18 @@ declare namespace Plyr {
     seek?: boolean;
   }
 
+  interface EditorOptions {
+    enabled?: boolean;
+    target?: NodeList | HTMLElement | HTMLElement[] | string;
+  }
+
+  interface MarkersOptions {
+    enabled?: boolean;
+  }
+
   interface TrimOptions {
     enabled?: boolean;
-    active?: boolean;
-    trimTime?: TrimTime;
+    closeEditor?: boolean;
   }
 
   interface TrimTime {

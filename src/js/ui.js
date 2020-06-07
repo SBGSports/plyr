@@ -13,9 +13,9 @@ import is from './utils/is';
 import loadImage from './utils/load-image';
 
 const ui = {
-  addStyleHook() {
-    toggleClass(this.elements.container, this.config.selectors.container.replace('.', ''), true);
-    toggleClass(this.elements.container, this.config.classNames.uiSupported, this.supported.ui);
+  addStyleHook(container) {
+    toggleClass(container, this.config.selectors.container.replace('.', ''), true);
+    toggleClass(container, this.config.classNames.uiSupported, this.supported.ui);
   },
 
   // Toggle native HTML5 media controls

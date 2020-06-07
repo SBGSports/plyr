@@ -15,8 +15,10 @@ import Fullscreen from './fullscreen';
 import Listeners from './listeners';
 import media from './media';
 import Ads from './plugins/ads';
+import Editor from './plugins/editor/editor';
+import Markers from './plugins/editor/markers';
+import Trim from './plugins/editor/trim';
 import PreviewThumbnails from './plugins/preview-thumbnails';
-import Trim from './plugins/trim';
 import source from './source';
 import Storage from './storage';
 import support from './support';
@@ -275,7 +277,7 @@ class Plyr {
     ui.migrateStyles.call(this);
 
     // Add style hook
-    ui.addStyleHook.call(this);
+    ui.addStyleHook.call(this, this.elements.container);
 
     // Setup media
     media.setup.call(this);
@@ -286,6 +288,12 @@ class Plyr {
         this.debug.log(`event: ${event.type}`);
       });
     }
+
+    // Setup Editor
+    this.editor = new Editor(this);
+
+    // Setup video markers
+    this.markers = new Markers(this);
 
     // Setup trim
     this.trim = new Trim(this);
@@ -1128,6 +1136,7 @@ class Plyr {
           removeElement(this.elements.captions);
           removeElement(this.elements.controls);
           removeElement(this.elements.wrapper);
+          removeElement(this.editor.elements.container);
 
           // Clear for GC
           this.elements.buttons.play = null;
@@ -1141,14 +1150,17 @@ class Plyr {
           callback();
         }
       } else {
+        // Event
+        triggerEvent.call(this, this.elements.container, 'destroyed', true);
+
         // Unbind listeners
         unbindListeners.call(this);
 
         // Replace the container with the original element provided
         replaceElement(this.elements.original, this.elements.container);
 
-        // Event
-        triggerEvent.call(this, this.elements.original, 'destroyed', true);
+        // Destroy the editor (editor is inserted after the container element)
+        this.editor.destroy();
 
         // Callback
         if (is.function(callback)) {

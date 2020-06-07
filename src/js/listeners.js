@@ -516,6 +516,131 @@ class Listeners {
     });
   }
 
+  editor() {
+    const { timeline } = this.player.editor.elements.container;
+    const { editor } = this.player;
+    // Stores setInterval for checking the timeline position, so can be cleaned up
+    let timelineInterval;
+    // IE doesn't support input event, so we fallback to change
+    const inputEvent = browser.isIE ? 'change' : 'input';
+
+    // Use event listener to support IE and Edge
+    if (browser.isIE || browser.isEdge) {
+      window.addEventListener('resize', () => {
+        if (editor.active) {
+          editor.setVideoTimelimeContent();
+        }
+      });
+    } else {
+      new ResizeObserver(() => {
+        if (editor.active) {
+          editor.setVideoTimelimeContent();
+        }
+      }).observe(timeline);
+    }
+
+    // Set seeking start
+    this.bind(timeline, 'mousedown touchstart', event => {
+      if (editor.active) {
+        editor.setSeeking(event);
+
+        // Adjust timeline position when we get near the end of the timeline
+        timelineInterval = setInterval(() => editor.setTimelineOffset(), 50);
+      }
+    });
+
+    // Set seeking end
+    this.bind(document.body, 'mouseup touchend', event => {
+      if (editor.active) {
+        editor.setSeeking(event);
+      }
+
+      // End check for adjusting the timeline position when near the end of the timeline
+      clearInterval(timelineInterval);
+    });
+
+    // Update seek position
+    this.bind(document.body, 'mousemove touchmove', event => {
+      if (editor.seeking) {
+        editor.setSeekTime(event);
+      }
+    });
+
+    // Zoom Timeline
+    this.bind(editor.elements.container.controls.zoomContainer.zoom, inputEvent, event => {
+      if (editor.active) {
+        editor.setZoom(event);
+      }
+    });
+
+    // Zoom Out Control
+    this.bind(editor.elements.container.controls.zoomContainer.zoomOut, 'click', event => {
+      editor.setZoom(event);
+    });
+
+    // Zoom Out Control
+    this.bind(editor.elements.container.controls.zoomContainer.zoomIn, 'click', event => {
+      editor.setZoom(event);
+    });
+
+    // Zoom timeline
+    this.bind(
+      editor.elements.container,
+      'wheel',
+      event => {
+        event.preventDefault();
+
+        if (editor.active) {
+          editor.setZoom(event);
+        }
+      },
+      'editor',
+      false,
+    );
+
+    this.bind(timeline.seekHandle, 'mousedown mouseup keydown keyup touchstart touchend', event => {
+      const { player } = this;
+      const seek = event.currentTarget;
+      const code = event.keyCode ? event.keyCode : event.which;
+      const attribute = 'play-on-seeked';
+
+      if (is.keyboardEvent(event) && code !== 39 && code !== 37) {
+        return;
+      }
+
+      // Record seek time so we can prevent hiding controls for a few seconds after seek
+      player.lastSeekTime = Date.now();
+
+      // Was playing before?
+      const play = seek.hasAttribute(attribute);
+      // Done seeking
+      const done = ['mouseup', 'touchend', 'keyup'].includes(event.type);
+
+      // If we're done seeking and it was playing, resume playback
+      if (play && done) {
+        seek.removeAttribute(attribute);
+        silencePromise(player.play());
+      } else if (!done && player.playing) {
+        seek.setAttribute(attribute, '');
+        player.pause();
+      }
+    });
+
+    // Update seek-value attribute on mousemove
+    this.bind(timeline, 'mousedown mousemove', event => {
+      if (!this.player.editor.seeking) return;
+      const rect = timeline.getBoundingClientRect();
+      const percent = (100 / rect.width) * (event.pageX - rect.left);
+      timeline.seekHandle.setAttribute('seek-value', percent);
+      // Update video seek value as well
+      this.player.elements.inputs.seek.setAttribute('seek-value', percent);
+    });
+
+    this.player.on('timeupdate seeking seeked', () => {
+      editor.setSeekPosition();
+    });
+  }
+
   // Run default and custom handlers
   proxy(event, defaultHandler, customHandlerKey) {
     const { player } = this;
@@ -791,24 +916,6 @@ class Listeners {
 
       if (previewThumbnails && previewThumbnails.loaded) {
         previewThumbnails.endScrubbing(event);
-      }
-    });
-
-    // Move trim handles if selected
-    this.bind(elements.controls, 'mousemove touchmove', event => {
-      const { trim } = player;
-
-      if (trim && trim.editing) {
-        trim.setTrimLength(event);
-      }
-    });
-
-    // Stop trimming when handle is no longer selected
-    this.bind(elements.controls, 'mouseup touchend', event => {
-      const { trim } = player;
-
-      if (trim && trim.editing) {
-        trim.setEditing(event);
       }
     });
 

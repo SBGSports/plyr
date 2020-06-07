@@ -80,6 +80,7 @@ const controls = {
       this.elements.display = {
         buffer: getElement.call(this, this.config.selectors.display.buffer),
         currentTime: getElement.call(this, this.config.selectors.display.currentTime),
+        editorCurrentTime: getElement.call(this, this.config.selectors.display.currentTime),
         duration: getElement.call(this, this.config.selectors.display.duration),
       };
 
@@ -227,6 +228,16 @@ const controls = {
         props.labelPressed = 'disableCaptions';
         props.icon = 'captions-off';
         props.iconPressed = 'captions-on';
+        break;
+
+      case 'zoomOut':
+        props.label = 'zoomOut';
+        props.icon = 'zoom-out';
+        break;
+
+      case 'zoomIn':
+        props.label = 'zoomIn';
+        props.icon = 'zoom-in';
         break;
 
       case 'trim':
@@ -392,7 +403,7 @@ const controls = {
         class: `${attributes.class ? attributes.class : ''} ${this.config.classNames.display.time} `.trim(),
         'aria-label': i18n.get(type, this.config),
       }),
-      '00:00',
+      this.currentTime ? formatTime(this.currentTime) : '00:00',
     );
 
     // Reference for updates
@@ -691,7 +702,7 @@ const controls = {
     }
 
     // Set CSS custom property
-    range.style.setProperty('--value', `${(range.value / range.max) * 100}%`);
+    range.style.setProperty('--value', `${((range.value - range.min) / (range.max - range.min)) * 100}%`);
   },
 
   // Update hover tooltip for seeking
@@ -759,6 +770,9 @@ const controls = {
       invert ? this.duration - this.currentTime : this.currentTime,
       invert,
     );
+
+    // Editor Duration
+    controls.updateTimeDisplay.call(this, this.elements.display.editorCurrentTime, this.currentTime);
 
     // Ignore updates while seeking
     if (event && event.type === 'timeupdate' && this.media.seeking) {
