@@ -273,7 +273,8 @@ declare namespace Plyr {
     | 'languagechange'
     | 'controlshidden'
     | 'controlsshown'
-    | 'ready';
+    | 'ready'
+    | 'destroyed';
   type Html5Event =
     | 'loadstart'
     | 'loadeddata'
