@@ -297,6 +297,7 @@ const defaults = {
     'controlshidden',
     'controlsshown',
     'ready',
+    'destroyed',
 
     // YouTube
     'statechange',
@@ -314,6 +315,9 @@ const defaults = {
     'adsallcomplete',
     'adsimpression',
     'adsclick',
+
+    // Preview thumbnails
+    'previewthumbnailsloaded',
 
     // Editor
     'entereditor',

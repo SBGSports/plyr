@@ -1,6 +1,6 @@
 import controls from '../../controls';
 import ui from '../../ui';
-import { createElement, insertAfter, toggleHidden } from '../../utils/elements';
+import { createElement, insertAfter, replaceElement, toggleHidden } from '../../utils/elements';
 import { on, triggerEvent } from '../../utils/events';
 import i18n from '../../utils/i18n';
 import is from '../../utils/is';
@@ -51,8 +51,9 @@ class Editor {
   }
 
   get previewThumbnailsLoaded() {
-    const { previewThumbnails } = this.player;
-    return previewThumbnails && previewThumbnails.loaded;
+    const { previewThumbnails, duration } = this.player;
+    /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
+    return previewThumbnails && previewThumbnails.loaded && duration > 0;
   }
 
   load() {
@@ -79,7 +80,7 @@ class Editor {
     toggleHidden(this.elements.container, true);
   }
 
-  createEditor() {
+  async createEditor() {
     const { container } = this.player.elements;
     if (is.element(container) && this.loaded) {
       this.createContainer(container);
@@ -141,6 +142,10 @@ class Editor {
       // eslint-disable-next-line
       this.elements.container = elements.container[0];
     }
+
+    // Clone the original element so if the element gets destroyed we can return it to its original state
+    const clone = this.elements.container.cloneNode(true);
+    this.elements.original = clone;
 
     // set editor container class
     this.elements.container.classList.add(player.config.classNames.editor.container);
@@ -320,11 +325,8 @@ class Editor {
 
       // If preview thumbnails is enabled append an image to the previewThumb
       if (this.previewThumbnailsLoaded) {
-        // set the current editor container
-        previewThumbnails.elements.editor.container = previewThumb;
-
         // Append the image to the container
-        previewThumbnails.showImageAtCurrentTime(time);
+        previewThumbnails.showImageAtCurrentTime(time, previewThumb);
       }
 
       time += this.player.duration / (clientRect.width / this.videoContainerWidth);
@@ -575,9 +577,17 @@ class Editor {
     });
 
     // If the duration changes after loading the editor, the corresponding timestamps need to be updated
+    // If the duration of the video or previewthumbnails has loaded, update
     this.player.on('loadeddata loadedmetadata', () => {
       if (this.loaded && this.shown) {
         this.updateTimestamps();
+        this.setVideoTimelimeContent();
+      }
+    });
+
+    this.player.on('previewthumbnailsloaded', () => {
+      if (this.loaded && this.shown) {
+        this.setVideoTimelimeContent();
       }
     });
   }
@@ -604,7 +614,7 @@ class Editor {
   destroy() {
     // Remove the elements with listeners on
     if (this.elements.container && !is.empty(this.elements.container)) {
-      this.elements.container.remove();
+      replaceElement(this.elements.original, this.elements.container);
 
       this.loaded = false;
     }

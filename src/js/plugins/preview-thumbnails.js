@@ -1,5 +1,5 @@
 import { createElement } from '../utils/elements';
-import { once } from '../utils/events';
+import { once, triggerEvent } from '../utils/events';
 import fetch from '../utils/fetch';
 import is from '../utils/is';
 import { formatTime } from '../utils/time';
@@ -89,7 +89,6 @@ class PreviewThumbnails {
     this.loaded = false;
     this.lastMouseMoveTime = Date.now();
     this.mouseDown = false;
-    this.editor = false;
     this.loadedImages = [];
 
     this.elements = {
@@ -127,6 +126,9 @@ class PreviewThumbnails {
       this.determineContainerAutoSizing();
 
       this.loaded = true;
+
+      // Trigger event
+      triggerEvent.call(this.player, this.player.media, 'previewthumbnailsloaded');
     });
   }
 
@@ -161,7 +163,7 @@ class PreviewThumbnails {
         // If string, convert into single-element list
         const urls = is.string(src) ? [src] : src;
         // Loop through each src URL. Download and process the VTT file, storing the resulting data in this.thumbnails
-        const promises = urls.map(u => this.getThumbnail(u));
+        const promises = urls.map(u => this.getVttFile(u));
         // Resolve
         Promise.all(promises).then(sortAndResolve);
       }
@@ -169,40 +171,48 @@ class PreviewThumbnails {
   }
 
   // Process individual VTT file
-  getThumbnail(url) {
+  async getVttFile(src) {
+    if (src.startsWith('WEBVTT')) {
+      await this.getThumbnail(src);
+    } else {
+      const response = await fetch(src);
+      await this.getThumbnail(response, src);
+    }
+  }
+
+  // Process thumbnail
+  getThumbnail(src, url) {
     return new Promise(resolve => {
-      fetch(url).then(response => {
-        const thumbnail = {
-          frames: parseVtt(response),
-          height: null,
-          urlPrefix: '',
-        };
+      const thumbnail = {
+        frames: parseVtt(src),
+        height: null,
+        urlPrefix: '',
+      };
 
-        // If the URLs don't start with '/', then we need to set their relative path to be the location of the VTT file
-        // If the URLs do start with '/', then they obviously don't need a prefix, so it will remain blank
-        // If the thumbnail URLs start with with none of '/', 'http://' or 'https://', then we need to set their relative path to be the location of the VTT file
-        if (
-          !thumbnail.frames[0].text.startsWith('/') &&
-          !thumbnail.frames[0].text.startsWith('http://') &&
-          !thumbnail.frames[0].text.startsWith('https://')
-        ) {
-          thumbnail.urlPrefix = url.substring(0, url.lastIndexOf('/') + 1);
-        }
+      // If the URLs don't start with '/', then we need to set their relative path to be the location of the VTT file
+      // If the URLs do start with '/', then they obviously don't need a prefix, so it will remain blank
+      // If the thumbnail URLs start with with none of '/', 'http://' or 'https://', then we need to set their relative path to be the location of the VTT file
+      if (
+        !thumbnail.frames[0].text.startsWith('/') &&
+        !thumbnail.frames[0].text.startsWith('http://') &&
+        !thumbnail.frames[0].text.startsWith('https://')
+      ) {
+        thumbnail.urlPrefix = url.substring(0, url.lastIndexOf('/') + 1);
+      }
 
-        // Download the first frame, so that we can determine/set the height of this thumbnailsDef
-        const tempImage = new Image();
+      // Download the first frame, so that we can determine/set the height of this thumbnailsDef
+      const tempImage = new Image();
 
-        tempImage.onload = () => {
-          thumbnail.height = tempImage.naturalHeight;
-          thumbnail.width = tempImage.naturalWidth;
+      tempImage.addEventListener('load', () => {
+        thumbnail.height = tempImage.naturalHeight;
+        thumbnail.width = tempImage.naturalWidth;
 
-          this.thumbnails.push(thumbnail);
+        this.thumbnails.push(thumbnail);
 
-          resolve();
-        };
-
-        tempImage.src = thumbnail.urlPrefix + thumbnail.frames[0].text;
+        resolve();
       });
+
+      tempImage.src = thumbnail.urlPrefix + thumbnail.frames[0].text;
     });
   }
 
@@ -309,6 +319,8 @@ class PreviewThumbnails {
    * Create HTML elements for image containers
    */
   render() {
+    if (!this.player.elements) return;
+
     // Create HTML element: plyr__preview-thumbnail-container
     this.elements.thumb.container = createElement('div', {
       class: this.player.config.classNames.previewThumbnails.thumbContainer,
@@ -352,7 +364,7 @@ class PreviewThumbnails {
     }
   }
 
-  showImageAtCurrentTime(time = this.seekTime) {
+  showImageAtCurrentTime(time = this.seekTime, container) {
     if (this.mouseDown) {
       this.setScrubbingContainerSize();
     } else {
@@ -365,8 +377,8 @@ class PreviewThumbnails {
     const hasThumb = thumbNum >= 0;
     let qualityIndex = 0;
 
-    // Show the thumb container if we're not scrubbing or setting the editing timeline content
-    if (!this.mouseDown && !this.editor) {
+    // Show the thumb container if we're not scrubbing and not setting a custom container
+    if (!this.mouseDown && !container) {
       this.toggleThumbContainer(hasThumb);
     }
 
@@ -382,22 +394,22 @@ class PreviewThumbnails {
       }
     });
 
-    // Only proceed if either thumbnum or thumbfilename has changed
-    if (thumbNum !== this.showingThumb) {
+    // Only proceed if either thumbnum, thumbfilename or container has changed
+    if (thumbNum !== this.showingThumb || container) {
       this.showingThumb = thumbNum;
-      this.loadImage(qualityIndex);
+      this.loadImage(qualityIndex, container);
     }
   }
 
   // Show the image that's currently specified in this.showingThumb
-  loadImage(qualityIndex = 0) {
+  loadImage(qualityIndex = 0, container) {
     const thumbNum = this.showingThumb;
     const thumbnail = this.thumbnails[qualityIndex];
     const { urlPrefix } = thumbnail;
     const frame = thumbnail.frames[thumbNum];
     const thumbFilename = thumbnail.frames[thumbNum].text;
     const thumbUrl = urlPrefix + thumbFilename;
-    const currentImageElement = this.editor ? this.currentImageContainer.previewImage : this.currentImageElement;
+    const currentImageElement = container ? container.currentImageElement : this.currentImageElement;
 
     if (!currentImageElement || currentImageElement.dataset.filename !== thumbFilename) {
       // If we're already loading a previous image, remove its onload handler - we don't want it to load after this one
@@ -413,7 +425,6 @@ class PreviewThumbnails {
       previewImage.dataset.index = thumbNum;
       previewImage.dataset.filename = thumbFilename;
       this.showingThumbFilename = thumbFilename;
-      const { currentImageContainer, editor } = this;
 
       this.player.debug.log(`Loading image: ${thumbUrl}`);
 
@@ -423,14 +434,14 @@ class PreviewThumbnails {
         () => {
           this.showImage(
             // For the editor timeline, we need the most recent container however, if the event has changed between seeking and hover we should use the new container
-            editor ? currentImageContainer : this.currentImageContainer,
+            container || this.currentImageContainer,
             previewImage,
             frame,
             qualityIndex,
             thumbNum,
             thumbFilename,
             true,
-            editor,
+            !!container,
           );
         },
         { once: true },
@@ -439,26 +450,22 @@ class PreviewThumbnails {
       previewImage.src = thumbUrl;
 
       this.loadingImage = previewImage;
-      this.removeOldImages(previewImage);
+      this.removeOldImages(previewImage, container);
     } else {
       // Update the existing image
       this.showImage(
-        this.currentImageContainer,
+        container || this.currentImageContainer,
         currentImageElement,
         frame,
         qualityIndex,
         thumbNum,
         thumbFilename,
         false,
-        this.editor,
+        !!container,
       );
-      if (this.editor) {
-        this.currentImageContainer.previewImage.dataset.index = thumbNum;
-      } else {
-        this.currentImageElement.dataset.index = thumbNum;
-      }
+      currentImageElement.dataset.index = thumbNum;
 
-      this.removeOldImages(currentImageElement);
+      this.removeOldImages(currentImageElement, container);
     }
   }
 
@@ -470,26 +477,26 @@ class PreviewThumbnails {
     thumbNum,
     thumbFilename,
     newImage = true,
-    editor = false,
+    container,
   ) {
+    // Prevent if the player is destroyed after the image has loaded
+    if (is.empty(this.player.media)) return;
+
     this.player.debug.log(
       `Showing thumb: ${thumbFilename}. num: ${thumbNum}. qual: ${qualityIndex}. newimg: ${newImage}`,
     );
     this.setImageSizeAndOffset(previewImage, frame);
 
-    if (newImage) {
-      currentImageContainer.appendChild(previewImage);
+    currentImageContainer.appendChild(previewImage);
+    if (container) {
+      // eslint-disable-next-line no-param-reassign
+      currentImageContainer.currentImageElement = previewImage;
+    } else {
       this.currentImageElement = previewImage;
-
-      if (!this.loadedImages.includes(thumbFilename)) {
-        this.loadedImages.push(thumbFilename);
-      }
     }
 
-    if (editor) {
-      // Store in the container as in the editor we have a list of images rather than a single image and makes it easier to index
-      // eslint-disable-next-line no-param-reassign
-      currentImageContainer.previewImage = previewImage;
+    if (!this.loadedImages.includes(thumbFilename)) {
+      this.loadedImages.push(thumbFilename);
     }
 
     // Preload images before and after the current one
@@ -501,9 +508,12 @@ class PreviewThumbnails {
   }
 
   // Remove all preview images that aren't the designated current image
-  removeOldImages(currentImage) {
+  removeOldImages(currentImage, container) {
+    // This has to be set before the timeout - to prevent issues switching between hover and scrub
+    const currentImageContainer = container || this.currentImageContainer;
+
     // Get a list of all images, convert it from a DOM list to an array
-    Array.from(this.currentImageContainer.children).forEach(image => {
+    Array.from(currentImageContainer.children).forEach(image => {
       if (image.tagName.toLowerCase() !== 'img') {
         return;
       }
@@ -515,9 +525,6 @@ class PreviewThumbnails {
         // First set attribute 'deleting' to prevent multi-handling of this on repeat firing of this function
         // eslint-disable-next-line no-param-reassign
         image.dataset.deleting = true;
-
-        // This has to be set before the timeout - to prevent issues switching between hover and scrub
-        const { currentImageContainer } = this;
 
         setTimeout(() => {
           currentImageContainer.removeChild(image);
@@ -606,10 +613,6 @@ class PreviewThumbnails {
       return this.elements.scrubbing.container;
     }
 
-    if (this.editor) {
-      return this.elements.editor.container;
-    }
-
     return this.elements.thumb.imageContainer;
   }
 
@@ -679,7 +682,8 @@ class PreviewThumbnails {
   }
 
   determineContainerAutoSizing() {
-    if (this.elements.thumb.imageContainer.clientHeight > 20 || this.elements.thumb.imageContainer.clientWidth > 20) {
+    const { thumb } = this.elements;
+    if (!is.empty(thumb) && (thumb.imageContainer.clientHeight > 20 || thumb.imageContainer.clientWidth > 20)) {
       // This will prevent auto sizing in this.setThumbContainerSizeAndPos()
       this.sizeSpecifiedInCSS = true;
     }
