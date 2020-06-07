@@ -4046,6 +4046,42 @@ function _typeof(obj) {
   return _typeof(obj);
 }
 
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+  try {
+    var info = gen[key](arg);
+    var value = info.value;
+  } catch (error) {
+    reject(error);
+    return;
+  }
+
+  if (info.done) {
+    resolve(value);
+  } else {
+    Promise.resolve(value).then(_next, _throw);
+  }
+}
+
+function _asyncToGenerator(fn) {
+  return function () {
+    var self = this,
+        args = arguments;
+    return new Promise(function (resolve, reject) {
+      var gen = fn.apply(self, args);
+
+      function _next(value) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+      }
+
+      function _throw(err) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+      }
+
+      _next(undefined);
+    });
+  };
+}
+
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -10182,10 +10218,11 @@ var defaults$1 = {
   events: [// Events to watch on HTML5 media elements and bubble
   // https://developer.mozilla.org/en/docs/Web/Guide/Events/Media_events
   'ended', 'progress', 'stalled', 'playing', 'waiting', 'canplay', 'canplaythrough', 'loadstart', 'loadeddata', 'loadedmetadata', 'timeupdate', 'volumechange', 'play', 'pause', 'error', 'seeking', 'seeked', 'emptied', 'ratechange', 'cuechange', // Custom events
-  'download', 'enterfullscreen', 'exitfullscreen', 'captionsenabled', 'captionsdisabled', 'languagechange', 'controlshidden', 'controlsshown', 'ready', // YouTube
+  'download', 'enterfullscreen', 'exitfullscreen', 'captionsenabled', 'captionsdisabled', 'languagechange', 'controlshidden', 'controlsshown', 'ready', 'destroyed', // YouTube
   'statechange', // Quality
   'qualitychange', // Ads
-  'adsloaded', 'adscontentpause', 'adscontentresume', 'adstarted', 'adsmidpoint', 'adscomplete', 'adsallcomplete', 'adsimpression', 'adsclick', // Editor
+  'adsloaded', 'adscontentpause', 'adscontentresume', 'adstarted', 'adsmidpoint', 'adscomplete', 'adsallcomplete', 'adsimpression', 'adsclick', // Preview thumbnails
+  'previewthumbnailsloaded', // Editor
   'entereditor', 'exiteditor', 'editorloaded', 'zoomchange', // Markers
   'markeradded', 'markerchange', // Trimming
   'entertrim', 'exittrim', 'trimchange'],
@@ -13728,6 +13765,762 @@ var Ads = /*#__PURE__*/function () {
   return Ads;
 }();
 
+// `Symbol.asyncIterator` well-known symbol
+// https://tc39.github.io/ecma262/#sec-symbol.asynciterator
+defineWellKnownSymbol('asyncIterator');
+
+// `Symbol.toStringTag` well-known symbol
+// https://tc39.github.io/ecma262/#sec-symbol.tostringtag
+defineWellKnownSymbol('toStringTag');
+
+var defineProperty$7 = objectDefineProperty.f;
+
+var FunctionPrototype = Function.prototype;
+var FunctionPrototypeToString = FunctionPrototype.toString;
+var nameRE = /^\s*function ([^ (]*)/;
+var NAME = 'name';
+
+// Function instances `.name` property
+// https://tc39.github.io/ecma262/#sec-function-instances-name
+if (descriptors && !(NAME in FunctionPrototype)) {
+  defineProperty$7(FunctionPrototype, NAME, {
+    configurable: true,
+    get: function () {
+      try {
+        return FunctionPrototypeToString.call(this).match(nameRE)[1];
+      } catch (error) {
+        return '';
+      }
+    }
+  });
+}
+
+// JSON[@@toStringTag] property
+// https://tc39.github.io/ecma262/#sec-json-@@tostringtag
+setToStringTag(global_1.JSON, 'JSON', true);
+
+// Math[@@toStringTag] property
+// https://tc39.github.io/ecma262/#sec-math-@@tostringtag
+setToStringTag(Math, 'Math', true);
+
+var FAILS_ON_PRIMITIVES$2 = fails(function () { objectGetPrototypeOf(1); });
+
+// `Object.getPrototypeOf` method
+// https://tc39.github.io/ecma262/#sec-object.getprototypeof
+_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$2, sham: !correctPrototypeGetter }, {
+  getPrototypeOf: function getPrototypeOf(it) {
+    return objectGetPrototypeOf(toObject(it));
+  }
+});
+
+var runtime_1 = createCommonjsModule(function (module) {
+  /**
+   * Copyright (c) 2014-present, Facebook, Inc.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   */
+  var runtime = function (exports) {
+
+    var Op = Object.prototype;
+    var hasOwn = Op.hasOwnProperty;
+    var undefined$1; // More compressible than void 0.
+
+    var $Symbol = typeof Symbol === "function" ? Symbol : {};
+    var iteratorSymbol = $Symbol.iterator || "@@iterator";
+    var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
+    var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
+
+    function wrap(innerFn, outerFn, self, tryLocsList) {
+      // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
+      var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
+      var generator = Object.create(protoGenerator.prototype);
+      var context = new Context(tryLocsList || []); // The ._invoke method unifies the implementations of the .next,
+      // .throw, and .return methods.
+
+      generator._invoke = makeInvokeMethod(innerFn, self, context);
+      return generator;
+    }
+
+    exports.wrap = wrap; // Try/catch helper to minimize deoptimizations. Returns a completion
+    // record like context.tryEntries[i].completion. This interface could
+    // have been (and was previously) designed to take a closure to be
+    // invoked without arguments, but in all the cases we care about we
+    // already have an existing method we want to call, so there's no need
+    // to create a new function object. We can even get away with assuming
+    // the method takes exactly one argument, since that happens to be true
+    // in every case, so we don't have to touch the arguments object. The
+    // only additional allocation required is the completion record, which
+    // has a stable shape and so hopefully should be cheap to allocate.
+
+    function tryCatch(fn, obj, arg) {
+      try {
+        return {
+          type: "normal",
+          arg: fn.call(obj, arg)
+        };
+      } catch (err) {
+        return {
+          type: "throw",
+          arg: err
+        };
+      }
+    }
+
+    var GenStateSuspendedStart = "suspendedStart";
+    var GenStateSuspendedYield = "suspendedYield";
+    var GenStateExecuting = "executing";
+    var GenStateCompleted = "completed"; // Returning this object from the innerFn has the same effect as
+    // breaking out of the dispatch switch statement.
+
+    var ContinueSentinel = {}; // Dummy constructor functions that we use as the .constructor and
+    // .constructor.prototype properties for functions that return Generator
+    // objects. For full spec compliance, you may wish to configure your
+    // minifier not to mangle the names of these two functions.
+
+    function Generator() {}
+
+    function GeneratorFunction() {}
+
+    function GeneratorFunctionPrototype() {} // This is a polyfill for %IteratorPrototype% for environments that
+    // don't natively support it.
+
+
+    var IteratorPrototype = {};
+
+    IteratorPrototype[iteratorSymbol] = function () {
+      return this;
+    };
+
+    var getProto = Object.getPrototypeOf;
+    var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+
+    if (NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
+      // This environment has a native %IteratorPrototype%; use it instead
+      // of the polyfill.
+      IteratorPrototype = NativeIteratorPrototype;
+    }
+
+    var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype);
+    GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
+    GeneratorFunctionPrototype.constructor = GeneratorFunction;
+    GeneratorFunctionPrototype[toStringTagSymbol] = GeneratorFunction.displayName = "GeneratorFunction"; // Helper for defining the .next, .throw, and .return methods of the
+    // Iterator interface in terms of a single ._invoke method.
+
+    function defineIteratorMethods(prototype) {
+      ["next", "throw", "return"].forEach(function (method) {
+        prototype[method] = function (arg) {
+          return this._invoke(method, arg);
+        };
+      });
+    }
+
+    exports.isGeneratorFunction = function (genFun) {
+      var ctor = typeof genFun === "function" && genFun.constructor;
+      return ctor ? ctor === GeneratorFunction || // For the native GeneratorFunction constructor, the best we can
+      // do is to check its .name property.
+      (ctor.displayName || ctor.name) === "GeneratorFunction" : false;
+    };
+
+    exports.mark = function (genFun) {
+      if (Object.setPrototypeOf) {
+        Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
+      } else {
+        genFun.__proto__ = GeneratorFunctionPrototype;
+
+        if (!(toStringTagSymbol in genFun)) {
+          genFun[toStringTagSymbol] = "GeneratorFunction";
+        }
+      }
+
+      genFun.prototype = Object.create(Gp);
+      return genFun;
+    }; // Within the body of any async function, `await x` is transformed to
+    // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
+    // `hasOwn.call(value, "__await")` to determine if the yielded value is
+    // meant to be awaited.
+
+
+    exports.awrap = function (arg) {
+      return {
+        __await: arg
+      };
+    };
+
+    function AsyncIterator(generator, PromiseImpl) {
+      function invoke(method, arg, resolve, reject) {
+        var record = tryCatch(generator[method], generator, arg);
+
+        if (record.type === "throw") {
+          reject(record.arg);
+        } else {
+          var result = record.arg;
+          var value = result.value;
+
+          if (value && _typeof(value) === "object" && hasOwn.call(value, "__await")) {
+            return PromiseImpl.resolve(value.__await).then(function (value) {
+              invoke("next", value, resolve, reject);
+            }, function (err) {
+              invoke("throw", err, resolve, reject);
+            });
+          }
+
+          return PromiseImpl.resolve(value).then(function (unwrapped) {
+            // When a yielded Promise is resolved, its final value becomes
+            // the .value of the Promise<{value,done}> result for the
+            // current iteration.
+            result.value = unwrapped;
+            resolve(result);
+          }, function (error) {
+            // If a rejected Promise was yielded, throw the rejection back
+            // into the async generator function so it can be handled there.
+            return invoke("throw", error, resolve, reject);
+          });
+        }
+      }
+
+      var previousPromise;
+
+      function enqueue(method, arg) {
+        function callInvokeWithMethodAndArg() {
+          return new PromiseImpl(function (resolve, reject) {
+            invoke(method, arg, resolve, reject);
+          });
+        }
+
+        return previousPromise = // If enqueue has been called before, then we want to wait until
+        // all previous Promises have been resolved before calling invoke,
+        // so that results are always delivered in the correct order. If
+        // enqueue has not been called before, then it is important to
+        // call invoke immediately, without waiting on a callback to fire,
+        // so that the async generator function has the opportunity to do
+        // any necessary setup in a predictable way. This predictability
+        // is why the Promise constructor synchronously invokes its
+        // executor callback, and why async functions synchronously
+        // execute code before the first await. Since we implement simple
+        // async functions in terms of async generators, it is especially
+        // important to get this right, even though it requires care.
+        previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, // Avoid propagating failures to Promises returned by later
+        // invocations of the iterator.
+        callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
+      } // Define the unified helper method that is used to implement .next,
+      // .throw, and .return (see defineIteratorMethods).
+
+
+      this._invoke = enqueue;
+    }
+
+    defineIteratorMethods(AsyncIterator.prototype);
+
+    AsyncIterator.prototype[asyncIteratorSymbol] = function () {
+      return this;
+    };
+
+    exports.AsyncIterator = AsyncIterator; // Note that simple async functions are implemented on top of
+    // AsyncIterator objects; they just return a Promise for the value of
+    // the final result produced by the iterator.
+
+    exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) {
+      if (PromiseImpl === void 0) PromiseImpl = Promise;
+      var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl);
+      return exports.isGeneratorFunction(outerFn) ? iter // If outerFn is a generator, return the full iterator.
+      : iter.next().then(function (result) {
+        return result.done ? result.value : iter.next();
+      });
+    };
+
+    function makeInvokeMethod(innerFn, self, context) {
+      var state = GenStateSuspendedStart;
+      return function invoke(method, arg) {
+        if (state === GenStateExecuting) {
+          throw new Error("Generator is already running");
+        }
+
+        if (state === GenStateCompleted) {
+          if (method === "throw") {
+            throw arg;
+          } // Be forgiving, per 25.3.3.3.3 of the spec:
+          // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
+
+
+          return doneResult();
+        }
+
+        context.method = method;
+        context.arg = arg;
+
+        while (true) {
+          var delegate = context.delegate;
+
+          if (delegate) {
+            var delegateResult = maybeInvokeDelegate(delegate, context);
+
+            if (delegateResult) {
+              if (delegateResult === ContinueSentinel) continue;
+              return delegateResult;
+            }
+          }
+
+          if (context.method === "next") {
+            // Setting context._sent for legacy support of Babel's
+            // function.sent implementation.
+            context.sent = context._sent = context.arg;
+          } else if (context.method === "throw") {
+            if (state === GenStateSuspendedStart) {
+              state = GenStateCompleted;
+              throw context.arg;
+            }
+
+            context.dispatchException(context.arg);
+          } else if (context.method === "return") {
+            context.abrupt("return", context.arg);
+          }
+
+          state = GenStateExecuting;
+          var record = tryCatch(innerFn, self, context);
+
+          if (record.type === "normal") {
+            // If an exception is thrown from innerFn, we leave state ===
+            // GenStateExecuting and loop back for another invocation.
+            state = context.done ? GenStateCompleted : GenStateSuspendedYield;
+
+            if (record.arg === ContinueSentinel) {
+              continue;
+            }
+
+            return {
+              value: record.arg,
+              done: context.done
+            };
+          } else if (record.type === "throw") {
+            state = GenStateCompleted; // Dispatch the exception by looping back around to the
+            // context.dispatchException(context.arg) call above.
+
+            context.method = "throw";
+            context.arg = record.arg;
+          }
+        }
+      };
+    } // Call delegate.iterator[context.method](context.arg) and handle the
+    // result, either by returning a { value, done } result from the
+    // delegate iterator, or by modifying context.method and context.arg,
+    // setting context.delegate to null, and returning the ContinueSentinel.
+
+
+    function maybeInvokeDelegate(delegate, context) {
+      var method = delegate.iterator[context.method];
+
+      if (method === undefined$1) {
+        // A .throw or .return when the delegate iterator has no .throw
+        // method always terminates the yield* loop.
+        context.delegate = null;
+
+        if (context.method === "throw") {
+          // Note: ["return"] must be used for ES3 parsing compatibility.
+          if (delegate.iterator["return"]) {
+            // If the delegate iterator has a return method, give it a
+            // chance to clean up.
+            context.method = "return";
+            context.arg = undefined$1;
+            maybeInvokeDelegate(delegate, context);
+
+            if (context.method === "throw") {
+              // If maybeInvokeDelegate(context) changed context.method from
+              // "return" to "throw", let that override the TypeError below.
+              return ContinueSentinel;
+            }
+          }
+
+          context.method = "throw";
+          context.arg = new TypeError("The iterator does not provide a 'throw' method");
+        }
+
+        return ContinueSentinel;
+      }
+
+      var record = tryCatch(method, delegate.iterator, context.arg);
+
+      if (record.type === "throw") {
+        context.method = "throw";
+        context.arg = record.arg;
+        context.delegate = null;
+        return ContinueSentinel;
+      }
+
+      var info = record.arg;
+
+      if (!info) {
+        context.method = "throw";
+        context.arg = new TypeError("iterator result is not an object");
+        context.delegate = null;
+        return ContinueSentinel;
+      }
+
+      if (info.done) {
+        // Assign the result of the finished delegate to the temporary
+        // variable specified by delegate.resultName (see delegateYield).
+        context[delegate.resultName] = info.value; // Resume execution at the desired location (see delegateYield).
+
+        context.next = delegate.nextLoc; // If context.method was "throw" but the delegate handled the
+        // exception, let the outer generator proceed normally. If
+        // context.method was "next", forget context.arg since it has been
+        // "consumed" by the delegate iterator. If context.method was
+        // "return", allow the original .return call to continue in the
+        // outer generator.
+
+        if (context.method !== "return") {
+          context.method = "next";
+          context.arg = undefined$1;
+        }
+      } else {
+        // Re-yield the result returned by the delegate method.
+        return info;
+      } // The delegate iterator is finished, so forget it and continue with
+      // the outer generator.
+
+
+      context.delegate = null;
+      return ContinueSentinel;
+    } // Define Generator.prototype.{next,throw,return} in terms of the
+    // unified ._invoke helper method.
+
+
+    defineIteratorMethods(Gp);
+    Gp[toStringTagSymbol] = "Generator"; // A Generator should always return itself as the iterator object when the
+    // @@iterator function is called on it. Some browsers' implementations of the
+    // iterator prototype chain incorrectly implement this, causing the Generator
+    // object to not be returned from this call. This ensures that doesn't happen.
+    // See https://github.com/facebook/regenerator/issues/274 for more details.
+
+    Gp[iteratorSymbol] = function () {
+      return this;
+    };
+
+    Gp.toString = function () {
+      return "[object Generator]";
+    };
+
+    function pushTryEntry(locs) {
+      var entry = {
+        tryLoc: locs[0]
+      };
+
+      if (1 in locs) {
+        entry.catchLoc = locs[1];
+      }
+
+      if (2 in locs) {
+        entry.finallyLoc = locs[2];
+        entry.afterLoc = locs[3];
+      }
+
+      this.tryEntries.push(entry);
+    }
+
+    function resetTryEntry(entry) {
+      var record = entry.completion || {};
+      record.type = "normal";
+      delete record.arg;
+      entry.completion = record;
+    }
+
+    function Context(tryLocsList) {
+      // The root entry object (effectively a try statement without a catch
+      // or a finally block) gives us a place to store values thrown from
+      // locations where there is no enclosing try statement.
+      this.tryEntries = [{
+        tryLoc: "root"
+      }];
+      tryLocsList.forEach(pushTryEntry, this);
+      this.reset(true);
+    }
+
+    exports.keys = function (object) {
+      var keys = [];
+
+      for (var key in object) {
+        keys.push(key);
+      }
+
+      keys.reverse(); // Rather than returning an object with a next method, we keep
+      // things simple and return the next function itself.
+
+      return function next() {
+        while (keys.length) {
+          var key = keys.pop();
+
+          if (key in object) {
+            next.value = key;
+            next.done = false;
+            return next;
+          }
+        } // To avoid creating an additional object, we just hang the .value
+        // and .done properties off the next function object itself. This
+        // also ensures that the minifier will not anonymize the function.
+
+
+        next.done = true;
+        return next;
+      };
+    };
+
+    function values(iterable) {
+      if (iterable) {
+        var iteratorMethod = iterable[iteratorSymbol];
+
+        if (iteratorMethod) {
+          return iteratorMethod.call(iterable);
+        }
+
+        if (typeof iterable.next === "function") {
+          return iterable;
+        }
+
+        if (!isNaN(iterable.length)) {
+          var i = -1,
+              next = function next() {
+            while (++i < iterable.length) {
+              if (hasOwn.call(iterable, i)) {
+                next.value = iterable[i];
+                next.done = false;
+                return next;
+              }
+            }
+
+            next.value = undefined$1;
+            next.done = true;
+            return next;
+          };
+
+          return next.next = next;
+        }
+      } // Return an iterator with no values.
+
+
+      return {
+        next: doneResult
+      };
+    }
+
+    exports.values = values;
+
+    function doneResult() {
+      return {
+        value: undefined$1,
+        done: true
+      };
+    }
+
+    Context.prototype = {
+      constructor: Context,
+      reset: function reset(skipTempReset) {
+        this.prev = 0;
+        this.next = 0; // Resetting context._sent for legacy support of Babel's
+        // function.sent implementation.
+
+        this.sent = this._sent = undefined$1;
+        this.done = false;
+        this.delegate = null;
+        this.method = "next";
+        this.arg = undefined$1;
+        this.tryEntries.forEach(resetTryEntry);
+
+        if (!skipTempReset) {
+          for (var name in this) {
+            // Not sure about the optimal order of these conditions:
+            if (name.charAt(0) === "t" && hasOwn.call(this, name) && !isNaN(+name.slice(1))) {
+              this[name] = undefined$1;
+            }
+          }
+        }
+      },
+      stop: function stop() {
+        this.done = true;
+        var rootEntry = this.tryEntries[0];
+        var rootRecord = rootEntry.completion;
+
+        if (rootRecord.type === "throw") {
+          throw rootRecord.arg;
+        }
+
+        return this.rval;
+      },
+      dispatchException: function dispatchException(exception) {
+        if (this.done) {
+          throw exception;
+        }
+
+        var context = this;
+
+        function handle(loc, caught) {
+          record.type = "throw";
+          record.arg = exception;
+          context.next = loc;
+
+          if (caught) {
+            // If the dispatched exception was caught by a catch block,
+            // then let that catch block handle the exception normally.
+            context.method = "next";
+            context.arg = undefined$1;
+          }
+
+          return !!caught;
+        }
+
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+          var record = entry.completion;
+
+          if (entry.tryLoc === "root") {
+            // Exception thrown outside of any try block that could handle
+            // it, so set the completion value of the entire function to
+            // throw the exception.
+            return handle("end");
+          }
+
+          if (entry.tryLoc <= this.prev) {
+            var hasCatch = hasOwn.call(entry, "catchLoc");
+            var hasFinally = hasOwn.call(entry, "finallyLoc");
+
+            if (hasCatch && hasFinally) {
+              if (this.prev < entry.catchLoc) {
+                return handle(entry.catchLoc, true);
+              } else if (this.prev < entry.finallyLoc) {
+                return handle(entry.finallyLoc);
+              }
+            } else if (hasCatch) {
+              if (this.prev < entry.catchLoc) {
+                return handle(entry.catchLoc, true);
+              }
+            } else if (hasFinally) {
+              if (this.prev < entry.finallyLoc) {
+                return handle(entry.finallyLoc);
+              }
+            } else {
+              throw new Error("try statement without catch or finally");
+            }
+          }
+        }
+      },
+      abrupt: function abrupt(type, arg) {
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+
+          if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) {
+            var finallyEntry = entry;
+            break;
+          }
+        }
+
+        if (finallyEntry && (type === "break" || type === "continue") && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc) {
+          // Ignore the finally entry if control is not jumping to a
+          // location outside the try/catch block.
+          finallyEntry = null;
+        }
+
+        var record = finallyEntry ? finallyEntry.completion : {};
+        record.type = type;
+        record.arg = arg;
+
+        if (finallyEntry) {
+          this.method = "next";
+          this.next = finallyEntry.finallyLoc;
+          return ContinueSentinel;
+        }
+
+        return this.complete(record);
+      },
+      complete: function complete(record, afterLoc) {
+        if (record.type === "throw") {
+          throw record.arg;
+        }
+
+        if (record.type === "break" || record.type === "continue") {
+          this.next = record.arg;
+        } else if (record.type === "return") {
+          this.rval = this.arg = record.arg;
+          this.method = "return";
+          this.next = "end";
+        } else if (record.type === "normal" && afterLoc) {
+          this.next = afterLoc;
+        }
+
+        return ContinueSentinel;
+      },
+      finish: function finish(finallyLoc) {
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+
+          if (entry.finallyLoc === finallyLoc) {
+            this.complete(entry.completion, entry.afterLoc);
+            resetTryEntry(entry);
+            return ContinueSentinel;
+          }
+        }
+      },
+      "catch": function _catch(tryLoc) {
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+
+          if (entry.tryLoc === tryLoc) {
+            var record = entry.completion;
+
+            if (record.type === "throw") {
+              var thrown = record.arg;
+              resetTryEntry(entry);
+            }
+
+            return thrown;
+          }
+        } // The context.catch method must only be called with a location
+        // argument that corresponds to a known catch block.
+
+
+        throw new Error("illegal catch attempt");
+      },
+      delegateYield: function delegateYield(iterable, resultName, nextLoc) {
+        this.delegate = {
+          iterator: values(iterable),
+          resultName: resultName,
+          nextLoc: nextLoc
+        };
+
+        if (this.method === "next") {
+          // Deliberately forget the last sent value so that we don't
+          // accidentally pass it on to the delegate.
+          this.arg = undefined$1;
+        }
+
+        return ContinueSentinel;
+      }
+    }; // Regardless of whether this script is executing as a CommonJS module
+    // or not, return the runtime object so that we can declare the variable
+    // regeneratorRuntime in the outer scope, which allows this module to be
+    // injected easily by `bin/regenerator --include-runtime script.js`.
+
+    return exports;
+  }( // If this script is executing as a CommonJS module, use module.exports
+  // as the regeneratorRuntime namespace. Otherwise create a new empty
+  // object. Either way, the resulting object will be used to initialize
+  // the regeneratorRuntime variable at the top of this file.
+   module.exports );
+
+  try {
+    regeneratorRuntime = runtime;
+  } catch (accidentalStrictMode) {
+    // This module should not be running in strict mode, so the above
+    // assignment should always work unless something is misconfigured. Just
+    // in case runtime.js accidentally runs in strict mode, we can escape
+    // strict mode using a global Function call. This could conceivably fail
+    // if a Content Security Policy forbids using Function, but in that case
+    // the proper solution is to fix the accidental strict mode problem. If
+    // you've misconfigured your bundler to force strict mode and applied a
+    // CSP to forbid Function, and you're not willing to fix either of those
+    // problems, please detail your unique predicament in a GitHub issue.
+    Function("r", "regeneratorRuntime = r")(runtime);
+  }
+});
+
 /**
  * Returns a number whose value is limited to the given range.
  *
@@ -13806,20 +14599,40 @@ var Editor = /*#__PURE__*/function () {
     }
   }, {
     key: "createEditor",
-    value: function createEditor() {
-      var container = this.player.elements.container;
+    value: function () {
+      var _createEditor = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var container;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                container = this.player.elements.container;
 
-      if (is$1.element(container) && this.loaded) {
-        this.createContainer(container);
-        this.createControls();
-        this.createTimeline();
-        this.createTimeStamps();
-        this.createVideoTimeline();
-        this.createSeekHandle();
-        this.player.listeners.editor();
-        triggerEvent.call(this.player, this.player.media, 'editorloaded');
+                if (is$1.element(container) && this.loaded) {
+                  this.createContainer(container);
+                  this.createControls();
+                  this.createTimeline();
+                  this.createTimeStamps();
+                  this.createVideoTimeline();
+                  this.createSeekHandle();
+                  this.player.listeners.editor();
+                  triggerEvent.call(this.player, this.player.media, 'editorloaded');
+                }
+
+              case 2:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function createEditor() {
+        return _createEditor.apply(this, arguments);
       }
-    }
+
+      return createEditor;
+    }()
   }, {
     key: "createContainer",
     value: function createContainer(container) {
@@ -13866,8 +14679,11 @@ var Editor = /*#__PURE__*/function () {
       if (window.jQuery && elements.container instanceof jQuery || is$1.nodeList(elements.container) || is$1.array(elements.container)) {
         // eslint-disable-next-line
         this.elements.container = elements.container[0];
-      } // set editor container class
+      } // Clone the original element so if the element gets destroyed we can return it to its original state
 
+
+      var clone = this.elements.container.cloneNode(true);
+      this.elements.original = clone; // set editor container class
 
       this.elements.container.classList.add(player.config.classNames.editor.container);
     }
@@ -14023,10 +14839,8 @@ var Editor = /*#__PURE__*/function () {
 
 
         if (this.previewThumbnailsLoaded) {
-          // set the current editor container
-          previewThumbnails.elements.editor.container = previewThumb; // Append the image to the container
-
-          previewThumbnails.showImageAtCurrentTime(time);
+          // Append the image to the container
+          previewThumbnails.showImageAtCurrentTime(time, previewThumb);
         }
 
         time += this.player.duration / (clientRect.width / this.videoContainerWidth);
@@ -14263,10 +15077,18 @@ var Editor = /*#__PURE__*/function () {
           _this2.createEditor();
         }
       }); // If the duration changes after loading the editor, the corresponding timestamps need to be updated
+      // If the duration of the video or previewthumbnails has loaded, update
 
       this.player.on('loadeddata loadedmetadata', function () {
         if (_this2.loaded && _this2.shown) {
           _this2.updateTimestamps();
+
+          _this2.setVideoTimelimeContent();
+        }
+      });
+      this.player.on('previewthumbnailsloaded', function () {
+        if (_this2.loaded && _this2.shown) {
+          _this2.setVideoTimelimeContent();
         }
       });
     } // On toggle of the editor, trigger event
@@ -14296,7 +15118,7 @@ var Editor = /*#__PURE__*/function () {
     value: function destroy() {
       // Remove the elements with listeners on
       if (this.elements.container && !is$1.empty(this.elements.container)) {
-        this.elements.container.remove();
+        replaceElement(this.elements.original, this.elements.container);
         this.loaded = false;
       }
     } // Enter Editor
@@ -14354,8 +15176,12 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "previewThumbnailsLoaded",
     get: function get() {
-      var previewThumbnails = this.player.previewThumbnails;
-      return previewThumbnails && previewThumbnails.loaded;
+      var _this$player = this.player,
+          previewThumbnails = _this$player.previewThumbnails,
+          duration = _this$player.duration;
+      /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
+
+      return previewThumbnails && previewThumbnails.loaded && duration > 0;
     }
   }]);
 
@@ -14471,8 +15297,16 @@ var Markers = /*#__PURE__*/function () {
           time: parseFloat(value)
         });
         this.editing = null;
+
+        if (this.player.previewThumbnails) {
+          this.player.previewThumbnails.endScrubbing(event);
+        }
       } else if (type === 'mousedown' || type === 'touchstart') {
         this.editing = target;
+
+        if (this.player.previewThumbnails) {
+          this.player.previewThumbnails.startScrubbing(event);
+        }
       }
     }
   }, {
@@ -14490,7 +15324,12 @@ var Markers = /*#__PURE__*/function () {
 
       marker.style.left = "".concat(percentage, "%");
       marker.setAttribute('aria-valuenow', time);
-      marker.setAttribute('aria-valuetext', formatTime(time));
+      marker.setAttribute('aria-valuetext', formatTime(time)); // Show the seek thumbnail
+
+      if (this.player.previewThumbnails) {
+        var seekTime = this.player.media.duration * (percentage / 100);
+        this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+      }
     }
   }, {
     key: "toggleMarkers",
@@ -15165,7 +16004,6 @@ var PreviewThumbnails = /*#__PURE__*/function () {
     this.loaded = false;
     this.lastMouseMoveTime = Date.now();
     this.mouseDown = false;
-    this.editor = false;
     this.loadedImages = [];
     this.elements = {
       thumb: {},
@@ -15200,7 +16038,9 @@ var PreviewThumbnails = /*#__PURE__*/function () {
 
         _this.determineContainerAutoSizing();
 
-        _this.loaded = true;
+        _this.loaded = true; // Trigger event
+
+        triggerEvent.call(_this.player, _this.player.media, 'previewthumbnailsloaded');
       });
     } // Download VTT files and parse them
 
@@ -15240,7 +16080,7 @@ var PreviewThumbnails = /*#__PURE__*/function () {
             var urls = is$1.string(src) ? [src] : src; // Loop through each src URL. Download and process the VTT file, storing the resulting data in this.thumbnails
 
             var promises = urls.map(function (u) {
-              return _this2.getThumbnail(u);
+              return _this2.getVttFile(u);
             }); // Resolve
 
             Promise.all(promises).then(sortAndResolve);
@@ -15249,38 +16089,50 @@ var PreviewThumbnails = /*#__PURE__*/function () {
     } // Process individual VTT file
 
   }, {
-    key: "getThumbnail",
-    value: function getThumbnail(url) {
+    key: "getVttFile",
+    value: function getVttFile(src) {
       var _this3 = this;
 
       return new Promise(function (resolve) {
-        fetch(url).then(function (response) {
-          var thumbnail = {
-            frames: parseVtt(response),
-            height: null,
-            urlPrefix: ''
-          }; // If the URLs don't start with '/', then we need to set their relative path to be the location of the VTT file
-          // If the URLs do start with '/', then they obviously don't need a prefix, so it will remain blank
-          // If the thumbnail URLs start with with none of '/', 'http://' or 'https://', then we need to set their relative path to be the location of the VTT file
+        if (src.startsWith('WEBVTT')) {
+          _this3.getThumbnail(src).then(resolve());
+        } else {
+          fetch(src).then(function (response) {
+            return _this3.getThumbnail(response, src).then(resolve());
+          });
+        }
+      });
+    } // Process thumbnail
 
-          if (!thumbnail.frames[0].text.startsWith('/') && !thumbnail.frames[0].text.startsWith('http://') && !thumbnail.frames[0].text.startsWith('https://')) {
-            thumbnail.urlPrefix = url.substring(0, url.lastIndexOf('/') + 1);
-          } // Download the first frame, so that we can determine/set the height of this thumbnailsDef
+  }, {
+    key: "getThumbnail",
+    value: function getThumbnail(src, url) {
+      var _this4 = this;
+
+      return new Promise(function (resolve) {
+        var thumbnail = {
+          frames: parseVtt(src),
+          height: null,
+          urlPrefix: ''
+        }; // If the URLs don't start with '/', then we need to set their relative path to be the location of the VTT file
+        // If the URLs do start with '/', then they obviously don't need a prefix, so it will remain blank
+        // If the thumbnail URLs start with with none of '/', 'http://' or 'https://', then we need to set their relative path to be the location of the VTT file
+
+        if (!thumbnail.frames[0].text.startsWith('/') && !thumbnail.frames[0].text.startsWith('http://') && !thumbnail.frames[0].text.startsWith('https://')) {
+          thumbnail.urlPrefix = url.substring(0, url.lastIndexOf('/') + 1);
+        } // Download the first frame, so that we can determine/set the height of this thumbnailsDef
 
 
-          var tempImage = new Image();
+        var tempImage = new Image();
+        tempImage.addEventListener('load', function () {
+          thumbnail.height = tempImage.naturalHeight;
+          thumbnail.width = tempImage.naturalWidth;
 
-          tempImage.onload = function () {
-            thumbnail.height = tempImage.naturalHeight;
-            thumbnail.width = tempImage.naturalWidth;
+          _this4.thumbnails.push(thumbnail);
 
-            _this3.thumbnails.push(thumbnail);
-
-            resolve();
-          };
-
-          tempImage.src = thumbnail.urlPrefix + thumbnail.frames[0].text;
+          resolve();
         });
+        tempImage.src = thumbnail.urlPrefix + thumbnail.frames[0].text;
       });
     }
   }, {
@@ -15349,7 +16201,7 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "endScrubbing",
     value: function endScrubbing() {
-      var _this4 = this;
+      var _this5 = this;
 
       this.mouseDown = false; // Hide scrubbing preview. But wait until the video has successfully seeked before hiding the scrubbing preview
 
@@ -15360,8 +16212,8 @@ var PreviewThumbnails = /*#__PURE__*/function () {
         // The video hasn't seeked yet. Wait for that
         once.call(this.player, this.player.media, 'timeupdate', function () {
           // Re-check mousedown - we might have already started scrubbing again
-          if (!_this4.mouseDown) {
-            _this4.toggleScrubbingContainer(false);
+          if (!_this5.mouseDown) {
+            _this5.toggleScrubbingContainer(false);
           }
         });
       }
@@ -15373,17 +16225,17 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "listeners",
     value: function listeners() {
-      var _this5 = this;
+      var _this6 = this;
 
       // Hide thumbnail preview - on mouse click, mouse leave (in listeners.js for now), and video play/seek. All four are required, e.g., for buffering
       this.player.on('play', function () {
-        _this5.toggleThumbContainer(false, true);
+        _this6.toggleThumbContainer(false, true);
       });
       this.player.on('seeked', function () {
-        _this5.toggleThumbContainer(false);
+        _this6.toggleThumbContainer(false);
       });
       this.player.on('timeupdate', function () {
-        _this5.lastTime = _this5.player.media.currentTime;
+        _this6.lastTime = _this6.player.media.currentTime;
       });
     }
     /**
@@ -15393,7 +16245,8 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      // Create HTML element: plyr__preview-thumbnail-container
+      if (!this.player.elements) return; // Create HTML element: plyr__preview-thumbnail-container
+
       this.elements.thumb.container = createElement('div', {
         class: this.player.config.classNames.previewThumbnails.thumbContainer
       }); // Wrapper for the image for styling
@@ -15434,9 +16287,10 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "showImageAtCurrentTime",
     value: function showImageAtCurrentTime() {
-      var _this6 = this;
+      var _this7 = this;
 
       var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.seekTime;
+      var container = arguments.length > 1 ? arguments[1] : undefined;
 
       if (this.mouseDown) {
         this.setScrubbingContainerSize();
@@ -15450,9 +16304,9 @@ var PreviewThumbnails = /*#__PURE__*/function () {
         return time >= frame.startTime && time <= frame.endTime;
       });
       var hasThumb = thumbNum >= 0;
-      var qualityIndex = 0; // Show the thumb container if we're not scrubbing or setting the editing timeline content
+      var qualityIndex = 0; // Show the thumb container if we're not scrubbing or setting a custom container
 
-      if (!this.mouseDown && !this.editor) {
+      if (!this.mouseDown && !container) {
         this.toggleThumbContainer(hasThumb);
       } // No matching thumb found
 
@@ -15463,30 +16317,31 @@ var PreviewThumbnails = /*#__PURE__*/function () {
 
 
       this.thumbnails.forEach(function (thumbnail, index) {
-        if (_this6.loadedImages.includes(thumbnail.frames[thumbNum].text)) {
+        if (_this7.loadedImages.includes(thumbnail.frames[thumbNum].text)) {
           qualityIndex = index;
         }
-      }); // Only proceed if either thumbnum or thumbfilename has changed
+      }); // Only proceed if either thumbnum, thumbfilename or container has changed
 
-      if (thumbNum !== this.showingThumb) {
+      if (thumbNum !== this.showingThumb || container) {
         this.showingThumb = thumbNum;
-        this.loadImage(qualityIndex);
+        this.loadImage(qualityIndex, container);
       }
     } // Show the image that's currently specified in this.showingThumb
 
   }, {
     key: "loadImage",
     value: function loadImage() {
-      var _this7 = this;
+      var _this8 = this;
 
       var qualityIndex = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+      var container = arguments.length > 1 ? arguments[1] : undefined;
       var thumbNum = this.showingThumb;
       var thumbnail = this.thumbnails[qualityIndex];
       var urlPrefix = thumbnail.urlPrefix;
       var frame = thumbnail.frames[thumbNum];
       var thumbFilename = thumbnail.frames[thumbNum].text;
       var thumbUrl = urlPrefix + thumbFilename;
-      var currentImageElement = this.editor ? this.currentImageContainer.previewImage : this.currentImageElement;
+      var currentImageElement = container ? container.currentImageElement : this.currentImageElement;
 
       if (!currentImageElement || currentImageElement.dataset.filename !== thumbFilename) {
         // If we're already loading a previous image, remove its onload handler - we don't want it to load after this one
@@ -15502,53 +16357,44 @@ var PreviewThumbnails = /*#__PURE__*/function () {
         previewImage.dataset.index = thumbNum;
         previewImage.dataset.filename = thumbFilename;
         this.showingThumbFilename = thumbFilename;
-        var currentImageContainer = this.currentImageContainer,
-            editor = this.editor;
         this.player.debug.log("Loading image: ".concat(thumbUrl)); // For some reason, passing the named function directly causes it to execute immediately. So I've wrapped it in an anonymous function...
 
         previewImage.addEventListener('load', function () {
-          _this7.showImage( // For the editor timeline, we need the most recent container however, if the event has changed between seeking and hover we should use the new container
-          editor ? currentImageContainer : _this7.currentImageContainer, previewImage, frame, qualityIndex, thumbNum, thumbFilename, true, editor);
+          _this8.showImage( // For the editor timeline, we need the most recent container however, if the event has changed between seeking and hover we should use the new container
+          container || _this8.currentImageContainer, previewImage, frame, qualityIndex, thumbNum, thumbFilename, true, !!container);
         }, {
           once: true
         });
         previewImage.src = thumbUrl;
         this.loadingImage = previewImage;
-        this.removeOldImages(previewImage);
+        this.removeOldImages(previewImage, container);
       } else {
         // Update the existing image
-        this.showImage(this.currentImageContainer, currentImageElement, frame, qualityIndex, thumbNum, thumbFilename, false, this.editor);
-
-        if (this.editor) {
-          this.currentImageContainer.previewImage.dataset.index = thumbNum;
-        } else {
-          this.currentImageElement.dataset.index = thumbNum;
-        }
-
-        this.removeOldImages(currentImageElement);
+        this.showImage(container || this.currentImageContainer, currentImageElement, frame, qualityIndex, thumbNum, thumbFilename, false, !!container);
+        currentImageElement.dataset.index = thumbNum;
+        this.removeOldImages(currentImageElement, container);
       }
     }
   }, {
     key: "showImage",
     value: function showImage(currentImageContainer, previewImage, frame, qualityIndex, thumbNum, thumbFilename) {
       var newImage = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : true;
-      var editor = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : false;
+      var container = arguments.length > 7 ? arguments[7] : undefined;
+      // Prevent if the player is destroyed after the image has loaded
+      if (is$1.empty(this.player.media)) return;
       this.player.debug.log("Showing thumb: ".concat(thumbFilename, ". num: ").concat(thumbNum, ". qual: ").concat(qualityIndex, ". newimg: ").concat(newImage));
       this.setImageSizeAndOffset(previewImage, frame);
+      currentImageContainer.appendChild(previewImage);
 
-      if (newImage) {
-        currentImageContainer.appendChild(previewImage);
+      if (container) {
+        // eslint-disable-next-line no-param-reassign
+        currentImageContainer.currentImageElement = previewImage;
+      } else {
         this.currentImageElement = previewImage;
-
-        if (!this.loadedImages.includes(thumbFilename)) {
-          this.loadedImages.push(thumbFilename);
-        }
       }
 
-      if (editor) {
-        // Store in the container as in the editor we have a list of images rather than a single image and makes it easier to index
-        // eslint-disable-next-line no-param-reassign
-        currentImageContainer.previewImage = previewImage;
+      if (!this.loadedImages.includes(thumbFilename)) {
+        this.loadedImages.push(thumbFilename);
       } // Preload images before and after the current one
       // Show higher quality of the same frame
       // Each step here has a short time delay, and only continues if still hovering/seeking the same spot. This is to protect slow connections from overloading
@@ -15559,28 +16405,28 @@ var PreviewThumbnails = /*#__PURE__*/function () {
 
   }, {
     key: "removeOldImages",
-    value: function removeOldImages(currentImage) {
-      var _this8 = this;
+    value: function removeOldImages(currentImage, container) {
+      var _this9 = this;
 
-      // Get a list of all images, convert it from a DOM list to an array
-      Array.from(this.currentImageContainer.children).forEach(function (image) {
+      // This has to be set before the timeout - to prevent issues switching between hover and scrub
+      var currentImageContainer = container || this.currentImageContainer; // Get a list of all images, convert it from a DOM list to an array
+
+      Array.from(currentImageContainer.children).forEach(function (image) {
         if (image.tagName.toLowerCase() !== 'img') {
           return;
         }
 
-        var removeDelay = _this8.usingSprites ? 500 : 1000;
+        var removeDelay = _this9.usingSprites ? 500 : 1000;
 
         if (image.dataset.index !== currentImage.dataset.index && !image.dataset.deleting) {
           // Wait 200ms, as the new image can take some time to show on certain browsers (even though it was downloaded before showing). This will prevent flicker, and show some generosity towards slower clients
           // First set attribute 'deleting' to prevent multi-handling of this on repeat firing of this function
           // eslint-disable-next-line no-param-reassign
-          image.dataset.deleting = true; // This has to be set before the timeout - to prevent issues switching between hover and scrub
-
-          var currentImageContainer = _this8.currentImageContainer;
+          image.dataset.deleting = true;
           setTimeout(function () {
             currentImageContainer.removeChild(image);
 
-            _this8.player.debug.log("Removing thumb: ".concat(image.dataset.filename));
+            _this9.player.debug.log("Removing thumb: ".concat(image.dataset.filename));
           }, removeDelay);
         }
       });
@@ -15590,21 +16436,21 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "preloadNearby",
     value: function preloadNearby(thumbNum) {
-      var _this9 = this;
+      var _this10 = this;
 
       var forward = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       return new Promise(function (resolve) {
         setTimeout(function () {
-          var oldThumbFilename = _this9.thumbnails[0].frames[thumbNum].text;
+          var oldThumbFilename = _this10.thumbnails[0].frames[thumbNum].text;
 
-          if (_this9.showingThumbFilename === oldThumbFilename) {
+          if (_this10.showingThumbFilename === oldThumbFilename) {
             // Find the nearest thumbs with different filenames. Sometimes it'll be the next index, but in the case of sprites, it might be 100+ away
             var thumbnailsClone;
 
             if (forward) {
-              thumbnailsClone = _this9.thumbnails[0].frames.slice(thumbNum);
+              thumbnailsClone = _this10.thumbnails[0].frames.slice(thumbNum);
             } else {
-              thumbnailsClone = _this9.thumbnails[0].frames.slice(0, thumbNum).reverse();
+              thumbnailsClone = _this10.thumbnails[0].frames.slice(0, thumbNum).reverse();
             }
 
             var foundOne = false;
@@ -15613,20 +16459,20 @@ var PreviewThumbnails = /*#__PURE__*/function () {
 
               if (newThumbFilename !== oldThumbFilename) {
                 // Found one with a different filename. Make sure it hasn't already been loaded on this page visit
-                if (!_this9.loadedImages.includes(newThumbFilename)) {
+                if (!_this10.loadedImages.includes(newThumbFilename)) {
                   foundOne = true;
 
-                  _this9.player.debug.log("Preloading thumb filename: ".concat(newThumbFilename));
+                  _this10.player.debug.log("Preloading thumb filename: ".concat(newThumbFilename));
 
-                  var urlPrefix = _this9.thumbnails[0].urlPrefix;
+                  var urlPrefix = _this10.thumbnails[0].urlPrefix;
                   var thumbURL = urlPrefix + newThumbFilename;
                   var previewImage = new Image();
                   previewImage.src = thumbURL;
 
                   previewImage.onload = function () {
-                    _this9.player.debug.log("Preloaded thumb filename: ".concat(newThumbFilename));
+                    _this10.player.debug.log("Preloaded thumb filename: ".concat(newThumbFilename));
 
-                    if (!_this9.loadedImages.includes(newThumbFilename)) _this9.loadedImages.push(newThumbFilename); // We don't resolve until the thumb is loaded
+                    if (!_this10.loadedImages.includes(newThumbFilename)) _this10.loadedImages.push(newThumbFilename); // We don't resolve until the thumb is loaded
 
                     resolve();
                   };
@@ -15645,7 +16491,7 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "getHigherQuality",
     value: function getHigherQuality(currentQualityIndex, previewImage, frame, thumbFilename) {
-      var _this10 = this;
+      var _this11 = this;
 
       if (currentQualityIndex < this.thumbnails.length - 1) {
         // Only use the higher quality version if it's going to look any better - if the current thumb is of a lower pixel density than the thumbnail container
@@ -15659,10 +16505,10 @@ var PreviewThumbnails = /*#__PURE__*/function () {
           // Recurse back to the loadImage function - show a higher quality one, but only if the viewer is on this frame for a while
           setTimeout(function () {
             // Make sure the mouse hasn't already moved on and started hovering at another image
-            if (_this10.showingThumbFilename === thumbFilename) {
-              _this10.player.debug.log("Showing higher quality thumb for: ".concat(thumbFilename));
+            if (_this11.showingThumbFilename === thumbFilename) {
+              _this11.player.debug.log("Showing higher quality thumb for: ".concat(thumbFilename));
 
-              _this10.loadImage(currentQualityIndex + 1);
+              _this11.loadImage(currentQualityIndex + 1);
             }
           }, 300);
         }
@@ -15696,7 +16542,9 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "determineContainerAutoSizing",
     value: function determineContainerAutoSizing() {
-      if (this.elements.thumb.imageContainer.clientHeight > 20 || this.elements.thumb.imageContainer.clientWidth > 20) {
+      var thumb = this.elements.thumb;
+
+      if (!is$1.empty(thumb) && (thumb.imageContainer.clientHeight > 20 || thumb.imageContainer.clientWidth > 20)) {
         // This will prevent auto sizing in this.setThumbContainerSizeAndPos()
         this.sizeSpecifiedInCSS = true;
       }
@@ -15786,10 +16634,6 @@ var PreviewThumbnails = /*#__PURE__*/function () {
     get: function get() {
       if (this.mouseDown) {
         return this.elements.scrubbing.container;
-      }
-
-      if (this.editor) {
-        return this.elements.editor.container;
       }
 
       return this.elements.thumb.imageContainer;
@@ -16583,15 +17427,15 @@ var Plyr = /*#__PURE__*/function () {
             callback();
           }
         } else {
-          // Unbind listeners
+          // Event
+          triggerEvent.call(_this3, _this3.elements.container, 'destroyed', true); // Unbind listeners
+
           unbindListeners.call(_this3); // Replace the container with the original element provided
 
           replaceElement(_this3.elements.original, _this3.elements.container); // Destroy the editor (editor is inserted after the container element)
 
-          _this3.editor.destroy(); // Event
+          _this3.editor.destroy(); // Callback
 
-
-          triggerEvent.call(_this3, _this3.elements.original, 'destroyed', true); // Callback
 
           if (is$1.function(callback)) {
             callback.call(_this3.elements.original);

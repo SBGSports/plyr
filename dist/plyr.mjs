@@ -1,4 +1,40 @@
-typeof navigator === "object" && function _classCallCheck(instance, Constructor) {
+typeof navigator === "object" && function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+  try {
+    var info = gen[key](arg);
+    var value = info.value;
+  } catch (error) {
+    reject(error);
+    return;
+  }
+
+  if (info.done) {
+    resolve(value);
+  } else {
+    Promise.resolve(value).then(_next, _throw);
+  }
+}
+
+function _asyncToGenerator(fn) {
+  return function () {
+    var self = this,
+        args = arguments;
+    return new Promise(function (resolve, reject) {
+      var gen = fn.apply(self, args);
+
+      function _next(value) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+      }
+
+      function _throw(err) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+      }
+
+      _next(undefined);
+    });
+  };
+}
+
+function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
   }
@@ -3861,10 +3897,11 @@ var defaults$1 = {
   events: [// Events to watch on HTML5 media elements and bubble
   // https://developer.mozilla.org/en/docs/Web/Guide/Events/Media_events
   'ended', 'progress', 'stalled', 'playing', 'waiting', 'canplay', 'canplaythrough', 'loadstart', 'loadeddata', 'loadedmetadata', 'timeupdate', 'volumechange', 'play', 'pause', 'error', 'seeking', 'seeked', 'emptied', 'ratechange', 'cuechange', // Custom events
-  'download', 'enterfullscreen', 'exitfullscreen', 'captionsenabled', 'captionsdisabled', 'languagechange', 'controlshidden', 'controlsshown', 'ready', // YouTube
+  'download', 'enterfullscreen', 'exitfullscreen', 'captionsenabled', 'captionsdisabled', 'languagechange', 'controlshidden', 'controlsshown', 'ready', 'destroyed', // YouTube
   'statechange', // Quality
   'qualitychange', // Ads
-  'adsloaded', 'adscontentpause', 'adscontentresume', 'adstarted', 'adsmidpoint', 'adscomplete', 'adsallcomplete', 'adsimpression', 'adsclick', // Editor
+  'adsloaded', 'adscontentpause', 'adscontentresume', 'adstarted', 'adsmidpoint', 'adscomplete', 'adsallcomplete', 'adsimpression', 'adsclick', // Preview thumbnails
+  'previewthumbnailsloaded', // Editor
   'entereditor', 'exiteditor', 'editorloaded', 'zoomchange', // Markers
   'markeradded', 'markerchange', // Trimming
   'entertrim', 'exittrim', 'trimchange'],
@@ -7422,20 +7459,40 @@ var Editor = /*#__PURE__*/function () {
     }
   }, {
     key: "createEditor",
-    value: function createEditor() {
-      var container = this.player.elements.container;
+    value: function () {
+      var _createEditor = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var container;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                container = this.player.elements.container;
 
-      if (is$1.element(container) && this.loaded) {
-        this.createContainer(container);
-        this.createControls();
-        this.createTimeline();
-        this.createTimeStamps();
-        this.createVideoTimeline();
-        this.createSeekHandle();
-        this.player.listeners.editor();
-        triggerEvent.call(this.player, this.player.media, 'editorloaded');
+                if (is$1.element(container) && this.loaded) {
+                  this.createContainer(container);
+                  this.createControls();
+                  this.createTimeline();
+                  this.createTimeStamps();
+                  this.createVideoTimeline();
+                  this.createSeekHandle();
+                  this.player.listeners.editor();
+                  triggerEvent.call(this.player, this.player.media, 'editorloaded');
+                }
+
+              case 2:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function createEditor() {
+        return _createEditor.apply(this, arguments);
       }
-    }
+
+      return createEditor;
+    }()
   }, {
     key: "createContainer",
     value: function createContainer(container) {
@@ -7482,8 +7539,11 @@ var Editor = /*#__PURE__*/function () {
       if (window.jQuery && elements.container instanceof jQuery || is$1.nodeList(elements.container) || is$1.array(elements.container)) {
         // eslint-disable-next-line
         this.elements.container = elements.container[0];
-      } // set editor container class
+      } // Clone the original element so if the element gets destroyed we can return it to its original state
 
+
+      var clone = this.elements.container.cloneNode(true);
+      this.elements.original = clone; // set editor container class
 
       this.elements.container.classList.add(player.config.classNames.editor.container);
     }
@@ -7639,10 +7699,8 @@ var Editor = /*#__PURE__*/function () {
 
 
         if (this.previewThumbnailsLoaded) {
-          // set the current editor container
-          previewThumbnails.elements.editor.container = previewThumb; // Append the image to the container
-
-          previewThumbnails.showImageAtCurrentTime(time);
+          // Append the image to the container
+          previewThumbnails.showImageAtCurrentTime(time, previewThumb);
         }
 
         time += this.player.duration / (clientRect.width / this.videoContainerWidth);
@@ -7879,10 +7937,18 @@ var Editor = /*#__PURE__*/function () {
           _this2.createEditor();
         }
       }); // If the duration changes after loading the editor, the corresponding timestamps need to be updated
+      // If the duration of the video or previewthumbnails has loaded, update
 
       this.player.on('loadeddata loadedmetadata', function () {
         if (_this2.loaded && _this2.shown) {
           _this2.updateTimestamps();
+
+          _this2.setVideoTimelimeContent();
+        }
+      });
+      this.player.on('previewthumbnailsloaded', function () {
+        if (_this2.loaded && _this2.shown) {
+          _this2.setVideoTimelimeContent();
         }
       });
     } // On toggle of the editor, trigger event
@@ -7912,7 +7978,7 @@ var Editor = /*#__PURE__*/function () {
     value: function destroy() {
       // Remove the elements with listeners on
       if (this.elements.container && !is$1.empty(this.elements.container)) {
-        this.elements.container.remove();
+        replaceElement(this.elements.original, this.elements.container);
         this.loaded = false;
       }
     } // Enter Editor
@@ -7970,8 +8036,12 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "previewThumbnailsLoaded",
     get: function get() {
-      var previewThumbnails = this.player.previewThumbnails;
-      return previewThumbnails && previewThumbnails.loaded;
+      var _this$player = this.player,
+          previewThumbnails = _this$player.previewThumbnails,
+          duration = _this$player.duration;
+      /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
+
+      return previewThumbnails && previewThumbnails.loaded && duration > 0;
     }
   }]);
 
@@ -8087,8 +8157,16 @@ var Markers = /*#__PURE__*/function () {
           time: parseFloat(value)
         });
         this.editing = null;
+
+        if (this.player.previewThumbnails) {
+          this.player.previewThumbnails.endScrubbing(event);
+        }
       } else if (type === 'mousedown' || type === 'touchstart') {
         this.editing = target;
+
+        if (this.player.previewThumbnails) {
+          this.player.previewThumbnails.startScrubbing(event);
+        }
       }
     }
   }, {
@@ -8106,7 +8184,12 @@ var Markers = /*#__PURE__*/function () {
 
       marker.style.left = "".concat(percentage, "%");
       marker.setAttribute('aria-valuenow', time);
-      marker.setAttribute('aria-valuetext', formatTime(time));
+      marker.setAttribute('aria-valuetext', formatTime(time)); // Show the seek thumbnail
+
+      if (this.player.previewThumbnails) {
+        var seekTime = this.player.media.duration * (percentage / 100);
+        this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+      }
     }
   }, {
     key: "toggleMarkers",
@@ -8730,7 +8813,6 @@ var PreviewThumbnails = /*#__PURE__*/function () {
     this.loaded = false;
     this.lastMouseMoveTime = Date.now();
     this.mouseDown = false;
-    this.editor = false;
     this.loadedImages = [];
     this.elements = {
       thumb: {},
@@ -8765,7 +8847,9 @@ var PreviewThumbnails = /*#__PURE__*/function () {
 
         _this.determineContainerAutoSizing();
 
-        _this.loaded = true;
+        _this.loaded = true; // Trigger event
+
+        triggerEvent.call(_this.player, _this.player.media, 'previewthumbnailsloaded');
       });
     } // Download VTT files and parse them
 
@@ -8805,7 +8889,7 @@ var PreviewThumbnails = /*#__PURE__*/function () {
             var urls = is$1.string(src) ? [src] : src; // Loop through each src URL. Download and process the VTT file, storing the resulting data in this.thumbnails
 
             var promises = urls.map(function (u) {
-              return _this2.getThumbnail(u);
+              return _this2.getVttFile(u);
             }); // Resolve
 
             Promise.all(promises).then(sortAndResolve);
@@ -8814,38 +8898,50 @@ var PreviewThumbnails = /*#__PURE__*/function () {
     } // Process individual VTT file
 
   }, {
-    key: "getThumbnail",
-    value: function getThumbnail(url) {
+    key: "getVttFile",
+    value: function getVttFile(src) {
       var _this3 = this;
 
       return new Promise(function (resolve) {
-        fetch(url).then(function (response) {
-          var thumbnail = {
-            frames: parseVtt(response),
-            height: null,
-            urlPrefix: ''
-          }; // If the URLs don't start with '/', then we need to set their relative path to be the location of the VTT file
-          // If the URLs do start with '/', then they obviously don't need a prefix, so it will remain blank
-          // If the thumbnail URLs start with with none of '/', 'http://' or 'https://', then we need to set their relative path to be the location of the VTT file
+        if (src.startsWith('WEBVTT')) {
+          _this3.getThumbnail(src).then(resolve());
+        } else {
+          fetch(src).then(function (response) {
+            return _this3.getThumbnail(response, src).then(resolve());
+          });
+        }
+      });
+    } // Process thumbnail
 
-          if (!thumbnail.frames[0].text.startsWith('/') && !thumbnail.frames[0].text.startsWith('http://') && !thumbnail.frames[0].text.startsWith('https://')) {
-            thumbnail.urlPrefix = url.substring(0, url.lastIndexOf('/') + 1);
-          } // Download the first frame, so that we can determine/set the height of this thumbnailsDef
+  }, {
+    key: "getThumbnail",
+    value: function getThumbnail(src, url) {
+      var _this4 = this;
+
+      return new Promise(function (resolve) {
+        var thumbnail = {
+          frames: parseVtt(src),
+          height: null,
+          urlPrefix: ''
+        }; // If the URLs don't start with '/', then we need to set their relative path to be the location of the VTT file
+        // If the URLs do start with '/', then they obviously don't need a prefix, so it will remain blank
+        // If the thumbnail URLs start with with none of '/', 'http://' or 'https://', then we need to set their relative path to be the location of the VTT file
+
+        if (!thumbnail.frames[0].text.startsWith('/') && !thumbnail.frames[0].text.startsWith('http://') && !thumbnail.frames[0].text.startsWith('https://')) {
+          thumbnail.urlPrefix = url.substring(0, url.lastIndexOf('/') + 1);
+        } // Download the first frame, so that we can determine/set the height of this thumbnailsDef
 
 
-          var tempImage = new Image();
+        var tempImage = new Image();
+        tempImage.addEventListener('load', function () {
+          thumbnail.height = tempImage.naturalHeight;
+          thumbnail.width = tempImage.naturalWidth;
 
-          tempImage.onload = function () {
-            thumbnail.height = tempImage.naturalHeight;
-            thumbnail.width = tempImage.naturalWidth;
+          _this4.thumbnails.push(thumbnail);
 
-            _this3.thumbnails.push(thumbnail);
-
-            resolve();
-          };
-
-          tempImage.src = thumbnail.urlPrefix + thumbnail.frames[0].text;
+          resolve();
         });
+        tempImage.src = thumbnail.urlPrefix + thumbnail.frames[0].text;
       });
     }
   }, {
@@ -8914,7 +9010,7 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "endScrubbing",
     value: function endScrubbing() {
-      var _this4 = this;
+      var _this5 = this;
 
       this.mouseDown = false; // Hide scrubbing preview. But wait until the video has successfully seeked before hiding the scrubbing preview
 
@@ -8925,8 +9021,8 @@ var PreviewThumbnails = /*#__PURE__*/function () {
         // The video hasn't seeked yet. Wait for that
         once.call(this.player, this.player.media, 'timeupdate', function () {
           // Re-check mousedown - we might have already started scrubbing again
-          if (!_this4.mouseDown) {
-            _this4.toggleScrubbingContainer(false);
+          if (!_this5.mouseDown) {
+            _this5.toggleScrubbingContainer(false);
           }
         });
       }
@@ -8938,17 +9034,17 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "listeners",
     value: function listeners() {
-      var _this5 = this;
+      var _this6 = this;
 
       // Hide thumbnail preview - on mouse click, mouse leave (in listeners.js for now), and video play/seek. All four are required, e.g., for buffering
       this.player.on('play', function () {
-        _this5.toggleThumbContainer(false, true);
+        _this6.toggleThumbContainer(false, true);
       });
       this.player.on('seeked', function () {
-        _this5.toggleThumbContainer(false);
+        _this6.toggleThumbContainer(false);
       });
       this.player.on('timeupdate', function () {
-        _this5.lastTime = _this5.player.media.currentTime;
+        _this6.lastTime = _this6.player.media.currentTime;
       });
     }
     /**
@@ -8958,7 +9054,8 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      // Create HTML element: plyr__preview-thumbnail-container
+      if (!this.player.elements) return; // Create HTML element: plyr__preview-thumbnail-container
+
       this.elements.thumb.container = createElement('div', {
         class: this.player.config.classNames.previewThumbnails.thumbContainer
       }); // Wrapper for the image for styling
@@ -8999,9 +9096,10 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "showImageAtCurrentTime",
     value: function showImageAtCurrentTime() {
-      var _this6 = this;
+      var _this7 = this;
 
       var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.seekTime;
+      var container = arguments.length > 1 ? arguments[1] : undefined;
 
       if (this.mouseDown) {
         this.setScrubbingContainerSize();
@@ -9015,9 +9113,9 @@ var PreviewThumbnails = /*#__PURE__*/function () {
         return time >= frame.startTime && time <= frame.endTime;
       });
       var hasThumb = thumbNum >= 0;
-      var qualityIndex = 0; // Show the thumb container if we're not scrubbing or setting the editing timeline content
+      var qualityIndex = 0; // Show the thumb container if we're not scrubbing or setting a custom container
 
-      if (!this.mouseDown && !this.editor) {
+      if (!this.mouseDown && !container) {
         this.toggleThumbContainer(hasThumb);
       } // No matching thumb found
 
@@ -9028,30 +9126,31 @@ var PreviewThumbnails = /*#__PURE__*/function () {
 
 
       this.thumbnails.forEach(function (thumbnail, index) {
-        if (_this6.loadedImages.includes(thumbnail.frames[thumbNum].text)) {
+        if (_this7.loadedImages.includes(thumbnail.frames[thumbNum].text)) {
           qualityIndex = index;
         }
-      }); // Only proceed if either thumbnum or thumbfilename has changed
+      }); // Only proceed if either thumbnum, thumbfilename or container has changed
 
-      if (thumbNum !== this.showingThumb) {
+      if (thumbNum !== this.showingThumb || container) {
         this.showingThumb = thumbNum;
-        this.loadImage(qualityIndex);
+        this.loadImage(qualityIndex, container);
       }
     } // Show the image that's currently specified in this.showingThumb
 
   }, {
     key: "loadImage",
     value: function loadImage() {
-      var _this7 = this;
+      var _this8 = this;
 
       var qualityIndex = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+      var container = arguments.length > 1 ? arguments[1] : undefined;
       var thumbNum = this.showingThumb;
       var thumbnail = this.thumbnails[qualityIndex];
       var urlPrefix = thumbnail.urlPrefix;
       var frame = thumbnail.frames[thumbNum];
       var thumbFilename = thumbnail.frames[thumbNum].text;
       var thumbUrl = urlPrefix + thumbFilename;
-      var currentImageElement = this.editor ? this.currentImageContainer.previewImage : this.currentImageElement;
+      var currentImageElement = container ? container.currentImageElement : this.currentImageElement;
 
       if (!currentImageElement || currentImageElement.dataset.filename !== thumbFilename) {
         // If we're already loading a previous image, remove its onload handler - we don't want it to load after this one
@@ -9067,53 +9166,44 @@ var PreviewThumbnails = /*#__PURE__*/function () {
         previewImage.dataset.index = thumbNum;
         previewImage.dataset.filename = thumbFilename;
         this.showingThumbFilename = thumbFilename;
-        var currentImageContainer = this.currentImageContainer,
-            editor = this.editor;
         this.player.debug.log("Loading image: ".concat(thumbUrl)); // For some reason, passing the named function directly causes it to execute immediately. So I've wrapped it in an anonymous function...
 
         previewImage.addEventListener('load', function () {
-          _this7.showImage( // For the editor timeline, we need the most recent container however, if the event has changed between seeking and hover we should use the new container
-          editor ? currentImageContainer : _this7.currentImageContainer, previewImage, frame, qualityIndex, thumbNum, thumbFilename, true, editor);
+          _this8.showImage( // For the editor timeline, we need the most recent container however, if the event has changed between seeking and hover we should use the new container
+          container || _this8.currentImageContainer, previewImage, frame, qualityIndex, thumbNum, thumbFilename, true, !!container);
         }, {
           once: true
         });
         previewImage.src = thumbUrl;
         this.loadingImage = previewImage;
-        this.removeOldImages(previewImage);
+        this.removeOldImages(previewImage, container);
       } else {
         // Update the existing image
-        this.showImage(this.currentImageContainer, currentImageElement, frame, qualityIndex, thumbNum, thumbFilename, false, this.editor);
-
-        if (this.editor) {
-          this.currentImageContainer.previewImage.dataset.index = thumbNum;
-        } else {
-          this.currentImageElement.dataset.index = thumbNum;
-        }
-
-        this.removeOldImages(currentImageElement);
+        this.showImage(container || this.currentImageContainer, currentImageElement, frame, qualityIndex, thumbNum, thumbFilename, false, !!container);
+        currentImageElement.dataset.index = thumbNum;
+        this.removeOldImages(currentImageElement, container);
       }
     }
   }, {
     key: "showImage",
     value: function showImage(currentImageContainer, previewImage, frame, qualityIndex, thumbNum, thumbFilename) {
       var newImage = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : true;
-      var editor = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : false;
+      var container = arguments.length > 7 ? arguments[7] : undefined;
+      // Prevent if the player is destroyed after the image has loaded
+      if (is$1.empty(this.player.media)) return;
       this.player.debug.log("Showing thumb: ".concat(thumbFilename, ". num: ").concat(thumbNum, ". qual: ").concat(qualityIndex, ". newimg: ").concat(newImage));
       this.setImageSizeAndOffset(previewImage, frame);
+      currentImageContainer.appendChild(previewImage);
 
-      if (newImage) {
-        currentImageContainer.appendChild(previewImage);
+      if (container) {
+        // eslint-disable-next-line no-param-reassign
+        currentImageContainer.currentImageElement = previewImage;
+      } else {
         this.currentImageElement = previewImage;
-
-        if (!this.loadedImages.includes(thumbFilename)) {
-          this.loadedImages.push(thumbFilename);
-        }
       }
 
-      if (editor) {
-        // Store in the container as in the editor we have a list of images rather than a single image and makes it easier to index
-        // eslint-disable-next-line no-param-reassign
-        currentImageContainer.previewImage = previewImage;
+      if (!this.loadedImages.includes(thumbFilename)) {
+        this.loadedImages.push(thumbFilename);
       } // Preload images before and after the current one
       // Show higher quality of the same frame
       // Each step here has a short time delay, and only continues if still hovering/seeking the same spot. This is to protect slow connections from overloading
@@ -9124,28 +9214,28 @@ var PreviewThumbnails = /*#__PURE__*/function () {
 
   }, {
     key: "removeOldImages",
-    value: function removeOldImages(currentImage) {
-      var _this8 = this;
+    value: function removeOldImages(currentImage, container) {
+      var _this9 = this;
 
-      // Get a list of all images, convert it from a DOM list to an array
-      Array.from(this.currentImageContainer.children).forEach(function (image) {
+      // This has to be set before the timeout - to prevent issues switching between hover and scrub
+      var currentImageContainer = container || this.currentImageContainer; // Get a list of all images, convert it from a DOM list to an array
+
+      Array.from(currentImageContainer.children).forEach(function (image) {
         if (image.tagName.toLowerCase() !== 'img') {
           return;
         }
 
-        var removeDelay = _this8.usingSprites ? 500 : 1000;
+        var removeDelay = _this9.usingSprites ? 500 : 1000;
 
         if (image.dataset.index !== currentImage.dataset.index && !image.dataset.deleting) {
           // Wait 200ms, as the new image can take some time to show on certain browsers (even though it was downloaded before showing). This will prevent flicker, and show some generosity towards slower clients
           // First set attribute 'deleting' to prevent multi-handling of this on repeat firing of this function
           // eslint-disable-next-line no-param-reassign
-          image.dataset.deleting = true; // This has to be set before the timeout - to prevent issues switching between hover and scrub
-
-          var currentImageContainer = _this8.currentImageContainer;
+          image.dataset.deleting = true;
           setTimeout(function () {
             currentImageContainer.removeChild(image);
 
-            _this8.player.debug.log("Removing thumb: ".concat(image.dataset.filename));
+            _this9.player.debug.log("Removing thumb: ".concat(image.dataset.filename));
           }, removeDelay);
         }
       });
@@ -9155,21 +9245,21 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "preloadNearby",
     value: function preloadNearby(thumbNum) {
-      var _this9 = this;
+      var _this10 = this;
 
       var forward = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       return new Promise(function (resolve) {
         setTimeout(function () {
-          var oldThumbFilename = _this9.thumbnails[0].frames[thumbNum].text;
+          var oldThumbFilename = _this10.thumbnails[0].frames[thumbNum].text;
 
-          if (_this9.showingThumbFilename === oldThumbFilename) {
+          if (_this10.showingThumbFilename === oldThumbFilename) {
             // Find the nearest thumbs with different filenames. Sometimes it'll be the next index, but in the case of sprites, it might be 100+ away
             var thumbnailsClone;
 
             if (forward) {
-              thumbnailsClone = _this9.thumbnails[0].frames.slice(thumbNum);
+              thumbnailsClone = _this10.thumbnails[0].frames.slice(thumbNum);
             } else {
-              thumbnailsClone = _this9.thumbnails[0].frames.slice(0, thumbNum).reverse();
+              thumbnailsClone = _this10.thumbnails[0].frames.slice(0, thumbNum).reverse();
             }
 
             var foundOne = false;
@@ -9178,20 +9268,20 @@ var PreviewThumbnails = /*#__PURE__*/function () {
 
               if (newThumbFilename !== oldThumbFilename) {
                 // Found one with a different filename. Make sure it hasn't already been loaded on this page visit
-                if (!_this9.loadedImages.includes(newThumbFilename)) {
+                if (!_this10.loadedImages.includes(newThumbFilename)) {
                   foundOne = true;
 
-                  _this9.player.debug.log("Preloading thumb filename: ".concat(newThumbFilename));
+                  _this10.player.debug.log("Preloading thumb filename: ".concat(newThumbFilename));
 
-                  var urlPrefix = _this9.thumbnails[0].urlPrefix;
+                  var urlPrefix = _this10.thumbnails[0].urlPrefix;
                   var thumbURL = urlPrefix + newThumbFilename;
                   var previewImage = new Image();
                   previewImage.src = thumbURL;
 
                   previewImage.onload = function () {
-                    _this9.player.debug.log("Preloaded thumb filename: ".concat(newThumbFilename));
+                    _this10.player.debug.log("Preloaded thumb filename: ".concat(newThumbFilename));
 
-                    if (!_this9.loadedImages.includes(newThumbFilename)) _this9.loadedImages.push(newThumbFilename); // We don't resolve until the thumb is loaded
+                    if (!_this10.loadedImages.includes(newThumbFilename)) _this10.loadedImages.push(newThumbFilename); // We don't resolve until the thumb is loaded
 
                     resolve();
                   };
@@ -9210,7 +9300,7 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "getHigherQuality",
     value: function getHigherQuality(currentQualityIndex, previewImage, frame, thumbFilename) {
-      var _this10 = this;
+      var _this11 = this;
 
       if (currentQualityIndex < this.thumbnails.length - 1) {
         // Only use the higher quality version if it's going to look any better - if the current thumb is of a lower pixel density than the thumbnail container
@@ -9224,10 +9314,10 @@ var PreviewThumbnails = /*#__PURE__*/function () {
           // Recurse back to the loadImage function - show a higher quality one, but only if the viewer is on this frame for a while
           setTimeout(function () {
             // Make sure the mouse hasn't already moved on and started hovering at another image
-            if (_this10.showingThumbFilename === thumbFilename) {
-              _this10.player.debug.log("Showing higher quality thumb for: ".concat(thumbFilename));
+            if (_this11.showingThumbFilename === thumbFilename) {
+              _this11.player.debug.log("Showing higher quality thumb for: ".concat(thumbFilename));
 
-              _this10.loadImage(currentQualityIndex + 1);
+              _this11.loadImage(currentQualityIndex + 1);
             }
           }, 300);
         }
@@ -9261,7 +9351,9 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "determineContainerAutoSizing",
     value: function determineContainerAutoSizing() {
-      if (this.elements.thumb.imageContainer.clientHeight > 20 || this.elements.thumb.imageContainer.clientWidth > 20) {
+      var thumb = this.elements.thumb;
+
+      if (!is$1.empty(thumb) && (thumb.imageContainer.clientHeight > 20 || thumb.imageContainer.clientWidth > 20)) {
         // This will prevent auto sizing in this.setThumbContainerSizeAndPos()
         this.sizeSpecifiedInCSS = true;
       }
@@ -9351,10 +9443,6 @@ var PreviewThumbnails = /*#__PURE__*/function () {
     get: function get() {
       if (this.mouseDown) {
         return this.elements.scrubbing.container;
-      }
-
-      if (this.editor) {
-        return this.elements.editor.container;
       }
 
       return this.elements.thumb.imageContainer;
@@ -10148,15 +10236,15 @@ var Plyr = /*#__PURE__*/function () {
             callback();
           }
         } else {
-          // Unbind listeners
+          // Event
+          triggerEvent.call(_this3, _this3.elements.container, 'destroyed', true); // Unbind listeners
+
           unbindListeners.call(_this3); // Replace the container with the original element provided
 
           replaceElement(_this3.elements.original, _this3.elements.container); // Destroy the editor (editor is inserted after the container element)
 
-          _this3.editor.destroy(); // Event
+          _this3.editor.destroy(); // Callback
 
-
-          triggerEvent.call(_this3, _this3.elements.original, 'destroyed', true); // Callback
 
           if (is$1.function(callback)) {
             callback.call(_this3.elements.original);
