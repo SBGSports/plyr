@@ -357,7 +357,7 @@ class Trim {
       this.setEndTime(percentage);
 
       // Prevent the start time being after the end time
-      if (percentage <= startPercentage) {
+      if (this.endTime < this.startTime) {
         bar.style.left = `${percentage}%`;
         this.setStartTime(`${percentage}%`);
       }
