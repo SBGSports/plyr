@@ -10088,7 +10088,9 @@ var defaults$1 = {
   trim: {
     enabled: true,
     // Allow trim?
-    closeEditor: true // Close editor, on close of trimming tool
+    closeEditor: true,
+    // Close editor, on close of trimming tool
+    maxTrimLength: -1 // Limit the maximum length of the trimming region in seconds
 
   },
   // Fullscreen settings
@@ -15390,8 +15392,6 @@ var Trim = /*#__PURE__*/function () {
     this.loaded = false;
     this.trimming = false;
     this.editing = false;
-    this.defaultTrimLength = 20; // Trim length in percent
-
     this.startTime = 0;
     this.endTime = 0;
     this.timeUpdateFunction = this.timeUpdate.bind(this);
@@ -15665,12 +15665,16 @@ var Trim = /*#__PURE__*/function () {
       var bar = this.elements.container.bar; // Update the position of the trim range tool
 
       if (this.editing === leftThumb) {
-        // Set the width to be in the position previously
+        if (percentage < parseFloat(bar.style.left) && this.maxTrimLength) {
+          return;
+        } // Set the width to be in the position previously
+
+
         bar.style.width = "".concat(parseFloat(bar.style.width) - (percentage - parseFloat(bar.style.left)), "%"); // Increase the left thumb
 
         bar.style.left = "".concat(percentage, "%"); // Store and convert the start percentage to time
 
-        this.setStartTime(percentage); // Prevent the end time being before the start time
+        this.setStartTime(percentage); // Prevent the end time being before the start time and limit the clip length if defined
 
         if (this.startTime > this.endTime) {
           this.setEndTime(percentage);
@@ -15685,15 +15689,20 @@ var Trim = /*#__PURE__*/function () {
         bar.leftThumb.setAttribute('aria-valuenow', this.startTime);
         bar.leftThumb.setAttribute('aria-valuetext', formatTime(this.startTime));
       } else if (this.editing === rightThumb) {
-        // Prevent the end time to be before the start time
-        if (percentage <= parseFloat(bar.style.left)) {
+        // Prevent the end time being before the start time and limit the clip length if defined
+        if (percentage > parseFloat(bar.style.left) + parseFloat(bar.style.width) && this.maxTrimLength) {
           return;
         } // Update the width of trim bar (right thumb)
 
 
         bar.style.width = "".concat(percentage - parseFloat(bar.style.left), "%"); // Store and convert the start percentage to time
 
-        this.setEndTime(percentage); // Set the timestamp of the current trim handle position
+        this.setEndTime(percentage); // Prevent the start time being before the end time
+
+        if (this.endTime < this.startTime) {
+          this.setStartTime(percentage);
+        } // Set the timestamp of the current trim handle position
+
 
         if (bar.rightThumb.timeContainer) {
           bar.rightThumb.timeContainer.time.innerText = formatTime(this.endTime);
@@ -15863,6 +15872,22 @@ var Trim = /*#__PURE__*/function () {
         startTime: this.startTime,
         endTime: this.endTime
       };
+    }
+  }, {
+    key: "defaultTrimLength",
+    get: function get() {
+      var maxTrimLength = this.config.maxTrimLength; // Default is 20% or the maximum trimming length
+
+      return maxTrimLength > 0 ? clamp(100 / this.player.duration * parseFloat(maxTrimLength), 0, 100) : 20;
+    }
+  }, {
+    key: "maxTrimLength",
+    get: function get() {
+      if (this.config.maxTrimLength >= 0 && this.endTime - this.startTime >= this.config.maxTrimLength) {
+        return true;
+      }
+
+      return false;
     }
   }]);
 
