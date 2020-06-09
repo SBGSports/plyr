@@ -124,6 +124,7 @@ const defaults = {
   trim: {
     enabled: true, // Allow trim?
     closeEditor: true, // Close editor, on close of trimming tool
+    maxTrimLength: -1, // Limit the maximum length of the trimming region in seconds
   },
 
   // Fullscreen settings

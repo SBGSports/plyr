@@ -18,7 +18,6 @@ class Trim {
     this.loaded = false;
     this.trimming = false;
     this.editing = false;
-    this.defaultTrimLength = 20; // Trim length in percent
     this.startTime = 0;
     this.endTime = 0;
     this.timeUpdateFunction = this.timeUpdate.bind(this);
@@ -47,6 +46,19 @@ class Trim {
   // Get the current trim time
   get trimTime() {
     return { startTime: this.startTime, endTime: this.endTime };
+  }
+
+  get defaultTrimLength() {
+    const { maxTrimLength } = this.config;
+    // Default is 20% or the maximum trimming length
+    return maxTrimLength > 0 ? clamp((100 / this.player.duration) * parseFloat(maxTrimLength), 0, 100) : 20;
+  }
+
+  get maxTrimLength() {
+    if (this.config.maxTrimLength >= 0 && this.endTime - this.startTime >= this.config.maxTrimLength) {
+      return true;
+    }
+    return false;
   }
 
   load() {
@@ -306,13 +318,16 @@ class Trim {
 
     // Update the position of the trim range tool
     if (this.editing === leftThumb) {
+      if (percentage < parseFloat(bar.style.left) && this.maxTrimLength) {
+        return;
+      }
       // Set the width to be in the position previously
       bar.style.width = `${parseFloat(bar.style.width) - (percentage - parseFloat(bar.style.left))}%`;
       // Increase the left thumb
       bar.style.left = `${percentage}%`;
       // Store and convert the start percentage to time
       this.setStartTime(percentage);
-      // Prevent the end time being before the start time
+      // Prevent the end time being before the start time and limit the clip length if defined
       if (this.startTime > this.endTime) {
         this.setEndTime(percentage);
       }
@@ -324,8 +339,11 @@ class Trim {
       bar.leftThumb.setAttribute('aria-valuenow', this.startTime);
       bar.leftThumb.setAttribute('aria-valuetext', formatTime(this.startTime));
     } else if (this.editing === rightThumb) {
-      // Prevent the end time to be before the start time
-      if (percentage <= parseFloat(bar.style.left)) {
+      // Prevent the end time being before the start time
+      if (
+        percentage <= parseFloat(bar.style.left) ||
+        (percentage > parseFloat(bar.style.left) + parseFloat(bar.style.width) && this.maxTrimLength)
+      ) {
         return;
       }
       // Update the width of trim bar (right thumb)

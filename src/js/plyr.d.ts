@@ -649,6 +649,7 @@ declare namespace Plyr {
   interface TrimOptions {
     enabled?: boolean;
     closeEditor?: boolean;
+    maxTrimLength?: number;
   }
 
   interface TrimTime {
