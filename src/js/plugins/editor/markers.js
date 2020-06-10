@@ -126,7 +126,7 @@ class Markers {
     if (type === 'mouseup' || type === 'touchend') {
       const value = marker.getAttribute('aria-valuenow');
       triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
-        id: target.id,
+        id: marker.id,
         time: parseFloat(value),
       });
       this.editing = null;
