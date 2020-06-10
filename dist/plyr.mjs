@@ -8155,7 +8155,7 @@ var Markers = /*#__PURE__*/function () {
       if (type === 'mouseup' || type === 'touchend') {
         var value = marker.getAttribute('aria-valuenow');
         triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
-          id: target.id,
+          id: marker.id,
           time: parseFloat(value)
         });
         this.editing = null;
