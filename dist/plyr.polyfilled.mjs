@@ -15470,7 +15470,7 @@ var Trim = /*#__PURE__*/function () {
     value: function createTrimTool() {
       var container = this.player.elements.container;
 
-      if (is$1.element(container) && this.loaded) {
+      if (is$1.element(container) && !is$1.element(this.elements.container) && this.loaded) {
         this.createTrimContainer();
         this.createTrimBar();
         this.createTrimBarThumbs();
@@ -15777,12 +15777,9 @@ var Trim = /*#__PURE__*/function () {
       /* Prevent the trim tool from being added until the player is in a playable state
              If the user has pressed the trim tool before this event has fired, show the tool
           */
-      this.player.once('canplay', function () {
-        _this3.loaded = true;
-
-        if (_this3.trimming) {
-          _this3.createTrimTool();
-        }
+      this.player.on('loadeddata loadedmetadata', function () {
+        if (_this3.player.media.duration) _this3.loaded = true;
+        if (_this3.trimming) _this3.showTrimTool();
       });
       /* Listen for time changes so we can reset the seek point to within the clip.
              Additionally, use the reference to the binding so we can remove and create a new instance of this listener
