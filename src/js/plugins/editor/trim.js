@@ -110,7 +110,7 @@ class Trim {
   // Add trim toolbar to the timeline
   createTrimTool() {
     const { container } = this.player.elements;
-    if (is.element(container) && this.loaded) {
+    if (is.element(container) && !is.element(this.elements.container) && this.loaded) {
       this.createTrimContainer();
       this.createTrimBar();
       this.createTrimBarThumbs();
@@ -410,11 +410,9 @@ class Trim {
     /* Prevent the trim tool from being added until the player is in a playable state
            If the user has pressed the trim tool before this event has fired, show the tool
         */
-    this.player.once('canplay', () => {
-      this.loaded = true;
-      if (this.trimming) {
-        this.createTrimTool();
-      }
+    this.player.on('loadeddata loadedmetadata', () => {
+      if (this.player.media.duration) this.loaded = true;
+      if (this.trimming) this.showTrimTool();
     });
 
     /* Listen for time changes so we can reset the seek point to within the clip.
