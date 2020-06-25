@@ -5200,20 +5200,20 @@ var Listeners = /*#__PURE__*/function () {
 
       var timelineInterval; // IE doesn't support input event, so we fallback to change
 
-      var inputEvent = browser.isIE ? 'change' : 'input'; // Use event listener to support IE and Edge
+      var inputEvent = browser.isIE ? 'change' : 'input'; // Use event listener to support IE, Edge and early versions of Safari
 
-      if (browser.isIE || browser.isEdge) {
-        window.addEventListener('resize', function () {
-          if (editor.active) {
-            editor.setVideoTimelimeContent();
-          }
-        });
-      } else {
+      if ('ResizeObserver' in window) {
         new ResizeObserver(function () {
           if (editor.active) {
             editor.setVideoTimelimeContent();
           }
         }).observe(timeline);
+      } else {
+        window.addEventListener('resize', function () {
+          if (editor.active) {
+            editor.setVideoTimelimeContent();
+          }
+        });
       } // Set seeking start
 
 
