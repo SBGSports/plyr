@@ -325,12 +325,13 @@ class Trim {
 
     // Update the position of the trim range tool
     if (this.editing === leftThumb) {
-      // Prevent length of the trimming region exceeding the max trimming region length
-      if (percentage < startPercentage && this.getMaxTrimLength(percentage, endPercentage)) {
-        return;
+      // Set the width to be in the position previously unless region is longer than max trim length
+      if (!this.getMaxTrimLength(percentage, endPercentage)) {
+        bar.style.width = `${trimPercentage}%`;
+      } else {
+        this.setEndTime(parseFloat(bar.style.left) + parseFloat(bar.style.width));
       }
-      // Set the width to be in the position previously
-      bar.style.width = `${trimPercentage}%`;
+
       // Increase the left thumb
       bar.style.left = `${percentage}%`;
       // Store and convert the start percentage to time
@@ -347,13 +348,15 @@ class Trim {
       bar.leftThumb.setAttribute('aria-valuenow', this.startTime);
       bar.leftThumb.setAttribute('aria-valuetext', formatTime(this.startTime));
     } else if (this.editing === rightThumb) {
-      // Prevent length of the trimming region exceeding the max trimming region length
-      if (percentage > endPercentage && this.getMaxTrimLength(startPercentage, percentage)) {
-        return;
-      }
       // Update the width of trim bar (right thumb)
-      bar.style.width = `${percentage - startPercentage}%`;
-      // Store and convert the end position on the timeline as time
+      if (this.getMaxTrimLength(startPercentage, percentage)) {
+        bar.style.left = `${startPercentage + (percentage - endPercentage)}%`;
+        this.setStartTime(startPercentage + (percentage - endPercentage));
+      } else {
+        // Update the width of trim bar (right thumb)
+        bar.style.width = `${percentage - startPercentage}%`;
+        // Store and convert the end position on the timeline as time
+      }
       this.setEndTime(percentage);
 
       // Prevent the start time being after the end time
