@@ -15687,13 +15687,13 @@ typeof navigator === "object" && (function (global, factory) {
         var trimPercentage = parseFloat(bar.style.width) - (percentage - startPercentage); // Update the position of the trim range tool
 
         if (this.editing === leftThumb) {
-          // Prevent length of the trimming region exceeding the max trimming region length
-          if (percentage < startPercentage && this.getMaxTrimLength(percentage, endPercentage)) {
-            return;
-          } // Set the width to be in the position previously
+          // Set the width to be in the position previously unless region is longer than max trim length
+          if (!this.getMaxTrimLength(percentage, endPercentage)) {
+            bar.style.width = "".concat(trimPercentage, "%");
+          } else {
+            this.setEndTime(parseFloat(bar.style.left) + parseFloat(bar.style.width));
+          } // Increase the left thumb
 
-
-          bar.style.width = "".concat(trimPercentage, "%"); // Increase the left thumb
 
           bar.style.left = "".concat(percentage, "%"); // Store and convert the start percentage to time
 
@@ -15712,13 +15712,14 @@ typeof navigator === "object" && (function (global, factory) {
           bar.leftThumb.setAttribute('aria-valuenow', this.startTime);
           bar.leftThumb.setAttribute('aria-valuetext', formatTime(this.startTime));
         } else if (this.editing === rightThumb) {
-          // Prevent length of the trimming region exceeding the max trimming region length
-          if (percentage > endPercentage && this.getMaxTrimLength(startPercentage, percentage)) {
-            return;
-          } // Update the width of trim bar (right thumb)
-
-
-          bar.style.width = "".concat(percentage - startPercentage, "%"); // Store and convert the end position on the timeline as time
+          // Update the width of trim bar (right thumb)
+          if (this.getMaxTrimLength(startPercentage, percentage)) {
+            bar.style.left = "".concat(startPercentage + (percentage - endPercentage), "%");
+            this.setStartTime(startPercentage + (percentage - endPercentage));
+          } else {
+            // Update the width of trim bar (right thumb)
+            bar.style.width = "".concat(percentage - startPercentage, "%"); // Store and convert the end position on the timeline as time
+          }
 
           this.setEndTime(percentage); // Prevent the start time being after the end time
 
@@ -15735,8 +15736,10 @@ typeof navigator === "object" && (function (global, factory) {
 
           bar.rightThumb.setAttribute('aria-valuenow', this.endTime);
           bar.rightThumb.setAttribute('aria-valuetext', formatTime(this.endTime));
-        } // Update the shaded out regions on the timeline
+        }
 
+        this.player.debug.warn(this.startTime);
+        this.player.debug.warn(this.endTime); // Update the shaded out regions on the timeline
 
         this.setShadedRegions(); // Show the seek thumbnail
 
