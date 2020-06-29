@@ -8275,18 +8275,19 @@ var Trim = /*#__PURE__*/function () {
       this.update(); // Setup player listeners
 
       this.listeners();
-    } // Store the trim start time in seconds
+    } // Store the trim start time in seconds (limit )
 
   }, {
     key: "setStartTime",
     value: function setStartTime(percentage) {
-      this.startTime = this.player.media.duration * (parseFloat(percentage) / 100);
+      //TODO: Don't math.min if none is set
+      this.startTime = Math.max(this.player.media.duration * (parseFloat(percentage) / 100), this.endTime - this.config.maxTrimLength);
     } // Store the trim end time in seconds
 
   }, {
     key: "setEndTime",
     value: function setEndTime(percentage) {
-      this.endTime = this.player.media.duration * (parseFloat(percentage) / 100);
+      this.endTime = Math.min(this.player.media.duration * (parseFloat(percentage) / 100), this.startTime + this.config.maxTrimLength);
     }
   }, {
     key: "getMaxTrimLength",
@@ -8529,71 +8530,18 @@ var Trim = /*#__PURE__*/function () {
       var timeline = this.player.editor.elements.container.timeline;
       var clientRect = timeline.getBoundingClientRect();
       var xPos = event.type === 'touchmove' ? event.touches[0].pageX : event.pageX;
-      var percentage = clamp(100 / clientRect.width * (xPos - clientRect.left), 0, 100); // Get the current position of the trim tool bar
-
+      var percentage = clamp(100 / clientRect.width * (xPos - clientRect.left), 0, 100);
       var _this$player$config$c2 = this.player.config.classNames.trim,
           leftThumb = _this$player$config$c2.leftThumb,
-          rightThumb = _this$player$config$c2.rightThumb;
-      var bar = this.elements.container.bar; // Trimming region percentages
-
-      var startPercentage = parseFloat(bar.style.left);
-      var endPercentage = parseFloat(bar.style.left) + parseFloat(bar.style.width);
-      var trimPercentage = parseFloat(bar.style.width) - (percentage - startPercentage); // Update the position of the trim range tool
+          rightThumb = _this$player$config$c2.rightThumb; // Update the position of the trim range tool
 
       if (this.editing === leftThumb) {
-        // Set the width to be in the position previously unless region is longer than max trim length
-        if (!this.getMaxTrimLength(percentage, endPercentage)) {
-          bar.style.width = "".concat(trimPercentage, "%");
-        } else {
-          this.setEndTime(parseFloat(bar.style.left) + parseFloat(bar.style.width));
-        } // Increase the left thumb
-
-
-        bar.style.left = "".concat(percentage, "%"); // Store and convert the start percentage to time
-
-        this.setStartTime("".concat(percentage, "%")); // Prevent the end time being before the start time
-
-        if (this.startTime > this.endTime) {
-          this.setEndTime("".concat(percentage, "%"));
-        } // Set the timestamp of the current trim handle position
-
-
-        if (bar.leftThumb.timeContainer) {
-          bar.leftThumb.timeContainer.time.innerText = formatTime(this.startTime);
-        } // Update the aria-value and text
-
-
-        bar.leftThumb.setAttribute('aria-valuenow', this.startTime);
-        bar.leftThumb.setAttribute('aria-valuetext', formatTime(this.startTime));
+        this.setLeftThumbPosition(percentage);
       } else if (this.editing === rightThumb) {
-        // Update the width of trim bar (right thumb)
-        if (this.getMaxTrimLength(startPercentage, percentage)) {
-          bar.style.left = "".concat(startPercentage + (percentage - endPercentage), "%");
-          this.setStartTime(startPercentage + (percentage - endPercentage));
-        } else {
-          // Update the width of trim bar (right thumb)
-          bar.style.width = "".concat(percentage - startPercentage, "%"); // Store and convert the end position on the timeline as time
-        }
-
-        this.setEndTime(percentage); // Prevent the start time being after the end time
-
-        if (this.endTime < this.startTime) {
-          bar.style.left = "".concat(percentage, "%");
-          this.setStartTime("".concat(percentage, "%"));
-        }
-
-        if (bar.rightThumb.timeContainer) {
-          // Set the timestamp of the current trim handle position
-          bar.rightThumb.timeContainer.time.innerText = formatTime(this.endTime);
-        } // Update the aria-value and text
-
-
-        bar.rightThumb.setAttribute('aria-valuenow', this.endTime);
-        bar.rightThumb.setAttribute('aria-valuetext', formatTime(this.endTime));
+        this.setRightThumbPosition(percentage);
       }
 
-      this.player.debug.warn(this.startTime);
-      this.player.debug.warn(this.endTime); // Update the shaded out regions on the timeline
+      this.player.debug.warn(this.endTime - this.startTime); // Update the shaded out regions on the timeline
 
       this.setShadedRegions(); // Show the seek thumbnail
 
@@ -8601,6 +8549,68 @@ var Trim = /*#__PURE__*/function () {
         var seekTime = this.player.media.duration * (percentage / 100);
         this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
       }
+    }
+  }, {
+    key: "setLeftThumbPosition",
+    value: function setLeftThumbPosition(percentage) {
+      var bar = this.elements.container.bar;
+      var _bar$style = bar.style,
+          left = _bar$style.left,
+          width = _bar$style.width;
+      var leftThumbPos = parseFloat(left);
+      var rightThumbPos = leftThumbPos + parseFloat(width);
+      var rightThumbRelativePos = parseFloat(width) - (percentage - leftThumbPos);
+      var maxTrimLength = this.getMaxTrimLength(percentage, rightThumbPos); // Set the width to be in the position previously unless region is longer than max trim length
+
+      if (!maxTrimLength) bar.style.width = "".concat(rightThumbRelativePos, "%"); // Store and convert the start percentage to time
+
+      bar.style.left = "".concat(percentage, "%");
+      this.setStartTime("".concat(percentage, "%"));
+      if (maxTrimLength) this.setEndTime(rightThumbPos); // Prevent the end time being before the start time
+
+      if (this.startTime > this.endTime) this.setEndTime(percentage); // Set the timestamp of the current trim handle position
+
+      if (bar.leftThumb.timeContainer) {
+        bar.leftThumb.timeContainer.time.innerText = formatTime(this.startTime);
+      } // Update the aria-value and text
+
+
+      bar.leftThumb.setAttribute('aria-valuenow', this.startTime);
+      bar.leftThumb.setAttribute('aria-valuetext', formatTime(this.startTime));
+    }
+  }, {
+    key: "setRightThumbPosition",
+    value: function setRightThumbPosition(percentage) {
+      var bar = this.elements.container.bar;
+      var _bar$style2 = bar.style,
+          left = _bar$style2.left,
+          width = _bar$style2.width;
+      var leftThumbPos = parseFloat(left);
+      var rightThumbPos = leftThumbPos + parseFloat(width); // Update the width of trim bar (right thumb)
+
+      if (this.getMaxTrimLength(leftThumbPos, percentage)) {
+        bar.style.left = "".concat(leftThumbPos + (percentage - rightThumbPos), "%");
+        this.setStartTime(leftThumbPos + (percentage - rightThumbPos));
+      } else {
+        // Update the width of trim bar (right thumb)
+        bar.style.width = "".concat(percentage - leftThumbPos, "%"); // Store and convert the end position on the timeline as time
+      }
+
+      this.setEndTime(percentage); // Prevent the start time being after the end time
+
+      if (this.endTime < this.startTime) {
+        bar.style.left = "".concat(percentage, "%");
+        this.setStartTime("".concat(percentage, "%"));
+      }
+
+      if (bar.rightThumb.timeContainer) {
+        // Set the timestamp of the current trim handle position
+        bar.rightThumb.timeContainer.time.innerText = formatTime(this.endTime);
+      } // Update the aria-value and text
+
+
+      bar.rightThumb.setAttribute('aria-valuenow', this.endTime);
+      bar.rightThumb.setAttribute('aria-valuetext', formatTime(this.endTime));
     }
   }, {
     key: "toggleTimeContainer",
