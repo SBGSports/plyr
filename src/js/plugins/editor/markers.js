@@ -1,4 +1,3 @@
-import controls from '../../controls';
 import { createElement, toggleHidden } from '../../utils/elements';
 import { triggerEvent } from '../../utils/events';
 import i18n from '../../utils/i18n';
@@ -13,6 +12,8 @@ class Markers {
     this.player = player;
     this.config = player.config.markers;
     this.editing = null;
+    this.loaded = false;
+    this.preLoadedMarkers = [];
     this.elements = {
       markers: [],
     };
@@ -36,6 +37,9 @@ class Markers {
   }
 
   load() {
+    // Marker listeners
+    this.listeners();
+
     // Update the UI
     this.update();
   }
@@ -46,6 +50,11 @@ class Markers {
     const percentage = clamp((100 / this.player.duration) * parseFloat(markerTime), 0, 100);
 
     if (!timeline) {
+      return;
+    }
+
+    if (!this.loaded) {
+      this.preLoadedMarkers.push({ id, time });
       return;
     }
 
@@ -164,6 +173,17 @@ class Markers {
       const seekTime = this.player.media.duration * (percentage / 100);
       this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
     }
+  }
+
+  listeners() {
+    this.player.on('loadeddata loadedmetadata', () => {
+      // If markers have been added before the player has a duration add this markers
+      if (this.player.media.duration) {
+        this.loaded = true;
+        if (this.preLoadedMarkers.length)
+          this.preLoadedMarkers.forEach(marker => this.addMarker(marker.id, marker.time));
+      }
+    });
   }
 
   toggleMarkers(show = true) {
