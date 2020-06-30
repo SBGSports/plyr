@@ -677,7 +677,7 @@ declare namespace Plyr {
 
   interface PreviewThumbnailsOptions {
     enabled?: boolean;
-    src?: string;
+    src?: string | string[];
   }
 
   interface SourceInfo {
