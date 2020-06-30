@@ -8058,6 +8058,8 @@ var Markers = /*#__PURE__*/function () {
     this.player = player;
     this.config = player.config.markers;
     this.editing = null;
+    this.loaded = false;
+    this.preLoadedMarkers = [];
     this.elements = {
       markers: []
     };
@@ -8068,7 +8070,9 @@ var Markers = /*#__PURE__*/function () {
   _createClass(Markers, [{
     key: "load",
     value: function load() {
-      // Update the UI
+      // Marker listeners
+      this.listeners(); // Update the UI
+
       this.update();
     }
   }, {
@@ -8079,6 +8083,14 @@ var Markers = /*#__PURE__*/function () {
       var percentage = clamp(100 / this.player.duration * parseFloat(markerTime), 0, 100);
 
       if (!timeline) {
+        return;
+      }
+
+      if (!this.loaded) {
+        this.preLoadedMarkers.push({
+          id: id,
+          time: time
+        });
         return;
       }
 
@@ -8194,6 +8206,21 @@ var Markers = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "listeners",
+    value: function listeners() {
+      var _this2 = this;
+
+      this.player.on('loadeddata loadedmetadata', function () {
+        // If markers have been added before the player has a duration add this markers
+        if (_this2.player.media.duration) {
+          _this2.loaded = true;
+          if (_this2.preLoadedMarkers.length) _this2.preLoadedMarkers.forEach(function (marker) {
+            return _this2.addMarker(marker.id, marker.time);
+          });
+        }
+      });
+    }
+  }, {
     key: "toggleMarkers",
     value: function toggleMarkers() {
       var show = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
@@ -8280,14 +8307,17 @@ var Trim = /*#__PURE__*/function () {
   }, {
     key: "setStartTime",
     value: function setStartTime(percentage) {
-      //TODO: Don't math.min if none is set
-      this.startTime = Math.max(this.player.media.duration * (parseFloat(percentage) / 100), this.endTime - this.config.maxTrimLength);
+      var maxTrimLength = this.config.maxTrimLength;
+      var startTime = this.player.media.duration * (parseFloat(percentage) / 100);
+      this.startTime = maxTrimLength >= 0 ? Math.max(startTime, this.endTime - this.config.maxTrimLength) : startTime;
     } // Store the trim end time in seconds
 
   }, {
     key: "setEndTime",
     value: function setEndTime(percentage) {
-      this.endTime = Math.min(this.player.media.duration * (parseFloat(percentage) / 100), this.startTime + this.config.maxTrimLength);
+      var maxTrimLength = this.config.maxTrimLength;
+      var endTime = this.player.media.duration * (parseFloat(percentage) / 100);
+      this.endTime = maxTrimLength >= 0 ? Math.max(endTime, this.startTime + this.config.maxTrimLength) : endTime;
     }
   }, {
     key: "getMaxTrimLength",
@@ -8539,9 +8569,8 @@ var Trim = /*#__PURE__*/function () {
         this.setLeftThumbPosition(percentage);
       } else if (this.editing === rightThumb) {
         this.setRightThumbPosition(percentage);
-      }
+      } // Update the shaded out regions on the timeline
 
-      this.player.debug.warn(this.endTime - this.startTime); // Update the shaded out regions on the timeline
 
       this.setShadedRegions(); // Show the seek thumbnail
 
@@ -8586,15 +8615,17 @@ var Trim = /*#__PURE__*/function () {
           left = _bar$style2.left,
           width = _bar$style2.width;
       var leftThumbPos = parseFloat(left);
-      var rightThumbPos = leftThumbPos + parseFloat(width); // Update the width of trim bar (right thumb)
+      var rightThumbPos = leftThumbPos + parseFloat(width);
+      var maxTrimLength = this.getMaxTrimLength(leftThumbPos, percentage); // Update the width of trim bar (right thumb)
 
-      if (this.getMaxTrimLength(leftThumbPos, percentage)) {
+      if (maxTrimLength) {
         bar.style.left = "".concat(leftThumbPos + (percentage - rightThumbPos), "%");
         this.setStartTime(leftThumbPos + (percentage - rightThumbPos));
       } else {
         // Update the width of trim bar (right thumb)
-        bar.style.width = "".concat(percentage - leftThumbPos, "%"); // Store and convert the end position on the timeline as time
-      }
+        bar.style.width = "".concat(percentage - leftThumbPos, "%");
+      } // Store and convert the end position on the timeline as time
+
 
       this.setEndTime(percentage); // Prevent the start time being after the end time
 
