@@ -8063,10 +8063,9 @@ typeof navigator === "object" && (function (global, factory) {
         var _this$player = this.player,
             previewThumbnails = _this$player.previewThumbnails,
             duration = _this$player.duration;
-        var enableScrubbing = this.player.config.previewThumbnails.enableScrubbing;
         /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
 
-        return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
+        return previewThumbnails && previewThumbnails.loaded && duration > 0;
       }
     }]);
 
@@ -8323,10 +8322,9 @@ typeof navigator === "object" && (function (global, factory) {
         var _this$player = this.player,
             previewThumbnails = _this$player.previewThumbnails,
             duration = _this$player.duration;
-        var enableScrubbing = this.player.config.previewThumbnails.enableScrubbing;
         /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
 
-        return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
+        return previewThumbnails && previewThumbnails.loaded && duration > 0;
       }
     }]);
 
@@ -9185,7 +9183,7 @@ typeof navigator === "object" && (function (global, factory) {
           this.mouseDown = true; // Wait until media has a duration
 
           if (this.player.media.duration) {
-            this.toggleScrubbingContainer(true);
+            if (this.player.config.previewThumbnails.enableScrubbing) this.toggleScrubbingContainer(true);
             this.toggleThumbContainer(false, true); // Download and show image
 
             this.showImageAtCurrentTime();
