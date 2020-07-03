@@ -270,7 +270,7 @@ class PreviewThumbnails {
 
       // Wait until media has a duration
       if (this.player.media.duration) {
-        this.toggleScrubbingContainer(true);
+        if (this.player.config.previewThumbnails.enableScrubbing) this.toggleScrubbingContainer(true);
         this.toggleThumbContainer(false, true);
 
         // Download and show image
