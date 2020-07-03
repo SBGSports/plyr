@@ -10,7 +10,7 @@ $plyr-marker-border-width: var(--plyr-marker-border-width, 3px) !default;
   border: $plyr-marker-border-width solid $plyr-marker-background;
   border-radius: 50% 50% 50% 0;
   height: $plyr-marker-size;
-  margin-left: calc((#{$plyr-marker-size} / 2) * -1);
+  margin-left: calc(((#{$plyr-marker-size} / 2) * -1) + 1px);
   position: absolute;
   touch-action: none;
   transform: rotate(-45deg);

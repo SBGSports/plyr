@@ -56,9 +56,8 @@ class Trim {
 
   get previewThumbnailsReady() {
     const { previewThumbnails, duration } = this.player;
-    const { enableScrubbing } = this.player.config.previewThumbnails;
     /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
-    return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
+    return previewThumbnails && previewThumbnails.loaded && duration > 0;
   }
 
   load() {

@@ -68,8 +68,8 @@ $plyr-editor-height: calc(
   width: inherit;
 
   .plyr__editor__controls__time-container {
+    min-width: 7em;
     text-align: left;
-    width: 7em;
   }
 
   .plyr__time {
@@ -139,6 +139,7 @@ $plyr-editor-height: calc(
 
   .plyr__editor__video-container {
     float: left;
+    display: flex;
     height: $plyr-editor-preview-thumb-height;
     position: absolute;
   }
@@ -152,6 +153,7 @@ $plyr-editor-height: calc(
   margin-right: 3px;
   overflow: hidden;
   position: relative;
+  min-width: 120px;
   width: 120px; // Set to 1/16 of 1920/1080
   z-index: 0;
 

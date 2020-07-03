@@ -209,8 +209,11 @@ class Markers {
       // If markers have been added before the player has a duration add this markers
       if (this.player.media.duration) {
         this.loaded = true;
-        if (this.preLoadedMarkers.length)
+        if (this.preLoadedMarkers.length) {
           this.preLoadedMarkers.forEach(marker => this.addMarker(marker.id, marker.time));
+          // Clear markers list as markers have been added
+          this.preLoadedMarkers = [];
+        }
       }
     });
   }
