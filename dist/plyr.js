@@ -7680,25 +7680,13 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "setVideoTimelimeContent",
       value: function setVideoTimelimeContent() {
-        var _this$player = this.player,
-            previewThumbnails = _this$player.previewThumbnails,
-            media = _this$player.media;
-        var container = this.elements.container; // Total number of images to render outside of the visible window
+        var previewThumbnails = this.player.previewThumbnails;
+        var timeline = this.elements.container.timeline; // Total number of images needed to fill the timeline width
 
-        var imageOffset = 5; // Total number of images needed to fill the timeline width
-
-        var containerRect = container.getBoundingClientRect();
-        var timelineRect = container.timeline.getBoundingClientRect();
-        var videoContainer = container.timeline.videoContainerParent.videoContainer; // Calculate the preview thumbnail window (we don't want to show all images as when zoomed can cause unnceccassary load on machine)
-
-        var zoom = parseFloat(container.timeline.style.width);
-        var offset = parseFloat(container.timeline.style.left);
-        var totalImageCount = Math.ceil(timelineRect.width / this.videoContainerWidth);
-        var timePerThumbnail = this.player.media.duration / (timelineRect.width / this.videoContainerWidth);
-        var currentTime = 0;
-        var startImageTime = Math.max(Math.abs(offset / zoom) * media.duration - timePerThumbnail * imageOffset, 0);
-        var endImageTime = Math.min(Math.abs(offset + containerRect.width / timelineRect.width / zoom) * media.duration + timePerThumbnail * imageOffset, media.duration);
-        var imageCount = Math.ceil(containerRect.width / this.videoContainerWidth) + imageOffset;
+        var clientRect = timeline.getBoundingClientRect();
+        var videoContainer = timeline.videoContainerParent.videoContainer;
+        var imageCount = Math.ceil(clientRect.width / this.videoContainerWidth);
+        var time = 0;
 
         if (is$1.nullOrUndefined(videoContainer.previewThumbs)) {
           videoContainer.previewThumbs = [];
@@ -7710,7 +7698,7 @@ typeof navigator === "object" && (function (global, factory) {
         } // Append images to video timeline
 
 
-        for (var i = 0; i < totalImageCount; i += 1) {
+        for (var i = 0; i < imageCount; i += 1) {
           var previewThumb = void 0;
 
           if (is$1.nullOrUndefined(videoContainer.previewThumbs[i])) {
@@ -7724,14 +7712,15 @@ typeof navigator === "object" && (function (global, factory) {
           } else {
             // Retrieve the existing container
             previewThumb = videoContainer.previewThumbs[i];
-          } // If preview thumbnails is enabled and the thumbnail is in the visible window, append an image to the previewThumb
+          } // If preview thumbnails is enabled append an image to the previewThumb
 
 
-          if (this.previewThumbnailsReady && currentTime >= startImageTime && currentTime <= endImageTime) {
-            previewThumbnails.showImageAtCurrentTime(currentTime, previewThumb);
+          if (this.previewThumbnailsReady) {
+            // Append the image to the container
+            previewThumbnails.showImageAtCurrentTime(time, previewThumb);
           }
 
-          currentTime += timePerThumbnail;
+          time += this.player.duration / (clientRect.width / this.videoContainerWidth);
         }
 
         if (this.previewThumbnailsReady) {
@@ -8071,13 +8060,13 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "previewThumbnailsReady",
       get: function get() {
-        var _this$player2 = this.player,
-            previewThumbnails = _this$player2.previewThumbnails,
-            duration = _this$player2.duration; // const { enableScrubbing } = this.player.config.previewThumbnails; TODO: add to specific references
-
+        var _this$player = this.player,
+            previewThumbnails = _this$player.previewThumbnails,
+            duration = _this$player.duration;
+        var enableScrubbing = this.player.config.previewThumbnails.enableScrubbing;
         /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
 
-        return previewThumbnails && previewThumbnails.loaded && duration > 0;
+        return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
       }
     }]);
 
