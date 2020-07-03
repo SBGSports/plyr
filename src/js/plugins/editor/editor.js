@@ -52,9 +52,8 @@ class Editor {
 
   get previewThumbnailsReady() {
     const { previewThumbnails, duration } = this.player;
-    const { enableScrubbing } = this.player.config.previewThumbnails;
     /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
-    return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
+    return previewThumbnails && previewThumbnails.loaded && duration > 0;
   }
 
   get visibleWindow() {
@@ -65,7 +64,7 @@ class Editor {
     const zoom = parseFloat(container.timeline.style.width);
     const offset = parseFloat(container.timeline.style.left);
     const start = Math.abs(offset / zoom) * duration;
-    const end = (Math.abs(offset / zoom) + containerRect.width / timelineRect.width) * duration;
+    const end = start + (containerRect.width / timelineRect.width) * duration;
 
     return { start, end };
   }
@@ -339,7 +338,7 @@ class Editor {
       }
 
       // If preview thumbnails is enabled append an image to the previewThumb
-      if (this.previewThumbnailsReady) {
+      if (this.previewThumbnailsReady && time >= this.visibleWindow.start && time <= this.visibleWindow.end) {
         // Append the image to the container
         previewThumbnails.showImageAtCurrentTime(time, previewThumb);
       }
@@ -463,6 +462,7 @@ class Editor {
     } else if (event.type === 'mouseup' || event.type === 'touchend') {
       this.seeking = false;
     }
+
     this.triggerSeekEvent(event);
   }
 
@@ -563,6 +563,9 @@ class Editor {
     if (offset === parseFloat(container.timeline.style.left)) {
       return;
     }
+
+    // Update the preview thumbnails
+    this.setVideoTimelimeContent();
 
     // Apply the timeline seek offset
     container.timeline.style.left = `${offset}%`;
