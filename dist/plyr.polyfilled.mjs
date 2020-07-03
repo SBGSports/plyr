@@ -14849,7 +14849,7 @@ var Editor = /*#__PURE__*/function () {
         } // If preview thumbnails is enabled append an image to the previewThumb
 
 
-        if (this.previewThumbnailsReady) {
+        if (this.previewThumbnailsReady && time >= this.visibleWindow.start && time <= this.visibleWindow.end) {
           // Append the image to the container
           previewThumbnails.showImageAtCurrentTime(time, previewThumb);
         }
@@ -15064,8 +15064,10 @@ var Editor = /*#__PURE__*/function () {
 
       if (offset === parseFloat(container.timeline.style.left)) {
         return;
-      } // Apply the timeline seek offset
+      } // Update the preview thumbnails
 
+
+      this.setVideoTimelimeContent(); // Apply the timeline seek offset
 
       container.timeline.style.left = "".concat(offset, "%"); // Only adjust the seek position when playing or seeking as we don't want to adjust if the current time is updated
 
@@ -15197,10 +15199,9 @@ var Editor = /*#__PURE__*/function () {
       var _this$player = this.player,
           previewThumbnails = _this$player.previewThumbnails,
           duration = _this$player.duration;
-      var enableScrubbing = this.player.config.previewThumbnails.enableScrubbing;
       /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
 
-      return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
+      return previewThumbnails && previewThumbnails.loaded && duration > 0;
     }
   }, {
     key: "visibleWindow",
@@ -15212,7 +15213,7 @@ var Editor = /*#__PURE__*/function () {
       var zoom = parseFloat(container.timeline.style.width);
       var offset = parseFloat(container.timeline.style.left);
       var start = Math.abs(offset / zoom) * duration;
-      var end = (Math.abs(offset / zoom) + containerRect.width / timelineRect.width) * duration;
+      var end = start + containerRect.width / timelineRect.width * duration;
       return {
         start: start,
         end: end
@@ -16604,7 +16605,7 @@ var PreviewThumbnails = /*#__PURE__*/function () {
 
       // This has to be set before the timeout - to prevent issues switching between hover and scrub
       var currentImageContainer = container || this.currentImageContainer;
-      if (currentImageContainer || !currentImageContainer.children.length) return; // Get a list of all images, convert it from a DOM list to an array
+      if (!currentImageContainer || !currentImageContainer.children.length) return; // Get a list of all images, convert it from a DOM list to an array
 
       Array.from(currentImageContainer.children).forEach(function (image) {
         if (image.tagName.toLowerCase() !== 'img') {
@@ -16613,7 +16614,7 @@ var PreviewThumbnails = /*#__PURE__*/function () {
 
         var removeDelay = _this8.usingSprites ? 500 : 1000;
 
-        if (image.dataset.index !== currentImage.dataset.index && !image.dataset.deleting) {
+        if (image && image.dataset.index !== currentImage.dataset.index && !image.dataset.deleting) {
           // Wait 200ms, as the new image can take some time to show on certain browsers (even though it was downloaded before showing). This will prevent flicker, and show some generosity towards slower clients
           // First set attribute 'deleting' to prevent multi-handling of this on repeat firing of this function
           // eslint-disable-next-line no-param-reassign
