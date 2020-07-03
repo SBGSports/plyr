@@ -8615,14 +8615,14 @@ var Trim = /*#__PURE__*/function () {
         this.toggleTimeContainer(bar.leftThumb, true);
 
         if (this.previewThumbnailsReady) {
-          this.player.previewThumbnails.startScrubbing(event);
+          this.player.previewThumbnails.startScrubbing(event, true);
         }
       } else if ((type === 'mousedown' || type === 'touchstart') && target.classList.contains(rightThumb)) {
         this.editing = rightThumb;
         this.toggleTimeContainer(bar.rightThumb, true);
 
         if (this.previewThumbnailsReady) {
-          this.player.previewThumbnails.startScrubbing(event);
+          this.player.previewThumbnails.startScrubbing(event, true);
         }
       }
     }
@@ -9190,12 +9190,17 @@ var PreviewThumbnails = /*#__PURE__*/function () {
   }, {
     key: "startScrubbing",
     value: function startScrubbing(event) {
+      var overrideScrubbing = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
       // Only act on left mouse button (0), or touch device (event.button does not exist or is false)
       if (is$1.nullOrUndefined(event.button) || event.button === false || event.button === 0) {
         this.mouseDown = true; // Wait until media has a duration
 
         if (this.player.media.duration) {
-          if (this.player.config.previewThumbnails.enableScrubbing) this.toggleScrubbingContainer(true);
+          if (this.player.config.previewThumbnails.enableScrubbing || overrideScrubbing) {
+            this.toggleScrubbingContainer(true);
+          }
+
           this.toggleThumbContainer(false, true); // Download and show image
 
           this.showImageAtCurrentTime();
