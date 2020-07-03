@@ -3756,7 +3756,9 @@ var defaults$1 = {
   editor: {
     enabled: true,
     // Allow Editor?
-    target: null // Target Container for Editor (if no container is specified, video editor will be appended to the video container)
+    target: null,
+    // Target Container for Editor (if no container is specified, video editor will be appended to the video container)
+    maxZoom: 8 // Default max zoom level
 
   },
   markers: {
@@ -4061,7 +4063,9 @@ var defaults$1 = {
   // Preview Thumbnails plugin
   previewThumbnails: {
     enabled: false,
-    src: ''
+    src: '',
+    enableScrubbing: false // TODO: Should be true
+
   },
   // Vimeo plugin
   vimeo: {
@@ -5219,11 +5223,14 @@ var Listeners = /*#__PURE__*/function () {
 
       this.bind(timeline, 'mousedown touchstart', function (event) {
         if (editor.active) {
-          editor.setSeeking(event); // Adjust timeline position when we get near the end of the timeline
+          editor.setSeeking(event);
 
-          timelineInterval = setInterval(function () {
-            return editor.setTimelineOffset();
-          }, 50);
+          if (!_this2.player.trim.editing) {
+            // Adjust timeline position when we get near the end of the timeline
+            timelineInterval = setInterval(function () {
+              return editor.setTimelineOffset(true);
+            }, 50);
+          }
         }
       }); // Set seeking end
 
@@ -5488,16 +5495,18 @@ var Listeners = /*#__PURE__*/function () {
 
       this.bind(elements.progress, 'mousemove touchmove', function (event) {
         var previewThumbnails = player.previewThumbnails;
+        var enableScrubbing = player.config.previewThumbnails.enableScrubbing;
 
-        if (previewThumbnails && previewThumbnails.loaded) {
+        if (previewThumbnails && previewThumbnails.loaded && (!previewThumbnails.mouseDown || enableScrubbing)) {
           previewThumbnails.startMove(event);
         }
       }); // Hide thumbnail preview - on mouse click, mouse leave, and video play/seek. All four are required, e.g., for buffering
 
       this.bind(elements.progress, 'mouseleave touchend click', function () {
         var previewThumbnails = player.previewThumbnails;
+        var enableScrubbing = player.config.previewThumbnails.enableScrubbing;
 
-        if (previewThumbnails && previewThumbnails.loaded) {
+        if (previewThumbnails && previewThumbnails.loaded && (!previewThumbnails.mouseDown || enableScrubbing)) {
           previewThumbnails.endMove(false, true);
         }
       }); // Show scrubbing preview
@@ -7552,7 +7561,8 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "createControls",
     value: function createControls() {
-      var container = this.elements.container; // Create controls container
+      var container = this.elements.container;
+      var maxZoom = this.config.maxZoom; // Create controls container
 
       container.controls = createElement('div', {
         id: "plyr__editor__controls",
@@ -7582,10 +7592,10 @@ var Editor = /*#__PURE__*/function () {
         id: "plyr__editor__zoom",
         step: 0.1,
         min: 1,
-        max: 4,
+        max: maxZoom,
         value: 1,
         'aria-valuemin': 1,
-        'aria-valuemax': 4,
+        'aria-valuemax': maxZoom,
         'aria-valuenow': 1
       });
       container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoom); // Create plus icon
@@ -7678,7 +7688,7 @@ var Editor = /*#__PURE__*/function () {
       } // Enable editor mode in preview thumbnails
 
 
-      if (this.previewThumbnailsLoaded) {
+      if (this.previewThumbnailsReady) {
         previewThumbnails.editor = true;
       } // Append images to video timeline
 
@@ -7700,7 +7710,7 @@ var Editor = /*#__PURE__*/function () {
         } // If preview thumbnails is enabled append an image to the previewThumb
 
 
-        if (this.previewThumbnailsLoaded) {
+        if (this.previewThumbnailsReady) {
           // Append the image to the container
           previewThumbnails.showImageAtCurrentTime(time, previewThumb);
         }
@@ -7708,7 +7718,7 @@ var Editor = /*#__PURE__*/function () {
         time += this.player.duration / (clientRect.width / this.videoContainerWidth);
       }
 
-      if (this.previewThumbnailsLoaded) {
+      if (this.previewThumbnailsReady) {
         // Disable editor mode in preview thumbnails
         previewThumbnails.editor = false; // Once all images are loaded remove the container from the preview thumbs
 
@@ -7747,7 +7757,8 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "setZoom",
     value: function setZoom(event) {
-      var timeline = this.elements.container.timeline; // Zoom on seek handle position
+      var timeline = this.elements.container.timeline;
+      var maxZoom = this.config.maxZoom; // Zoom on seek handle position
 
       var clientRect = timeline.getBoundingClientRect();
       var xPos = timeline.seekHandle.getBoundingClientRect().left;
@@ -7762,7 +7773,7 @@ var Editor = /*#__PURE__*/function () {
         var delta = clamp(event.deltaY * -1, -1, 1);
         this.zoom.scale += delta * 0.1 * this.zoom.scale; // Restrict bounds of zoom for wheel
 
-        if (this.zoom.scale === 4 && delta < 0 || this.zoom.scale === 1 && delta > 0) {
+        if (this.zoom.scale === maxZoom && delta < 0 || this.zoom.scale === 1 && delta > 0) {
           return;
         } // Calculate zoom level based on zoom slider
 
@@ -7775,10 +7786,10 @@ var Editor = /*#__PURE__*/function () {
         } else {
           this.zoom.scale -= 1;
         }
-      } // Limit zoom to be between 1 and 4 times zoom
+      } // Limit zoom to be between 1 and max times zoom
 
 
-      this.zoom.scale = clamp(this.zoom.scale, 1, 4); // Apply zoom scale
+      this.zoom.scale = clamp(this.zoom.scale, 1, maxZoom); // Apply zoom scale
 
       timeline.style.width = "".concat(this.zoom.scale * 100, "%"); // Position the element based on the mouse position
 
@@ -7821,13 +7832,13 @@ var Editor = /*#__PURE__*/function () {
     key: "triggerSeekEvent",
     value: function triggerSeekEvent(event) {
       if (this.seeking) {
-        if (this.previewThumbnailsLoaded) {
+        if (this.previewThumbnailsReady) {
           this.player.previewThumbnails.startScrubbing(event);
         }
 
         triggerEvent.call(this.player, this.player.media, 'seeking');
         this.setSeekTime(event);
-      } else if (this.previewThumbnailsLoaded) {
+      } else if (this.previewThumbnailsReady) {
         this.player.previewThumbnails.endScrubbing(event);
       }
     }
@@ -7839,7 +7850,7 @@ var Editor = /*#__PURE__*/function () {
       }
 
       var timeline = this.elements.container.timeline;
-      var percentage = clamp(100 / this.player.duration * parseFloat(this.player.currentTime), 0, 100);
+      var percentage = clamp(100 / this.player.media.duration * parseFloat(this.player.currentTime), 0, 100);
       timeline.seekHandle.style.left = "".concat(percentage, "%");
       this.setTimelineOffset();
       var currentTime = controls.formatTime(this.player.currentTime);
@@ -7875,7 +7886,7 @@ var Editor = /*#__PURE__*/function () {
 
         triggerEvent.call(this.player, this.player.media, 'seeked'); // Show the seek thumbnail
 
-        if (this.previewThumbnailsLoaded) {
+        if (this.previewThumbnailsReady) {
           var seekTime = this.player.media.duration * (percentage / 100);
           previewThumbnails.showImageAtCurrentTime(seekTime);
         }
@@ -7885,6 +7896,7 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "setTimelineOffset",
     value: function setTimelineOffset() {
+      var playing = this.player.playing;
       var container = this.elements.container; // Values defining the speed of scrolling and at what points triggering the offset
 
       var _this$timeline = this.timeline,
@@ -7899,11 +7911,11 @@ var Editor = /*#__PURE__*/function () {
 
       var zoom = parseFloat(container.timeline.style.width);
       var offset = parseFloat(container.timeline.style.left);
-      var seekHandleOffset = parseFloat(container.timeline.seekHandle.style.left); // Retrieve the hover position in the editor container, else retrieve the seek value
+      var seekHandlePos = parseFloat(container.timeline.seekHandle.style.left); // Retrieve the hover position in the editor container, else retrieve the seek value
 
       var percentage = 100 / clientRect.width * (seekPos.left - clientRect.left); // If playing set lower upper bound to when we shift the timeline
 
-      var upperBound = this.player.playing ? upperPlaying : upperSeek; // Calculate the timeline offset position
+      var upperBound = this.seeking ? upperSeek : upperPlaying; // Calculate the timeline offset position
 
       if (percentage > upperBound && zoom - offset > 100) {
         offset = Math.max(offset - (percentage - upperBound) / scrollSpeed, (zoom - 100) * -1);
@@ -7916,13 +7928,18 @@ var Editor = /*#__PURE__*/function () {
       } // Apply the timeline seek offset
 
 
-      container.timeline.style.left = "".concat(offset, "%"); // Retrieve the position of the seek handle after the timeline shift
+      container.timeline.style.left = "".concat(offset, "%"); // Only adjust the seek position when playing or seeking as we don't want to adjust if the current time is updated
+
+      if (!(playing || this.seeking)) {
+        return;
+      } // Retrieve the position of the seek handle after the timeline shift
+
 
       var seekPosUpdated = container.timeline.seekHandle.getBoundingClientRect().left;
-      var seekPercentage = clamp(parseFloat(seekHandleOffset) + 100 / timelineRect.width * (seekPos.left - seekPosUpdated), 0, 100);
+      var seekPercentage = clamp(seekHandlePos + 100 / timelineRect.width * (seekPos.left - seekPosUpdated), 0, 100);
       container.timeline.seekHandle.style.left = "".concat(seekPercentage, "%"); // Show the corresponding preview thumbnail for the updated seek position
 
-      if (this.seeking && this.previewThumbnailsLoaded) {
+      if (this.seeking && this.previewThumbnailsReady) {
         var seekTime = this.player.media.duration * (seekPercentage / 100);
         this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
       }
@@ -7948,7 +7965,7 @@ var Editor = /*#__PURE__*/function () {
           _this2.setVideoTimelimeContent();
         }
       });
-      this.player.on('previewthumbnailsloaded', function () {
+      this.player.on('previewThumbnailsReady', function () {
         if (_this2.loaded && _this2.shown) {
           _this2.setVideoTimelimeContent();
         }
@@ -8036,14 +8053,15 @@ var Editor = /*#__PURE__*/function () {
       return this.shown;
     }
   }, {
-    key: "previewThumbnailsLoaded",
+    key: "previewThumbnailsReady",
     get: function get() {
       var _this$player = this.player,
           previewThumbnails = _this$player.previewThumbnails,
           duration = _this$player.duration;
+      var enableScrubbing = this.player.config.previewThumbnails.enableScrubbing;
       /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
 
-      return previewThumbnails && previewThumbnails.loaded && duration > 0;
+      return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
     }
   }]);
 
@@ -8120,6 +8138,30 @@ var Markers = /*#__PURE__*/function () {
       });
     }
   }, {
+    key: "moveMarker",
+    value: function moveMarker(id) {
+      var currentTime = this.player.currentTime;
+      var marker = this.elements.markers.find(function (x) {
+        return x.id === id;
+      });
+      var percentage = currentTime / this.player.media.duration * 100;
+      if (!marker) return; // Update the position of the marker
+
+      marker.style.left = "".concat(percentage, "%");
+      marker.setAttribute('aria-valuenow', currentTime);
+      marker.setAttribute('aria-valuetext', formatTime(currentTime));
+    }
+  }, {
+    key: "goToMarker",
+    value: function goToMarker(id) {
+      var marker = this.elements.markers.find(function (x) {
+        return x.id === id;
+      });
+      if (!marker) return; // Go to marker on timeline
+
+      this.player.currentTime = Number(marker.getAttribute('aria-valuenow'));
+    }
+  }, {
     key: "removeMarker",
     value: function removeMarker(id) {
       this.elements.markers.forEach(function (marker) {
@@ -8172,13 +8214,13 @@ var Markers = /*#__PURE__*/function () {
         });
         this.editing = null;
 
-        if (this.player.previewThumbnails) {
+        if (this.previewThumbnailsReady) {
           this.player.previewThumbnails.endScrubbing(event);
         }
       } else if (type === 'mousedown' || type === 'touchstart') {
         this.editing = target;
 
-        if (this.player.previewThumbnails) {
+        if (this.previewThumbnailsReady) {
           this.player.previewThumbnails.startScrubbing(event);
         }
       }
@@ -8200,7 +8242,7 @@ var Markers = /*#__PURE__*/function () {
       marker.setAttribute('aria-valuenow', time);
       marker.setAttribute('aria-valuetext', formatTime(time)); // Show the seek thumbnail
 
-      if (this.player.previewThumbnails) {
+      if (this.previewThumbnailsReady) {
         var seekTime = this.player.media.duration * (percentage / 100);
         this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
       }
@@ -8264,6 +8306,17 @@ var Markers = /*#__PURE__*/function () {
 
       return this.elements.markers.length > 0;
     }
+  }, {
+    key: "previewThumbnailsReady",
+    get: function get() {
+      var _this$player = this.player,
+          previewThumbnails = _this$player.previewThumbnails,
+          duration = _this$player.duration;
+      var enableScrubbing = this.player.config.previewThumbnails.enableScrubbing;
+      /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
+
+      return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
+    }
   }]);
 
   return Markers;
@@ -8302,7 +8355,7 @@ var Trim = /*#__PURE__*/function () {
       this.update(); // Setup player listeners
 
       this.listeners();
-    } // Store the trim start time in seconds (limit )
+    } // Store the trim start time in seconds (limit)
 
   }, {
     key: "setStartTime",
@@ -8317,7 +8370,7 @@ var Trim = /*#__PURE__*/function () {
     value: function setEndTime(percentage) {
       var maxTrimLength = this.config.maxTrimLength;
       var endTime = this.player.media.duration * (parseFloat(percentage) / 100);
-      this.endTime = maxTrimLength >= 0 ? Math.max(endTime, this.startTime + this.config.maxTrimLength) : endTime;
+      this.endTime = maxTrimLength >= 0 ? Math.min(endTime, this.startTime + this.config.maxTrimLength) : endTime;
     }
   }, {
     key: "getMaxTrimLength",
@@ -8522,7 +8575,7 @@ var Trim = /*#__PURE__*/function () {
         this.editing = null;
         this.toggleTimeContainer(bar.leftThumb, false);
 
-        if (this.player.previewThumbnails) {
+        if (this.previewThumbnailsReady) {
           this.player.previewThumbnails.endScrubbing(event);
         }
 
@@ -8531,7 +8584,7 @@ var Trim = /*#__PURE__*/function () {
         this.editing = null;
         this.toggleTimeContainer(bar.rightThumb, false);
 
-        if (this.player.previewThumbnails) {
+        if (this.previewThumbnailsReady) {
           this.player.previewThumbnails.endScrubbing(event);
         }
 
@@ -8540,14 +8593,14 @@ var Trim = /*#__PURE__*/function () {
         this.editing = leftThumb;
         this.toggleTimeContainer(bar.leftThumb, true);
 
-        if (this.player.previewThumbnails) {
+        if (this.previewThumbnailsReady) {
           this.player.previewThumbnails.startScrubbing(event);
         }
       } else if ((type === 'mousedown' || type === 'touchstart') && target.classList.contains(rightThumb)) {
         this.editing = rightThumb;
         this.toggleTimeContainer(bar.rightThumb, true);
 
-        if (this.player.previewThumbnails) {
+        if (this.previewThumbnailsReady) {
           this.player.previewThumbnails.startScrubbing(event);
         }
       }
@@ -8574,7 +8627,7 @@ var Trim = /*#__PURE__*/function () {
 
       this.setShadedRegions(); // Show the seek thumbnail
 
-      if (this.player.previewThumbnails) {
+      if (this.previewThumbnailsReady) {
         var seekTime = this.player.media.duration * (percentage / 100);
         this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
       }
@@ -8594,18 +8647,13 @@ var Trim = /*#__PURE__*/function () {
       if (!maxTrimLength) bar.style.width = "".concat(rightThumbRelativePos, "%"); // Store and convert the start percentage to time
 
       bar.style.left = "".concat(percentage, "%");
-      this.setStartTime("".concat(percentage, "%"));
-      if (maxTrimLength) this.setEndTime(rightThumbPos); // Prevent the end time being before the start time
+      if (maxTrimLength) this.setEndTime(rightThumbPos);
+      this.setStartTime(percentage); // Prevent the end time being before the start time
 
       if (this.startTime > this.endTime) this.setEndTime(percentage); // Set the timestamp of the current trim handle position
 
-      if (bar.leftThumb.timeContainer) {
-        bar.leftThumb.timeContainer.time.innerText = formatTime(this.startTime);
-      } // Update the aria-value and text
-
-
-      bar.leftThumb.setAttribute('aria-valuenow', this.startTime);
-      bar.leftThumb.setAttribute('aria-valuetext', formatTime(this.startTime));
+      this.setThumbTimeStamps();
+      this.setThumbAriaData();
     }
   }, {
     key: "setRightThumbPosition",
@@ -8632,14 +8680,26 @@ var Trim = /*#__PURE__*/function () {
       if (this.endTime < this.startTime) {
         bar.style.left = "".concat(percentage, "%");
         this.setStartTime("".concat(percentage, "%"));
-      }
-
-      if (bar.rightThumb.timeContainer) {
-        // Set the timestamp of the current trim handle position
-        bar.rightThumb.timeContainer.time.innerText = formatTime(this.endTime);
-      } // Update the aria-value and text
+      } // Set the timestamp of the current trim handle position
 
 
+      this.setThumbTimeStamps();
+      this.setThumbAriaData();
+    }
+  }, {
+    key: "setThumbTimeStamps",
+    value: function setThumbTimeStamps() {
+      var bar = this.elements.container.bar;
+      bar.leftThumb.timeContainer.time.innerText = formatTime(this.startTime);
+      bar.rightThumb.timeContainer.time.innerText = formatTime(this.endTime);
+    }
+  }, {
+    key: "setThumbAriaData",
+    value: function setThumbAriaData() {
+      var bar = this.elements.container.bar; // Update the aria-value and text
+
+      bar.leftThumb.setAttribute('aria-valuenow', this.startTime);
+      bar.leftThumb.setAttribute('aria-valuetext', formatTime(this.startTime));
       bar.rightThumb.setAttribute('aria-valuenow', this.endTime);
       bar.rightThumb.setAttribute('aria-valuetext', formatTime(this.endTime));
     }
@@ -8798,6 +8858,17 @@ var Trim = /*#__PURE__*/function () {
       var maxTrimLength = this.config.maxTrimLength; // Default is 20% or the maximum trimming length
 
       return maxTrimLength > 0 ? clamp(100 / this.player.duration * parseFloat(maxTrimLength), 0, 100) : 20;
+    }
+  }, {
+    key: "previewThumbnailsReady",
+    get: function get() {
+      var _this$player = this.player,
+          previewThumbnails = _this$player.previewThumbnails,
+          duration = _this$player.duration;
+      var enableScrubbing = this.player.config.previewThumbnails.enableScrubbing;
+      /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
+
+      return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
     }
   }]);
 
