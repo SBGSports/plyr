@@ -8063,9 +8063,26 @@ typeof navigator === "object" && (function (global, factory) {
         var _this$player = this.player,
             previewThumbnails = _this$player.previewThumbnails,
             duration = _this$player.duration;
+        var enableScrubbing = this.player.config.previewThumbnails.enableScrubbing;
         /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
 
-        return previewThumbnails && previewThumbnails.loaded && duration > 0;
+        return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
+      }
+    }, {
+      key: "visibleWindow",
+      get: function get() {
+        var container = this.elements.container;
+        var duration = this.player.media.duration;
+        var containerRect = container.getBoundingClientRect();
+        var timelineRect = container.timeline.getBoundingClientRect();
+        var zoom = parseFloat(container.timeline.style.width);
+        var offset = parseFloat(container.timeline.style.left);
+        var start = Math.abs(offset / zoom) * duration;
+        var end = (Math.abs(offset / zoom) + containerRect.width / timelineRect.width) * duration;
+        return {
+          start: start,
+          end: end
+        };
       }
     }]);
 
@@ -9401,7 +9418,8 @@ typeof navigator === "object" && (function (global, factory) {
         var _this8 = this;
 
         // This has to be set before the timeout - to prevent issues switching between hover and scrub
-        var currentImageContainer = container || this.currentImageContainer; // Get a list of all images, convert it from a DOM list to an array
+        var currentImageContainer = container || this.currentImageContainer;
+        if (currentImageContainer || !currentImageContainer.children.length) return; // Get a list of all images, convert it from a DOM list to an array
 
         Array.from(currentImageContainer.children).forEach(function (image) {
           if (image.tagName.toLowerCase() !== 'img') {

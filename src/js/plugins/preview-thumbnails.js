@@ -512,6 +512,8 @@ class PreviewThumbnails {
     // This has to be set before the timeout - to prevent issues switching between hover and scrub
     const currentImageContainer = container || this.currentImageContainer;
 
+    if (currentImageContainer || !currentImageContainer.children.length) return;
+
     // Get a list of all images, convert it from a DOM list to an array
     Array.from(currentImageContainer.children).forEach(image => {
       if (image.tagName.toLowerCase() !== 'img') {

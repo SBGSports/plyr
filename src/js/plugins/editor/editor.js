@@ -52,8 +52,22 @@ class Editor {
 
   get previewThumbnailsReady() {
     const { previewThumbnails, duration } = this.player;
+    const { enableScrubbing } = this.player.config.previewThumbnails;
     /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
-    return previewThumbnails && previewThumbnails.loaded && duration > 0;
+    return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
+  }
+
+  get visibleWindow() {
+    const { container } = this.elements;
+    const { duration } = this.player.media;
+    const containerRect = container.getBoundingClientRect();
+    const timelineRect = container.timeline.getBoundingClientRect();
+    const zoom = parseFloat(container.timeline.style.width);
+    const offset = parseFloat(container.timeline.style.left);
+    const start = Math.abs(offset / zoom) * duration;
+    const end = (Math.abs(offset / zoom) + containerRect.width / timelineRect.width) * duration;
+
+    return { start, end };
   }
 
   load() {
@@ -329,7 +343,6 @@ class Editor {
         // Append the image to the container
         previewThumbnails.showImageAtCurrentTime(time, previewThumb);
       }
-
       time += this.player.duration / (clientRect.width / this.videoContainerWidth);
     }
 
