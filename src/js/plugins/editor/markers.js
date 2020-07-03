@@ -36,6 +36,13 @@ class Markers {
     return this.elements.markers.length > 0;
   }
 
+  get previewThumbnailsReady() {
+    const { previewThumbnails, duration } = this.player;
+    const { enableScrubbing } = this.player.config.previewThumbnails;
+    /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
+    return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
+  }
+
   load() {
     // Marker listeners
     this.listeners();
@@ -93,6 +100,28 @@ class Markers {
     triggerEvent.call(this.player, this.player.media, 'markeradded', false, { id, time: markerTime });
   }
 
+  moveMarker(id) {
+    const { currentTime } = this.player;
+    const marker = this.elements.markers.find(x => x.id === id);
+    const percentage = (currentTime / this.player.media.duration) * 100;
+
+    if (!marker) return;
+
+    // Update the position of the marker
+    marker.style.left = `${percentage}%`;
+    marker.setAttribute('aria-valuenow', currentTime);
+    marker.setAttribute('aria-valuetext', formatTime(currentTime));
+  }
+
+  goToMarker(id) {
+    const marker = this.elements.markers.find(x => x.id === id);
+
+    if (!marker) return;
+
+    // Go to marker on timeline
+    this.player.currentTime = Number(marker.getAttribute('aria-valuenow'));
+  }
+
   removeMarker(id) {
     this.elements.markers.forEach(marker => {
       if (marker.id === id) {
@@ -140,12 +169,12 @@ class Markers {
       });
       this.editing = null;
 
-      if (this.player.previewThumbnails) {
+      if (this.previewThumbnailsReady) {
         this.player.previewThumbnails.endScrubbing(event);
       }
     } else if (type === 'mousedown' || type === 'touchstart') {
       this.editing = target;
-      if (this.player.previewThumbnails) {
+      if (this.previewThumbnailsReady) {
         this.player.previewThumbnails.startScrubbing(event);
       }
     }
@@ -169,7 +198,7 @@ class Markers {
     marker.setAttribute('aria-valuetext', formatTime(time));
 
     // Show the seek thumbnail
-    if (this.player.previewThumbnails) {
+    if (this.previewThumbnailsReady) {
       const seekTime = this.player.media.duration * (percentage / 100);
       this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
     }

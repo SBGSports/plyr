@@ -54,6 +54,13 @@ class Trim {
     return maxTrimLength > 0 ? clamp((100 / this.player.duration) * parseFloat(maxTrimLength), 0, 100) : 20;
   }
 
+  get previewThumbnailsReady() {
+    const { previewThumbnails, duration } = this.player;
+    const { enableScrubbing } = this.player.config.previewThumbnails;
+    /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
+    return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
+  }
+
   load() {
     // Handle event (incase user presses escape etc)
     on.call(this.player, document, () => {
@@ -67,7 +74,7 @@ class Trim {
     this.listeners();
   }
 
-  // Store the trim start time in seconds (limit )
+  // Store the trim start time in seconds (limit)
   setStartTime(percentage) {
     const { maxTrimLength } = this.config;
     const startTime = this.player.media.duration * (parseFloat(percentage) / 100);
@@ -78,7 +85,7 @@ class Trim {
   setEndTime(percentage) {
     const { maxTrimLength } = this.config;
     const endTime = this.player.media.duration * (parseFloat(percentage) / 100);
-    this.endTime = maxTrimLength >= 0 ? Math.max(endTime, this.startTime + this.config.maxTrimLength) : endTime;
+    this.endTime = maxTrimLength >= 0 ? Math.min(endTime, this.startTime + this.config.maxTrimLength) : endTime;
   }
 
   getMaxTrimLength(startPercentage, endPercentage) {
@@ -285,27 +292,27 @@ class Trim {
     if ((type === 'mouseup' || type === 'touchend') && this.editing === leftThumb) {
       this.editing = null;
       this.toggleTimeContainer(bar.leftThumb, false);
-      if (this.player.previewThumbnails) {
+      if (this.previewThumbnailsReady) {
         this.player.previewThumbnails.endScrubbing(event);
       }
       triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
     } else if ((type === 'mouseup' || type === 'touchend') && this.editing === rightThumb) {
       this.editing = null;
       this.toggleTimeContainer(bar.rightThumb, false);
-      if (this.player.previewThumbnails) {
+      if (this.previewThumbnailsReady) {
         this.player.previewThumbnails.endScrubbing(event);
       }
       triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
     } else if ((type === 'mousedown' || type === 'touchstart') && target.classList.contains(leftThumb)) {
       this.editing = leftThumb;
       this.toggleTimeContainer(bar.leftThumb, true);
-      if (this.player.previewThumbnails) {
+      if (this.previewThumbnailsReady) {
         this.player.previewThumbnails.startScrubbing(event);
       }
     } else if ((type === 'mousedown' || type === 'touchstart') && target.classList.contains(rightThumb)) {
       this.editing = rightThumb;
       this.toggleTimeContainer(bar.rightThumb, true);
-      if (this.player.previewThumbnails) {
+      if (this.previewThumbnailsReady) {
         this.player.previewThumbnails.startScrubbing(event);
       }
     }
@@ -332,7 +339,7 @@ class Trim {
     this.setShadedRegions();
 
     // Show the seek thumbnail
-    if (this.player.previewThumbnails) {
+    if (this.previewThumbnailsReady) {
       const seekTime = this.player.media.duration * (percentage / 100);
       this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
     }
@@ -351,17 +358,13 @@ class Trim {
 
     // Store and convert the start percentage to time
     bar.style.left = `${percentage}%`;
-    this.setStartTime(`${percentage}%`);
     if (maxTrimLength) this.setEndTime(rightThumbPos);
+    this.setStartTime(percentage);
     // Prevent the end time being before the start time
     if (this.startTime > this.endTime) this.setEndTime(percentage);
     // Set the timestamp of the current trim handle position
-    if (bar.leftThumb.timeContainer) {
-      bar.leftThumb.timeContainer.time.innerText = formatTime(this.startTime);
-    }
-    // Update the aria-value and text
-    bar.leftThumb.setAttribute('aria-valuenow', this.startTime);
-    bar.leftThumb.setAttribute('aria-valuetext', formatTime(this.startTime));
+    this.setThumbTimeStamps();
+    this.setThumbAriaData();
   }
 
   setRightThumbPosition(percentage) {
@@ -389,11 +392,22 @@ class Trim {
       this.setStartTime(`${percentage}%`);
     }
 
-    if (bar.rightThumb.timeContainer) {
-      // Set the timestamp of the current trim handle position
-      bar.rightThumb.timeContainer.time.innerText = formatTime(this.endTime);
-    }
+    // Set the timestamp of the current trim handle position
+    this.setThumbTimeStamps();
+    this.setThumbAriaData();
+  }
+
+  setThumbTimeStamps() {
+    const { bar } = this.elements.container;
+    bar.leftThumb.timeContainer.time.innerText = formatTime(this.startTime);
+    bar.rightThumb.timeContainer.time.innerText = formatTime(this.endTime);
+  }
+
+  setThumbAriaData() {
+    const { bar } = this.elements.container;
     // Update the aria-value and text
+    bar.leftThumb.setAttribute('aria-valuenow', this.startTime);
+    bar.leftThumb.setAttribute('aria-valuetext', formatTime(this.startTime));
     bar.rightThumb.setAttribute('aria-valuenow', this.endTime);
     bar.rightThumb.setAttribute('aria-valuetext', formatTime(this.endTime));
   }

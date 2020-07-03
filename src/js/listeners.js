@@ -544,8 +544,10 @@ class Listeners {
       if (editor.active) {
         editor.setSeeking(event);
 
-        // Adjust timeline position when we get near the end of the timeline
-        timelineInterval = setInterval(() => editor.setTimelineOffset(), 50);
+        if (!this.player.trim.editing) {
+          // Adjust timeline position when we get near the end of the timeline
+          timelineInterval = setInterval(() => editor.setTimelineOffset(true), 50);
+        }
       }
     });
 
@@ -887,8 +889,9 @@ class Listeners {
     // TODO: Really need to work on some sort of plug-in wide event bus or pub-sub for this
     this.bind(elements.progress, 'mousemove touchmove', event => {
       const { previewThumbnails } = player;
+      const { enableScrubbing } = player.config.previewThumbnails;
 
-      if (previewThumbnails && previewThumbnails.loaded) {
+      if (previewThumbnails && previewThumbnails.loaded && (!previewThumbnails.mouseDown || enableScrubbing)) {
         previewThumbnails.startMove(event);
       }
     });
@@ -896,8 +899,9 @@ class Listeners {
     // Hide thumbnail preview - on mouse click, mouse leave, and video play/seek. All four are required, e.g., for buffering
     this.bind(elements.progress, 'mouseleave touchend click', () => {
       const { previewThumbnails } = player;
+      const { enableScrubbing } = player.config.previewThumbnails;
 
-      if (previewThumbnails && previewThumbnails.loaded) {
+      if (previewThumbnails && previewThumbnails.loaded && (!previewThumbnails.mouseDown || enableScrubbing)) {
         previewThumbnails.endMove(false, true);
       }
     });

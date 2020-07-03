@@ -342,6 +342,16 @@ declare namespace Plyr {
      * Remove all markers from the timeline.
      */
     removeMarkers(): void;
+
+    /**
+     * Sync Marker to seek time.
+     */
+    moveMarker(id: string): void;
+
+    /**
+     * Sync Marker to seek time.
+     */
+    goToMarker(id: string): void;
   }
 
   interface TrimControl {
@@ -640,6 +650,7 @@ declare namespace Plyr {
   interface EditorOptions {
     enabled?: boolean;
     target?: NodeList | HTMLElement | HTMLElement[] | string;
+    maxZoom?: number;
   }
 
   interface MarkersOptions {
@@ -678,6 +689,7 @@ declare namespace Plyr {
   interface PreviewThumbnailsOptions {
     enabled?: boolean;
     src?: string | string[];
+    enableScrubbing?: boolean;
   }
 
   interface SourceInfo {

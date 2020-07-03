@@ -50,10 +50,11 @@ class Editor {
     return this.shown;
   }
 
-  get previewThumbnailsLoaded() {
+  get previewThumbnailsReady() {
     const { previewThumbnails, duration } = this.player;
+    const { enableScrubbing } = this.player.config.previewThumbnails;
     /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
-    return previewThumbnails && previewThumbnails.loaded && duration > 0;
+    return previewThumbnails && previewThumbnails.loaded && duration > 0 && enableScrubbing;
   }
 
   load() {
@@ -153,6 +154,7 @@ class Editor {
 
   createControls() {
     const { container } = this.elements;
+    const { maxZoom } = this.config;
 
     // Create controls container
     container.controls = createElement('div', {
@@ -196,10 +198,10 @@ class Editor {
       id: `plyr__editor__zoom`,
       step: 0.1,
       min: 1,
-      max: 4,
+      max: maxZoom,
       value: 1,
       'aria-valuemin': 1,
-      'aria-valuemax': 4,
+      'aria-valuemax': maxZoom,
       'aria-valuenow': 1,
     });
 
@@ -302,7 +304,7 @@ class Editor {
     }
 
     // Enable editor mode in preview thumbnails
-    if (this.previewThumbnailsLoaded) {
+    if (this.previewThumbnailsReady) {
       previewThumbnails.editor = true;
     }
 
@@ -324,7 +326,7 @@ class Editor {
       }
 
       // If preview thumbnails is enabled append an image to the previewThumb
-      if (this.previewThumbnailsLoaded) {
+      if (this.previewThumbnailsReady) {
         // Append the image to the container
         previewThumbnails.showImageAtCurrentTime(time, previewThumb);
       }
@@ -332,7 +334,7 @@ class Editor {
       time += this.player.duration / (clientRect.width / this.videoContainerWidth);
     }
 
-    if (this.previewThumbnailsLoaded) {
+    if (this.previewThumbnailsReady) {
       // Disable editor mode in preview thumbnails
       previewThumbnails.editor = false;
 
@@ -376,6 +378,7 @@ class Editor {
 
   setZoom(event) {
     const { timeline } = this.elements.container;
+    const { maxZoom } = this.config;
     // Zoom on seek handle position
     const clientRect = timeline.getBoundingClientRect();
     const xPos = timeline.seekHandle.getBoundingClientRect().left;
@@ -391,7 +394,7 @@ class Editor {
       this.zoom.scale += delta * 0.1 * this.zoom.scale;
 
       // Restrict bounds of zoom for wheel
-      if ((this.zoom.scale === 4 && delta < 0) || (this.zoom.scale === 1 && delta > 0)) {
+      if ((this.zoom.scale === maxZoom && delta < 0) || (this.zoom.scale === 1 && delta > 0)) {
         return;
       }
 
@@ -407,8 +410,8 @@ class Editor {
       }
     }
 
-    // Limit zoom to be between 1 and 4 times zoom
-    this.zoom.scale = clamp(this.zoom.scale, 1, 4);
+    // Limit zoom to be between 1 and max times zoom
+    this.zoom.scale = clamp(this.zoom.scale, 1, maxZoom);
 
     // Apply zoom scale
     timeline.style.width = `${this.zoom.scale * 100}%`;
@@ -453,12 +456,12 @@ class Editor {
 
   triggerSeekEvent(event) {
     if (this.seeking) {
-      if (this.previewThumbnailsLoaded) {
+      if (this.previewThumbnailsReady) {
         this.player.previewThumbnails.startScrubbing(event);
       }
       triggerEvent.call(this.player, this.player.media, 'seeking');
       this.setSeekTime(event);
-    } else if (this.previewThumbnailsLoaded) {
+    } else if (this.previewThumbnailsReady) {
       this.player.previewThumbnails.endScrubbing(event);
     }
   }
@@ -468,7 +471,7 @@ class Editor {
       return;
     }
     const { timeline } = this.elements.container;
-    const percentage = clamp((100 / this.player.duration) * parseFloat(this.player.currentTime), 0, 100);
+    const percentage = clamp((100 / this.player.media.duration) * parseFloat(this.player.currentTime), 0, 100);
 
     timeline.seekHandle.style.left = `${percentage}%`;
     this.setTimelineOffset();
@@ -512,7 +515,7 @@ class Editor {
       triggerEvent.call(this.player, this.player.media, 'seeked');
 
       // Show the seek thumbnail
-      if (this.previewThumbnailsLoaded) {
+      if (this.previewThumbnailsReady) {
         const seekTime = this.player.media.duration * (percentage / 100);
         previewThumbnails.showImageAtCurrentTime(seekTime);
       }
@@ -521,6 +524,7 @@ class Editor {
 
   // If the seek handle is near the end of the visible timeline window, shift the timeline
   setTimelineOffset() {
+    const { playing } = this.player;
     const { container } = this.elements;
     // Values defining the speed of scrolling and at what points triggering the offset
     const { lowerSeek, upperSeek, upperPlaying, scrollSpeed } = this.timeline;
@@ -531,11 +535,11 @@ class Editor {
     // Current position in the editor container
     const zoom = parseFloat(container.timeline.style.width);
     let offset = parseFloat(container.timeline.style.left);
-    const seekHandleOffset = parseFloat(container.timeline.seekHandle.style.left);
+    const seekHandlePos = parseFloat(container.timeline.seekHandle.style.left);
     // Retrieve the hover position in the editor container, else retrieve the seek value
     const percentage = (100 / clientRect.width) * (seekPos.left - clientRect.left);
     // If playing set lower upper bound to when we shift the timeline
-    const upperBound = this.player.playing ? upperPlaying : upperSeek;
+    const upperBound = this.seeking ? upperSeek : upperPlaying;
 
     // Calculate the timeline offset position
     if (percentage > upperBound && zoom - offset > 100) {
@@ -551,18 +555,19 @@ class Editor {
     // Apply the timeline seek offset
     container.timeline.style.left = `${offset}%`;
 
+    // Only adjust the seek position when playing or seeking as we don't want to adjust if the current time is updated
+    if (!(playing || this.seeking)) {
+      return;
+    }
+
     // Retrieve the position of the seek handle after the timeline shift
     const seekPosUpdated = container.timeline.seekHandle.getBoundingClientRect().left;
-    const seekPercentage = clamp(
-      parseFloat(seekHandleOffset) + (100 / timelineRect.width) * (seekPos.left - seekPosUpdated),
-      0,
-      100,
-    );
+    const seekPercentage = clamp(seekHandlePos + (100 / timelineRect.width) * (seekPos.left - seekPosUpdated), 0, 100);
 
     container.timeline.seekHandle.style.left = `${seekPercentage}%`;
 
     // Show the corresponding preview thumbnail for the updated seek position
-    if (this.seeking && this.previewThumbnailsLoaded) {
+    if (this.seeking && this.previewThumbnailsReady) {
       const seekTime = this.player.media.duration * (seekPercentage / 100);
       this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
     }
@@ -585,7 +590,7 @@ class Editor {
       }
     });
 
-    this.player.on('previewthumbnailsloaded', () => {
+    this.player.on('previewThumbnailsReady', () => {
       if (this.loaded && this.shown) {
         this.setVideoTimelimeContent();
       }
