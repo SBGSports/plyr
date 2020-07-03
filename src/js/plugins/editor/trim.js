@@ -306,13 +306,13 @@ class Trim {
       this.editing = leftThumb;
       this.toggleTimeContainer(bar.leftThumb, true);
       if (this.previewThumbnailsReady) {
-        this.player.previewThumbnails.startScrubbing(event);
+        this.player.previewThumbnails.startScrubbing(event, true);
       }
     } else if ((type === 'mousedown' || type === 'touchstart') && target.classList.contains(rightThumb)) {
       this.editing = rightThumb;
       this.toggleTimeContainer(bar.rightThumb, true);
       if (this.previewThumbnailsReady) {
-        this.player.previewThumbnails.startScrubbing(event);
+        this.player.previewThumbnails.startScrubbing(event, true);
       }
     }
   }

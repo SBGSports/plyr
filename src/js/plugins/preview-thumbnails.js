@@ -263,14 +263,16 @@ class PreviewThumbnails {
     this.toggleThumbContainer(false, true);
   }
 
-  startScrubbing(event) {
+  startScrubbing(event, overrideScrubbing = false) {
     // Only act on left mouse button (0), or touch device (event.button does not exist or is false)
     if (is.nullOrUndefined(event.button) || event.button === false || event.button === 0) {
       this.mouseDown = true;
 
       // Wait until media has a duration
       if (this.player.media.duration) {
-        if (this.player.config.previewThumbnails.enableScrubbing) this.toggleScrubbingContainer(true);
+        if (this.player.config.previewThumbnails.enableScrubbing || overrideScrubbing) {
+          this.toggleScrubbingContainer(true);
+        }
         this.toggleThumbContainer(false, true);
 
         // Download and show image
