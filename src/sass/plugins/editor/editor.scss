@@ -23,6 +23,7 @@ $plyr-editor-preview-thumb-height: $plyr-editor-video-container-height;
 $plyr-editor-preview-thumb-border-radius: var(--plyr-editor-preview-thumb-border-radius, 5px);
 $plyr-editor-preview-thumb-background: var(--plyr-editor-preview-thumb-background, hsla(0, 0%, 0%, 0.03));
 
+$plyr-editor-seek-handle-offset: -4px;
 $plyr-editor-seek-handle-padding: var(--plyr-editor-seek-handle-padding, 10px);
 $plyr-editor-seek-handle-height: calc(
   #{$plyr-editor-video-container-total-height} - #{$plyr-editor-seek-handle-padding}
@@ -187,7 +188,7 @@ $plyr-editor-height: calc(
 
 .plyr__editor__seek-handle {
   height: $plyr-editor-seek-handle-height;
-  margin-left: calc(calc(#{$plyr-editor-seek-handle-width} / 2 - #{$plyr-editor-seek-handle-line-width} / 2) * -1);
+  margin-left: $plyr-editor-seek-handle-offset;
   margin-top: calc(#{$plyr-editor-seek-handle-padding} / 2);
   position: absolute;
   width: $plyr-editor-seek-handle-width;
