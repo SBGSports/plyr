@@ -8111,7 +8111,7 @@ var Markers = /*#__PURE__*/function () {
     }
   }, {
     key: "addMarker",
-    value: function addMarker(id, time) {
+    value: function addMarker(id, name, time) {
       var timeline = this.player.editor.elements.container.timeline;
       var markerTime = time || this.player.currentTime;
       var percentage = clamp(100 / this.player.duration * parseFloat(markerTime), 0, 100);
@@ -8123,6 +8123,7 @@ var Markers = /*#__PURE__*/function () {
       if (!this.loaded) {
         this.preLoadedMarkers.push({
           id: id,
+          name: name,
           time: time
         });
         return;
@@ -8144,8 +8145,9 @@ var Markers = /*#__PURE__*/function () {
       this.addMarkerListeners(marker); // Add label to marker
 
       var label = createElement('div', {
+        id: id,
         class: this.player.config.classNames.markers.label
-      }, id.replace(/_/g, ' '));
+      }, name);
       marker.appendChild(label); // Marker added event
 
       triggerEvent.call(this.player, this.player.media, 'markeradded', false, {
@@ -8275,7 +8277,7 @@ var Markers = /*#__PURE__*/function () {
 
           if (_this2.preLoadedMarkers.length) {
             _this2.preLoadedMarkers.forEach(function (marker) {
-              return _this2.addMarker(marker.id, marker.time);
+              return _this2.addMarker(marker.id, marker.name, marker.time);
             }); // Clear markers list as markers have been added
 
 
