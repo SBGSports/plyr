@@ -10328,6 +10328,7 @@ var defaults$1 = {
       seekHandleLine: 'plyr__editor__seek-handle-line'
     },
     markers: {
+      container: 'plyr__markers__container',
       marker: 'plyr__markers__marker',
       label: 'plyr__markers__label'
     },
@@ -15269,23 +15270,28 @@ var Markers = /*#__PURE__*/function () {
         return;
       }
 
-      var marker = createElement('div', extend({
+      var container = createElement('div', extend({
         id: id,
-        class: this.player.config.classNames.markers.marker,
+        class: this.player.config.classNames.markers.container,
         'aria-valuemin': 0,
         'aria-valuemax': this.player.duration,
         'aria-valuenow': markerTime,
         'aria-valuetext': formatTime(markerTime),
         'aria-label': i18n.get('marker', this.player.config)
       }));
-      this.elements.markers.push(marker);
-      timeline.appendChild(marker); // Set the markers default position to be at the current seek point
+      this.elements.markers.push(container);
+      timeline.appendChild(container); // Set the markers default position to be at the current seek point
 
-      marker.style.left = "".concat(percentage, "%");
-      this.addMarkerListeners(marker); // Add label to marker
+      container.style.left = "".concat(percentage, "%");
+      this.addMarkerListeners(container);
+      var marker = createElement('div', extend({
+        id: "".concat(id, "Marker"),
+        class: this.player.config.classNames.markers.marker
+      }));
+      container.appendChild(marker); // Add label to marker
 
       var label = createElement('div', {
-        id: id,
+        id: "".concat(id, "Label"),
         class: this.player.config.classNames.markers.label
       }, name);
       marker.appendChild(label); // Marker added event
@@ -15361,7 +15367,7 @@ var Markers = /*#__PURE__*/function () {
     key: "setEditing",
     value: function setEditing(event) {
       var type = event.type,
-          target = event.target;
+          currentTarget = event.currentTarget;
       var marker = this.editing;
 
       if (type === 'mouseup' || type === 'touchend') {
@@ -15376,7 +15382,7 @@ var Markers = /*#__PURE__*/function () {
           this.player.previewThumbnails.endScrubbing(event);
         }
       } else if (type === 'mousedown' || type === 'touchstart') {
-        this.editing = target;
+        this.editing = currentTarget;
 
         if (this.previewThumbnailsReady) {
           this.player.previewThumbnails.startScrubbing(event);
