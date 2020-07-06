@@ -187,7 +187,7 @@ $plyr-editor-height: calc(
 
 .plyr__editor__seek-handle {
   height: $plyr-editor-seek-handle-height;
-  margin-left: calc((#{$plyr-editor-seek-handle-width} / 2 - #{$plyr-editor-seek-handle-line-width} / 2) * -1);
+  margin-left: calc(calc(#{$plyr-editor-seek-handle-width} / 2 - #{$plyr-editor-seek-handle-line-width} / 2) * -1);
   margin-top: calc(#{$plyr-editor-seek-handle-padding} / 2);
   position: absolute;
   width: $plyr-editor-seek-handle-width;
