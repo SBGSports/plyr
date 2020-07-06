@@ -50,7 +50,7 @@ class Markers {
     this.update();
   }
 
-  addMarker(id, time) {
+  addMarker(id, name, time) {
     const { timeline } = this.player.editor.elements.container;
     const markerTime = time || this.player.currentTime;
     const percentage = clamp((100 / this.player.duration) * parseFloat(markerTime), 0, 100);
@@ -60,7 +60,7 @@ class Markers {
     }
 
     if (!this.loaded) {
-      this.preLoadedMarkers.push({ id, time });
+      this.preLoadedMarkers.push({ id, name, time });
       return;
     }
 
@@ -88,9 +88,10 @@ class Markers {
     const label = createElement(
       'div',
       {
+        id,
         class: this.player.config.classNames.markers.label,
       },
-      id.replace(/_/g, ' '),
+      name,
     );
 
     marker.appendChild(label);
@@ -209,7 +210,7 @@ class Markers {
       if (this.player.media.duration) {
         this.loaded = true;
         if (this.preLoadedMarkers.length) {
-          this.preLoadedMarkers.forEach(marker => this.addMarker(marker.id, marker.time));
+          this.preLoadedMarkers.forEach(marker => this.addMarker(marker.id, marker.name, marker.time));
           // Clear markers list as markers have been added
           this.preLoadedMarkers = [];
         }
