@@ -64,11 +64,11 @@ class Markers {
       return;
     }
 
-    const marker = createElement(
+    const container = createElement(
       'div',
       extend({
         id,
-        class: this.player.config.classNames.markers.marker,
+        class: this.player.config.classNames.markers.container,
         'aria-valuemin': 0,
         'aria-valuemax': this.player.duration,
         'aria-valuenow': markerTime,
@@ -77,18 +77,28 @@ class Markers {
       }),
     );
 
-    this.elements.markers.push(marker);
-    timeline.appendChild(marker);
+    this.elements.markers.push(container);
+    timeline.appendChild(container);
 
     // Set the markers default position to be at the current seek point
-    marker.style.left = `${percentage}%`;
-    this.addMarkerListeners(marker);
+    container.style.left = `${percentage}%`;
+    this.addMarkerListeners(container);
+
+    const marker = createElement(
+      'div',
+      extend({
+        id: `${id}Marker`,
+        class: this.player.config.classNames.markers.marker,
+      }),
+    );
+
+    container.appendChild(marker);
 
     // Add label to marker
     const label = createElement(
       'div',
       {
-        id,
+        id: `${id}Label`,
         class: this.player.config.classNames.markers.label,
       },
       name,
@@ -158,7 +168,7 @@ class Markers {
   }
 
   setEditing(event) {
-    const { type, target } = event;
+    const { type, currentTarget } = event;
     const marker = this.editing;
 
     if (type === 'mouseup' || type === 'touchend') {
@@ -173,7 +183,7 @@ class Markers {
         this.player.previewThumbnails.endScrubbing(event);
       }
     } else if (type === 'mousedown' || type === 'touchstart') {
-      this.editing = target;
+      this.editing = currentTarget;
       if (this.previewThumbnailsReady) {
         this.player.previewThumbnails.startScrubbing(event);
       }

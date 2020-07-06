@@ -6,16 +6,21 @@ $plyr-marker-background: $plyr-color-main !default;
 $plyr-marker-size: var(--plyr-marker-size, 20px) !default;
 $plyr-marker-border-width: var(--plyr-marker-border-width, 3px) !default;
 
-.plyr__markers__marker {
-  border: $plyr-marker-border-width solid $plyr-marker-background;
-  border-radius: 50% 50% 50% 0;
+.plyr__markers__container {
   height: $plyr-marker-size;
   margin-left: calc(((#{$plyr-marker-size} / 2) * -1) + 1px);
   position: absolute;
+  width: $plyr-marker-size;
+}
+
+.plyr__markers__marker {
+  border: $plyr-marker-border-width solid $plyr-marker-background;
+  border-radius: 50% 50% 50% 0;
+  height: inherit;
   touch-action: none;
   transform: rotate(-45deg);
   user-select: none;
-  width: $plyr-marker-size;
+  width: inherit;
   z-index: 3;
 
   &:active {

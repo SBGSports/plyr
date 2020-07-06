@@ -437,6 +437,7 @@ const defaults = {
       seekHandleLine: 'plyr__editor__seek-handle-line',
     },
     markers: {
+      container: 'plyr__markers__container',
       marker: 'plyr__markers__marker',
       label: 'plyr__markers__label',
     },
