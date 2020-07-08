@@ -1756,6 +1756,8 @@ typeof navigator === "object" && (function (global, factory) {
           restart: getElement.call(this, this.config.selectors.buttons.restart),
           rewind: getElement.call(this, this.config.selectors.buttons.rewind),
           fastForward: getElement.call(this, this.config.selectors.buttons.fastForward),
+          frameRewind: getElement.call(this, this.config.selectors.buttons.frameRewind),
+          frameForward: getElement.call(this, this.config.selectors.buttons.frameForward),
           mute: getElement.call(this, this.config.selectors.buttons.mute),
           pip: getElement.call(this, this.config.selectors.buttons.pip),
           airplay: getElement.call(this, this.config.selectors.buttons.airplay),
@@ -3056,6 +3058,16 @@ typeof navigator === "object" && (function (global, factory) {
           container.appendChild(wrapper);
           _this10.elements.settings.popup = popup;
           _this10.elements.settings.menu = wrapper;
+        } // Frame Reverse button
+
+
+        if (control === 'frame-rewind') {
+          container.appendChild(createButton.call(_this10, 'frame-rewind', defaultAttributes));
+        } // Frame Forward button
+
+
+        if (control === 'frame-forward') {
+          container.appendChild(createButton.call(_this10, 'frame-forward', defaultAttributes));
         } // Picture in picture button
 
 
@@ -3691,6 +3703,8 @@ typeof navigator === "object" && (function (global, factory) {
     playsinline: true,
     // Default time to skip when rewind/fast forward
     seekTime: 10,
+    // Default frame rate of video
+    frameRate: 25,
     // Default volume
     volume: 1,
     muted: false,
@@ -3801,6 +3815,8 @@ typeof navigator === "object" && (function (global, factory) {
     controls: ['play-large', // 'restart',
     // 'rewind',
     'play', // 'fast-forward',
+    // 'frame-rewind',
+    // 'frame-forward',
     'progress', 'current-time', // 'duration',
     'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', // 'download',
     // 'trim',
@@ -3813,6 +3829,8 @@ typeof navigator === "object" && (function (global, factory) {
       play: 'Play',
       pause: 'Pause',
       fastForward: 'Forward {seektime}s',
+      frameRewind: 'Rewind Frame',
+      frameForward: 'Forward Frame',
       seek: 'Seek',
       seekLabel: '{currentTime} of {duration}',
       played: 'Played',
@@ -3887,6 +3905,8 @@ typeof navigator === "object" && (function (global, factory) {
       restart: null,
       rewind: null,
       fastForward: null,
+      frameRewind: null,
+      frameForward: null,
       mute: null,
       volume: null,
       captions: null,
@@ -3929,6 +3949,8 @@ typeof navigator === "object" && (function (global, factory) {
         restart: '[data-plyr="restart"]',
         rewind: '[data-plyr="rewind"]',
         fastForward: '[data-plyr="fast-forward"]',
+        frameRewind: '[data-plyr="frame-rewind"]',
+        frameForward: '[data-plyr="frame-forward"]',
         mute: '[data-plyr="mute"]',
         captions: '[data-plyr="captions"]',
         download: '[data-plyr="download"]',
@@ -5368,9 +5390,13 @@ typeof navigator === "object" && (function (global, factory) {
 
         this.bind(elements.buttons.restart, 'click', player.restart, 'restart'); // Rewind
 
-        this.bind(elements.buttons.rewind, 'click', player.rewind, 'rewind'); // Rewind
+        this.bind(elements.buttons.rewind, 'click', player.rewind, 'rewind'); // FastForward
 
-        this.bind(elements.buttons.fastForward, 'click', player.forward, 'fastForward'); // Mute toggle
+        this.bind(elements.buttons.fastForward, 'click', player.forward, 'fastForward'); // Frame Back
+
+        this.bind(elements.buttons.frameRewind, 'click', player.frameRewind, 'rewind'); // Frame Forward
+
+        this.bind(elements.buttons.frameForward, 'click', player.frameForward, 'fastForward'); // Mute toggle
 
         this.bind(elements.buttons.mute, 'click', function () {
           player.muted = !player.muted;
@@ -10281,6 +10307,24 @@ typeof navigator === "object" && (function (global, factory) {
       key: "forward",
       value: function forward(seekTime) {
         this.currentTime += is$1.number(seekTime) ? seekTime : this.config.seekTime;
+      }
+      /**
+       * Rewind Frame
+       */
+
+    }, {
+      key: "frameRewind",
+      value: function frameRewind() {
+        this.currentTime -= 1 / this.config.frameRate;
+      }
+      /**
+       * Forward Frame
+       */
+
+    }, {
+      key: "frameForward",
+      value: function frameForward() {
+        this.currentTime += 1 / this.config.frameRate;
       }
       /**
        * Seek to a time
