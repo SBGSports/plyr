@@ -703,8 +703,14 @@ class Listeners {
     // Rewind
     this.bind(elements.buttons.rewind, 'click', player.rewind, 'rewind');
 
-    // Rewind
+    // FastForward
     this.bind(elements.buttons.fastForward, 'click', player.forward, 'fastForward');
+
+    // Frame Back
+    this.bind(elements.buttons.frameRewind, 'click', player.frameRewind, 'rewind');
+
+    // Frame Forward
+    this.bind(elements.buttons.frameForward, 'click', player.frameForward, 'fastForward');
 
     // Mute toggle
     this.bind(

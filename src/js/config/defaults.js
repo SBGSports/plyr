@@ -25,6 +25,9 @@ const defaults = {
   // Default time to skip when rewind/fast forward
   seekTime: 10,
 
+  // Default frame rate of video
+  frameRate: 25,
+
   // Default volume
   volume: 1,
   muted: false,
@@ -151,6 +154,8 @@ const defaults = {
     // 'rewind',
     'play',
     // 'fast-forward',
+    // 'frame-rewind',
+    // 'frame-forward',
     'progress',
     'current-time',
     // 'duration',
@@ -173,6 +178,8 @@ const defaults = {
     play: 'Play',
     pause: 'Pause',
     fastForward: 'Forward {seektime}s',
+    frameRewind: 'Rewind Frame',
+    frameForward: 'Forward Frame',
     seek: 'Seek',
     seekLabel: '{currentTime} of {duration}',
     played: 'Played',
@@ -249,6 +256,8 @@ const defaults = {
     restart: null,
     rewind: null,
     fastForward: null,
+    frameRewind: null,
+    frameForward: null,
     mute: null,
     volume: null,
     captions: null,
@@ -353,6 +362,8 @@ const defaults = {
       restart: '[data-plyr="restart"]',
       rewind: '[data-plyr="rewind"]',
       fastForward: '[data-plyr="fast-forward"]',
+      frameRewind: '[data-plyr="frame-rewind"]',
+      frameForward: '[data-plyr="frame-forward"]',
       mute: '[data-plyr="mute"]',
       captions: '[data-plyr="captions"]',
       download: '[data-plyr="download"]',

@@ -470,6 +470,20 @@ class Plyr {
   }
 
   /**
+   * Rewind Frame
+   */
+  frameRewind() {
+    this.currentTime -= 1 / this.config.frameRate;
+  }
+
+  /**
+   * Forward Frame
+   */
+  frameForward() {
+    this.currentTime += 1 / this.config.frameRate;
+  }
+
+  /**
    * Seek to a time
    * @param {Number} input - where to seek to in seconds. Defaults to 0 (the start)
    */
@@ -1066,7 +1080,12 @@ class Plyr {
       const hiding = toggleClass(this.elements.container, this.config.classNames.hideControls, force);
 
       // Close menu
-      if (hiding && is.array(this.config.controls) && this.config.controls.includes('settings') && !is.empty(this.config.settings)) {
+      if (
+        hiding &&
+        is.array(this.config.controls) &&
+        this.config.controls.includes('settings') &&
+        !is.empty(this.config.settings)
+      ) {
         controls.toggleMenu.call(this, false);
       }
 

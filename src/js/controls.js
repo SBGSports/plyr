@@ -58,6 +58,8 @@ const controls = {
         restart: getElement.call(this, this.config.selectors.buttons.restart),
         rewind: getElement.call(this, this.config.selectors.buttons.rewind),
         fastForward: getElement.call(this, this.config.selectors.buttons.fastForward),
+        frameRewind: getElement.call(this, this.config.selectors.buttons.frameRewind),
+        frameForward: getElement.call(this, this.config.selectors.buttons.frameForward),
         mute: getElement.call(this, this.config.selectors.buttons.mute),
         pip: getElement.call(this, this.config.selectors.buttons.pip),
         airplay: getElement.call(this, this.config.selectors.buttons.airplay),
@@ -1298,7 +1300,7 @@ const controls = {
     const defaultAttributes = { class: 'plyr__controls__item' };
 
     // Loop through controls in order
-    dedupe(is.array(this.config.controls) ? this.config.controls: []).forEach(control => {
+    dedupe(is.array(this.config.controls) ? this.config.controls : []).forEach(control => {
       // Restart button
       if (control === 'restart') {
         container.appendChild(createButton.call(this, 'restart', defaultAttributes));
@@ -1576,6 +1578,16 @@ const controls = {
 
         this.elements.settings.popup = popup;
         this.elements.settings.menu = wrapper;
+      }
+
+      // Frame Reverse button
+      if (control === 'frame-rewind') {
+        container.appendChild(createButton.call(this, 'frame-rewind', defaultAttributes));
+      }
+
+      // Frame Forward button
+      if (control === 'frame-forward') {
+        container.appendChild(createButton.call(this, 'frame-forward', defaultAttributes));
       }
 
       // Picture in picture button
