@@ -34,7 +34,7 @@ class Listeners {
     const repeat = pressed && code === this.lastKey;
 
     // Bail if a modifier key is set
-    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+    if (event.altKey || event.shiftKey) {
       return;
     }
 
@@ -77,6 +77,24 @@ class Listeners {
       if (preventDefault.includes(code)) {
         event.preventDefault();
         event.stopPropagation();
+      }
+
+      if (event.ctrlKey || event.metaKey) {
+        switch (code) {
+          case 39:
+            // Arrow forward
+            player.frameForward();
+            break;
+
+          case 37:
+            // Arrow Back
+            player.frameRewind();
+            break;
+          default:
+            break;
+        }
+
+        return;
       }
 
       switch (code) {
