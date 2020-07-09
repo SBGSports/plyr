@@ -4769,9 +4769,9 @@ typeof navigator === "object" && (function (global, factory) {
         var elements = player.elements;
         var code = event.keyCode ? event.keyCode : event.which;
         var pressed = event.type === 'keydown';
-        var repeat = pressed && code === this.lastKey; // Bail if a modifier key is set
+        var repeat = pressed && code === this.lastKey; // if a modifier key is set
 
-        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+        if (event.altKey || event.shiftKey) {
           return;
         } // If the event is bubbled from the media element
         // Firefox doesn't get the keycode for whatever reason
@@ -4814,6 +4814,22 @@ typeof navigator === "object" && (function (global, factory) {
           if (preventDefault.includes(code)) {
             event.preventDefault();
             event.stopPropagation();
+          }
+
+          if (event.ctrlKey || event.metaKey) {
+            switch (code) {
+              case 39:
+                // Arrow forward
+                player.frameForward();
+                break;
+
+              case 37:
+                // Arrow Back
+                player.frameRewind();
+                break;
+            }
+
+            return;
           }
 
           switch (code) {
