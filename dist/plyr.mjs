@@ -4763,7 +4763,7 @@ var Listeners = /*#__PURE__*/function () {
       var elements = player.elements;
       var code = event.keyCode ? event.keyCode : event.which;
       var pressed = event.type === 'keydown';
-      var repeat = pressed && code === this.lastKey; // if a modifier key is set
+      var repeat = pressed && code === this.lastKey; // Bail if a modifier key is set
 
       if (event.altKey || event.shiftKey) {
         return;
@@ -8215,7 +8215,12 @@ var Markers = /*#__PURE__*/function () {
 
       marker.style.left = "".concat(percentage, "%");
       marker.setAttribute('aria-valuenow', currentTime);
-      marker.setAttribute('aria-valuetext', formatTime(currentTime));
+      marker.setAttribute('aria-valuetext', formatTime(currentTime)); // Trigger marker change event
+
+      triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
+        id: marker.id,
+        time: parseFloat(currentTime)
+      });
     }
   }, {
     key: "goToMarker",
