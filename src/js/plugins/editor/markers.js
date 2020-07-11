@@ -121,6 +121,12 @@ class Markers {
     marker.style.left = `${percentage}%`;
     marker.setAttribute('aria-valuenow', currentTime);
     marker.setAttribute('aria-valuetext', formatTime(currentTime));
+
+    // Trigger marker change event
+    triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
+      id: marker.id,
+      time: parseFloat(currentTime),
+    });
   }
 
   goToMarker(id) {
