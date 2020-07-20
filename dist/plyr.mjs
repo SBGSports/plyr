@@ -3292,6 +3292,13 @@ function buildUrlParams(input) {
   }
 
   return params;
+} // Parse URL Parameters
+
+function parseUrlHash(input) {
+  var _URL = new URL(input),
+      hash = _URL.hash;
+
+  return hash;
 }
 
 var captions = {
@@ -3786,6 +3793,10 @@ var defaults$1 = {
     closeEditor: true,
     // Close editor, on close of trimming tool
     maxTrimLength: -1 // Limit the maximum length of the trimming region in seconds
+
+  },
+  mediaFragment: {
+    enabled: true // Enable media fragments?
 
   },
   // Fullscreen settings
@@ -4848,6 +4859,8 @@ var Listeners = /*#__PURE__*/function () {
           case 75:
             // Space and K key
             if (!repeat) {
+              // Manually trigger restart for media fragment
+              if (player.mediaFragment.active && player.ended) this.proxy(event, player.restart, 'restart');
               silencePromise(player.togglePlay());
             }
 
@@ -5143,6 +5156,14 @@ var Listeners = /*#__PURE__*/function () {
 
       on.call(player, player.media, 'playing play pause ended emptied timeupdate', function (event) {
         return ui.checkPlaying.call(player, event);
+      }); // Handle media fragments end event, as event is not fired by default
+
+      on.call(player, player.media, 'timeupdate seeking seeked', function () {
+        if (!player.mediaFragment.enabled || player.currentTime < player.duration) return; // Media fragments are not automatically stopped at end of playback
+
+        player.pause(); // Manually trigger default event ended as ended event will not trigger for media fragments
+
+        triggerEvent.call(player, player.media, 'ended');
       }); // Loading state
 
       on.call(player, player.media, 'waiting canplay seeked playing', function (event) {
@@ -5415,6 +5436,7 @@ var Listeners = /*#__PURE__*/function () {
       this.bind(elements.buttons.captions, 'click', function () {
         return player.toggleCaptions();
       }); // Download
+      // Note: For media fragments the whole video will be downloaded
 
       this.bind(elements.buttons.download, 'click', function () {
         triggerEvent.call(player, player.media, 'download');
@@ -6790,6 +6812,92 @@ var media = {
   }
 };
 
+/**
+ * Returns a number whose value is limited to the given range.
+ *
+ * Example: limit the output of this computation to between 0 and 255
+ * (x * 255).clamp(0, 255)
+ *
+ * @param {Number} input
+ * @param {Number} min The lower boundary of the output range
+ * @param {Number} max The upper boundary of the output range
+ * @returns A number in the range [min, max]
+ * @type Number
+ */
+function clamp() {
+  var input = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+  var min = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+  var max = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 255;
+  return Math.min(Math.max(input, min), max);
+}
+
+var MediaFragment = /*#__PURE__*/function () {
+  function MediaFragment(player) {
+    var _this = this;
+
+    _classCallCheck(this, MediaFragment);
+
+    var config = player.config;
+    this.player = player;
+    this.source = player.currentSrc;
+    this.config = config.mediaFragment;
+    this.active = false;
+    this.startTime = 0;
+    this.duration = player.media.duration;
+    this.player.once('loadedmetadata', function () {
+      return _this.load();
+    });
+  }
+
+  _createClass(MediaFragment, [{
+    key: "load",
+    value: function load() {
+      var mediaFragment = parseUrlHash(this.player.source).match('t=[0-9]+,[0-9]+');
+      if (!mediaFragment) return;
+      var config = this.player.config;
+
+      if (config.duration) {
+        this.player.debug.warn('Cannot have custom duration in conjunction with media fragments');
+        return;
+      }
+
+      var resourceTimes = mediaFragment[0].match(/[0-9]+/g);
+      var startTime = parseInt(resourceTimes[0], 10);
+      var endTime = parseInt(resourceTimes[1], 10) - parseInt(resourceTimes[0], 10);
+      this.active = true;
+      this.startTime = clamp(startTime, 0, this.player.media.duration);
+      this.duration = clamp(endTime, 0, this.player.media.duration);
+    }
+  }, {
+    key: "getMediaTime",
+    value: function getMediaTime(input) {
+      if (!this.enabled || !this.active) return input;
+      return input + this.startTime;
+    }
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      var _this2 = this;
+
+      if (!this.enabled) return;
+      var config = this.player.config;
+      this.active = false; // Reset start and duration back to default values
+
+      config.startTime = 0;
+      this.player.once('loadedmetadata', function () {
+        config.duration = _this2.media.duration;
+      });
+    }
+  }, {
+    key: "enabled",
+    get: function get() {
+      return this.config.enabled;
+    }
+  }]);
+
+  return MediaFragment;
+}();
+
 var destroy = function destroy(instance) {
   // Destroy our adsManager
   if (instance.manager) {
@@ -7434,25 +7542,6 @@ var Ads = /*#__PURE__*/function () {
   return Ads;
 }();
 
-/**
- * Returns a number whose value is limited to the given range.
- *
- * Example: limit the output of this computation to between 0 and 255
- * (x * 255).clamp(0, 255)
- *
- * @param {Number} input
- * @param {Number} min The lower boundary of the output range
- * @param {Number} max The upper boundary of the output range
- * @returns A number in the range [min, max]
- * @type Number
- */
-function clamp() {
-  var input = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-  var min = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-  var max = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 255;
-  return Math.min(Math.max(input, min), max);
-}
-
 var Editor = /*#__PURE__*/function () {
   function Editor(player) {
     _classCallCheck(this, Editor);
@@ -7762,9 +7851,7 @@ var Editor = /*#__PURE__*/function () {
 
       if (this.previewThumbnailsReady) {
         // Disable editor mode in preview thumbnails
-        previewThumbnails.editor = false; // Once all images are loaded remove the container from the preview thumbs
-
-        previewThumbnails.elements.editor = {};
+        previewThumbnails.editor = false;
       } // Once all images are loaded set the width of the parent video container to display them
 
 
@@ -7892,7 +7979,7 @@ var Editor = /*#__PURE__*/function () {
       }
 
       var timeline = this.elements.container.timeline;
-      var percentage = clamp(100 / this.player.media.duration * parseFloat(this.player.currentTime), 0, 100);
+      var percentage = clamp(100 / this.player.duration * parseFloat(this.player.currentTime), 0, 100);
       timeline.seekHandle.style.left = "".concat(percentage, "%");
       this.setTimelineOffset();
       var currentTime = controls.formatTime(this.player.currentTime);
@@ -7922,14 +8009,14 @@ var Editor = /*#__PURE__*/function () {
 
         timeline.seekHandle.style.left = "".concat(percentage, "%"); // Update the current video time
 
-        this.player.currentTime = this.player.media.duration * (percentage / 100); // Set video seek
+        this.player.currentTime = this.player.duration * (percentage / 100); // Set video seek
 
         controls.setRange.call(this.player, this.player.elements.inputs.seek, percentage); // Set the video seek position
 
         triggerEvent.call(this.player, this.player.media, 'seeked'); // Show the seek thumbnail
 
         if (this.previewThumbnailsReady) {
-          var seekTime = this.player.media.duration * (percentage / 100);
+          var seekTime = this.player.duration * (percentage / 100);
           previewThumbnails.showImageAtCurrentTime(seekTime);
         }
       }
@@ -7984,7 +8071,7 @@ var Editor = /*#__PURE__*/function () {
       container.timeline.seekHandle.style.left = "".concat(seekPercentage, "%"); // Show the corresponding preview thumbnail for the updated seek position
 
       if (this.seeking && this.previewThumbnailsReady) {
-        var seekTime = this.player.media.duration * (seekPercentage / 100);
+        var seekTime = this.player.duration * (seekPercentage / 100);
         this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
       }
     }
@@ -8110,7 +8197,7 @@ var Editor = /*#__PURE__*/function () {
     key: "visibleWindow",
     get: function get() {
       var container = this.elements.container;
-      var duration = this.player.media.duration;
+      var duration = this.player.duration;
       var containerRect = container.getBoundingClientRect();
       var timelineRect = container.timeline.getBoundingClientRect();
       var zoom = parseFloat(container.timeline.style.width);
@@ -8156,7 +8243,10 @@ var Markers = /*#__PURE__*/function () {
     key: "addMarker",
     value: function addMarker(id, name, time) {
       var timeline = this.player.editor.elements.container.timeline;
-      var markerTime = time || this.player.currentTime;
+      var mediaFragment = this.player.mediaFragment;
+      var markerTime = time || this.player.currentTime; // For media fragments the start time can be different from the media's start time
+
+      var mediaMarkerTime = mediaFragment.getMediaTime(markerTime);
       var percentage = clamp(100 / this.player.duration * parseFloat(markerTime), 0, 100);
 
       if (!timeline) {
@@ -8200,13 +8290,15 @@ var Markers = /*#__PURE__*/function () {
 
       triggerEvent.call(this.player, this.player.media, 'markeradded', false, {
         id: id,
-        time: markerTime
+        time: mediaMarkerTime
       });
     }
   }, {
     key: "moveMarker",
     value: function moveMarker(id) {
-      var currentTime = this.player.currentTime;
+      var _this$player = this.player,
+          currentTime = _this$player.currentTime,
+          mediaFragment = _this$player.mediaFragment;
       var marker = this.elements.markers.find(function (x) {
         return x.id === id;
       });
@@ -8215,11 +8307,13 @@ var Markers = /*#__PURE__*/function () {
 
       marker.style.left = "".concat(percentage, "%");
       marker.setAttribute('aria-valuenow', currentTime);
-      marker.setAttribute('aria-valuetext', formatTime(currentTime)); // Trigger marker change event
+      marker.setAttribute('aria-valuetext', formatTime(currentTime)); // For media fragments the start time can be different from the media's start time
+
+      var mediaCurrentTime = mediaFragment.getMediaTime(parseFloat(currentTime)); // Trigger marker change event
 
       triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
         id: marker.id,
-        time: parseFloat(currentTime)
+        time: mediaCurrentTime
       });
     }
   }, {
@@ -8273,15 +8367,18 @@ var Markers = /*#__PURE__*/function () {
   }, {
     key: "setEditing",
     value: function setEditing(event) {
+      var mediaFragment = this.player.mediaFragment;
       var type = event.type,
           currentTarget = event.currentTarget;
       var marker = this.editing;
 
       if (type === 'mouseup' || type === 'touchend') {
-        var value = marker.getAttribute('aria-valuenow');
+        var value = marker.getAttribute('aria-valuenow'); // For media fragments the start time can be different from the media's start time
+
+        var mediaValue = mediaFragment.getMediaTime(parseFloat(value));
         triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
           id: marker.id,
-          time: parseFloat(value)
+          time: mediaValue
         });
         this.editing = null;
 
@@ -8386,9 +8483,9 @@ var Markers = /*#__PURE__*/function () {
   }, {
     key: "previewThumbnailsReady",
     get: function get() {
-      var _this$player = this.player,
-          previewThumbnails = _this$player.previewThumbnails,
-          duration = _this$player.duration;
+      var _this$player2 = this.player,
+          previewThumbnails = _this$player2.previewThumbnails,
+          duration = _this$player2.duration;
       /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
 
       return previewThumbnails && previewThumbnails.loaded && duration > 0;
@@ -8919,13 +9016,17 @@ var Trim = /*#__PURE__*/function () {
 
       return this.trimming;
     } // Get the current trim time
+    // If trimming a media fragment the start can be different from the media's start time so use the media time
 
   }, {
     key: "trimTime",
     get: function get() {
+      var mediaFragment = this.player.mediaFragment;
+      var startTime = mediaFragment.getMediaTime(this.startTime);
+      var endTime = mediaFragment.getMediaTime(this.endTime);
       return {
-        startTime: this.startTime,
-        endTime: this.endTime
+        startTime: startTime,
+        endTime: endTime
       };
     }
   }, {
@@ -9037,8 +9138,7 @@ var PreviewThumbnails = /*#__PURE__*/function () {
     this.loadedImages = [];
     this.elements = {
       thumb: {},
-      scrubbing: {},
-      editor: {}
+      scrubbing: {}
     };
     this.load();
   }
@@ -9212,21 +9312,21 @@ var PreviewThumbnails = /*#__PURE__*/function () {
 
       if (event.type === 'touchmove') {
         // Calculate seek hover position as approx video seconds
-        this.seekTime = this.player.media.duration * (this.player.elements.inputs.seek.value / 100);
+        this.seekTime = this.player.duration * (this.player.elements.inputs.seek.value / 100);
       } else {
         // Calculate seek hover position as approx video seconds
         var clientRect = this.player.elements.progress.getBoundingClientRect();
         var percentage = 100 / clientRect.width * (event.pageX - clientRect.left);
-        this.seekTime = this.player.media.duration * (percentage / 100);
+        this.seekTime = this.player.duration * (percentage / 100);
 
         if (this.seekTime < 0) {
           // The mousemove fires for 10+px out to the left
           this.seekTime = 0;
         }
 
-        if (this.seekTime > this.player.media.duration - 1) {
+        if (this.seekTime > this.player.duration - 1) {
           // Took 1 second off the duration for safety, because different players can disagree on the real duration of a video
-          this.seekTime = this.player.media.duration - 1;
+          this.seekTime = this.player.duration - 1;
         }
 
         this.mousePosX = event.pageX; // Set time text inside image container
@@ -9269,7 +9369,7 @@ var PreviewThumbnails = /*#__PURE__*/function () {
 
       this.mouseDown = false; // Hide scrubbing preview. But wait until the video has successfully seeked before hiding the scrubbing preview
 
-      if (Math.ceil(this.lastTime) === Math.ceil(this.player.media.currentTime)) {
+      if (Math.ceil(this.lastTime) === Math.ceil(this.player.currentTime)) {
         // The video was already seeked/loaded at the chosen time - hide immediately
         this.toggleScrubbingContainer(false);
       } else {
@@ -9299,7 +9399,7 @@ var PreviewThumbnails = /*#__PURE__*/function () {
         _this5.toggleThumbContainer(false);
       });
       this.player.on('timeupdate', function () {
-        _this5.lastTime = _this5.player.media.currentTime;
+        _this5.lastTime = _this5.player.currentTime;
       });
     }
     /**
@@ -9360,12 +9460,14 @@ var PreviewThumbnails = /*#__PURE__*/function () {
         this.setScrubbingContainerSize();
       } else {
         this.setThumbContainerSizeAndPos();
-      } // Find the desired thumbnail index
+      } // Adjust image time if the timeline is offset
+
+
+      var offsetTime = time + (this.player.mediaFragment.enabled && this.player.mediaFragment.startTime || 0); // Find the desired thumbnail index
       // TODO: Handle a video longer than the thumbs where thumbNum is null
 
-
       var thumbNum = this.thumbnails[0].frames.findIndex(function (frame) {
-        return time >= frame.startTime && time <= frame.endTime;
+        return offsetTime >= frame.startTime && offsetTime <= frame.endTime;
       });
       var hasThumb = thumbNum >= 0;
       var qualityIndex = 0; // Show the thumb container if we're not scrubbing and not setting a custom container
@@ -9882,6 +9984,18 @@ var source = {
 
       if (_this2.isHTML5) {
         _this2.media.load();
+      } // Destroy media fragment
+
+
+      if (_this2.mediaFragment && _this2.mediaFragment.active) {
+        _this2.mediaFragment.destroy();
+
+        _this2.mediaFragment = null;
+      } // Create new instance of media fragment if still enabled
+
+
+      if (_this2.config.mediaFragment.enabled) {
+        _this2.mediaFragment = new MediaFragment(_this2);
       } // Update previewThumbnails config & reload plugin
 
 
@@ -10174,8 +10288,10 @@ var Plyr = /*#__PURE__*/function () {
       on.call(this, this.elements.container, this.config.events.join(' '), function (event) {
         _this.debug.log("event: ".concat(event.type));
       });
-    } // Setup Editor
+    } // Media Fragment?
 
+
+    this.mediaFragment = new MediaFragment(this); // Setup Editor
 
     this.editor = new Editor(this); // Setup video markers
 
@@ -10645,7 +10761,7 @@ var Plyr = /*#__PURE__*/function () {
   }, {
     key: "ended",
     get: function get() {
-      return Boolean(this.media.ended);
+      return Boolean(this.media.ended || this.mediaFragment.active && this.currentTime >= this.duration && this.paused);
     }
   }, {
     key: "currentTime",
@@ -10656,9 +10772,11 @@ var Plyr = /*#__PURE__*/function () {
       } // Validate input
 
 
-      var inputIsValid = is$1.number(input) && input > 0; // Set
+      var inputIsValid = is$1.number(input) && input > 0; // Media fragment start time offset
 
-      this.media.currentTime = inputIsValid ? Math.min(input, this.duration) : 0; // Logging
+      var offset = this.mediaFragment.enabled && this.mediaFragment.startTime || 0; // Set
+
+      this.media.currentTime = inputIsValid ? Math.min(input + offset, this.duration + offset) : 0 + offset; // Logging
 
       this.debug.log("Seeking to ".concat(this.currentTime, " seconds"));
     }
@@ -10667,7 +10785,9 @@ var Plyr = /*#__PURE__*/function () {
      */
     ,
     get: function get() {
-      return Number(this.media.currentTime);
+      // Media fragment start time offset
+      var offset = this.mediaFragment.enabled && this.mediaFragment.startTime || 0;
+      return Number(this.media.currentTime - offset);
     }
     /**
      * Get buffered
@@ -10707,8 +10827,8 @@ var Plyr = /*#__PURE__*/function () {
   }, {
     key: "duration",
     get: function get() {
-      // Faux duration set via config
-      var fauxDuration = parseFloat(this.config.duration); // Media duration can be NaN or Infinity before the media has loaded
+      // Faux duration set via config or media fragment
+      var fauxDuration = parseFloat(this.config.duration || this.mediaFragment.enabled && this.mediaFragment.duration); // Media duration can be NaN or Infinity before the media has loaded
 
       var realDuration = (this.media || {}).duration;
       var duration = !is$1.number(realDuration) || realDuration === Infinity ? 0 : realDuration; // If config duration is funky, use regular duration
