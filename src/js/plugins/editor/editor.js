@@ -483,7 +483,7 @@ class Editor {
       return;
     }
     const { timeline } = this.elements.container;
-    const percentage = clamp((100 / this.player.media.duration) * parseFloat(this.player.currentTime), 0, 100);
+    const percentage = clamp((100 / this.player.duration) * parseFloat(this.player.currentTime), 0, 100);
 
     timeline.seekHandle.style.left = `${percentage}%`;
     this.setTimelineOffset();
@@ -518,7 +518,7 @@ class Editor {
       timeline.seekHandle.style.left = `${percentage}%`;
 
       // Update the current video time
-      this.player.currentTime = this.player.media.duration * (percentage / 100);
+      this.player.currentTime = this.player.duration * (percentage / 100);
 
       // Set video seek
       controls.setRange.call(this.player, this.player.elements.inputs.seek, percentage);
@@ -528,7 +528,7 @@ class Editor {
 
       // Show the seek thumbnail
       if (this.previewThumbnailsReady) {
-        const seekTime = this.player.media.duration * (percentage / 100);
+        const seekTime = this.player.duration * (percentage / 100);
         previewThumbnails.showImageAtCurrentTime(seekTime);
       }
     }
@@ -583,7 +583,7 @@ class Editor {
 
     // Show the corresponding preview thumbnail for the updated seek position
     if (this.seeking && this.previewThumbnailsReady) {
-      const seekTime = this.player.media.duration * (seekPercentage / 100);
+      const seekTime = this.player.duration * (seekPercentage / 100);
       this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
     }
   }

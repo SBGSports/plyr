@@ -5,6 +5,7 @@
 import { providers } from './config/types';
 import html5 from './html5';
 import media from './media';
+import MediaFragment from './mediaFragment';
 import Editor from './plugins/editor/editor';
 import Markers from './plugins/editor/markers';
 import Trim from './plugins/editor/trim';
@@ -132,6 +133,17 @@ const source = {
         // Load HTML5 sources
         if (this.isHTML5) {
           this.media.load();
+        }
+
+        // Destroy media fragment
+        if (this.mediaFragment && this.mediaFragment.active) {
+          this.mediaFragment.destroy();
+          this.mediaFragment = null;
+        }
+
+        // Create new instance of media fragment if still enabled
+        if (this.config.mediaFragment.enabled) {
+          this.mediaFragment = new MediaFragment(this);
         }
 
         // Update previewThumbnails config & reload plugin

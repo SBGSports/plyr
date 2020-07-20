@@ -37,3 +37,10 @@ export function buildUrlParams(input) {
 
   return params;
 }
+
+// Parse URL Parameters
+export function parseUrlHash(input) {
+  const { hash } = new URL(input);
+
+  return hash;
+}

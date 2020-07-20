@@ -131,6 +131,10 @@ const defaults = {
     maxTrimLength: -1, // Limit the maximum length of the trimming region in seconds
   },
 
+  mediaFragment: {
+    enabled: true, // Enable media fragments?
+  },
+
   // Fullscreen settings
   fullscreen: {
     enabled: true, // Allow fullscreen?

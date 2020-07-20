@@ -232,21 +232,21 @@ class PreviewThumbnails {
 
     if (event.type === 'touchmove') {
       // Calculate seek hover position as approx video seconds
-      this.seekTime = this.player.media.duration * (this.player.elements.inputs.seek.value / 100);
+      this.seekTime = this.player.duration * (this.player.elements.inputs.seek.value / 100);
     } else {
       // Calculate seek hover position as approx video seconds
       const clientRect = this.player.elements.progress.getBoundingClientRect();
       const percentage = (100 / clientRect.width) * (event.pageX - clientRect.left);
-      this.seekTime = this.player.media.duration * (percentage / 100);
+      this.seekTime = this.player.duration * (percentage / 100);
 
       if (this.seekTime < 0) {
         // The mousemove fires for 10+px out to the left
         this.seekTime = 0;
       }
 
-      if (this.seekTime > this.player.media.duration - 1) {
+      if (this.seekTime > this.player.duration - 1) {
         // Took 1 second off the duration for safety, because different players can disagree on the real duration of a video
-        this.seekTime = this.player.media.duration - 1;
+        this.seekTime = this.player.duration - 1;
       }
 
       this.mousePosX = event.pageX;
@@ -285,7 +285,7 @@ class PreviewThumbnails {
     this.mouseDown = false;
 
     // Hide scrubbing preview. But wait until the video has successfully seeked before hiding the scrubbing preview
-    if (Math.ceil(this.lastTime) === Math.ceil(this.player.media.currentTime)) {
+    if (Math.ceil(this.lastTime) === Math.ceil(this.player.currentTime)) {
       // The video was already seeked/loaded at the chosen time - hide immediately
       this.toggleScrubbingContainer(false);
     } else {
@@ -313,7 +313,7 @@ class PreviewThumbnails {
     });
 
     this.player.on('timeupdate', () => {
-      this.lastTime = this.player.media.currentTime;
+      this.lastTime = this.player.currentTime;
     });
   }
 
@@ -373,9 +373,14 @@ class PreviewThumbnails {
       this.setThumbContainerSizeAndPos();
     }
 
+    // Adjust image time if the timeline is offset
+    const offsetTime = time + ((this.player.mediaFragment.enabled && this.player.mediaFragment.startTime) || 0);
+
     // Find the desired thumbnail index
     // TODO: Handle a video longer than the thumbs where thumbNum is null
-    const thumbNum = this.thumbnails[0].frames.findIndex(frame => time >= frame.startTime && time <= frame.endTime);
+    const thumbNum = this.thumbnails[0].frames.findIndex(
+      frame => offsetTime >= frame.startTime && offsetTime <= frame.endTime,
+    );
     const hasThumb = thumbNum >= 0;
     let qualityIndex = 0;
 

@@ -14,6 +14,7 @@ import controls from './controls';
 import Fullscreen from './fullscreen';
 import Listeners from './listeners';
 import media from './media';
+import MediaFragment from './mediaFragment';
 import Ads from './plugins/ads';
 import Editor from './plugins/editor/editor';
 import Markers from './plugins/editor/markers';
@@ -289,6 +290,9 @@ class Plyr {
       });
     }
 
+    // Media Fragment?
+    this.mediaFragment = new MediaFragment(this);
+
     // Setup Editor
     this.editor = new Editor(this);
 
@@ -416,7 +420,7 @@ class Plyr {
    * Get ended state
    */
   get ended() {
-    return Boolean(this.media.ended);
+    return Boolean(this.media.ended || (this.mediaFragment.active && this.currentTime >= this.duration && this.paused));
   }
 
   /**
@@ -495,10 +499,10 @@ class Plyr {
 
     // Validate input
     const inputIsValid = is.number(input) && input > 0;
-
+    // Media fragment start time offset
+    const offset = (this.mediaFragment.enabled && this.mediaFragment.startTime) || 0;
     // Set
-    this.media.currentTime = inputIsValid ? Math.min(input, this.duration) : 0;
-
+    this.media.currentTime = inputIsValid ? Math.min(input + offset, this.duration + offset) : 0 + offset;
     // Logging
     this.debug.log(`Seeking to ${this.currentTime} seconds`);
   }
@@ -507,7 +511,9 @@ class Plyr {
    * Get current time
    */
   get currentTime() {
-    return Number(this.media.currentTime);
+    // Media fragment start time offset
+    const offset = (this.mediaFragment.enabled && this.mediaFragment.startTime) || 0;
+    return Number(this.media.currentTime - offset);
   }
 
   /**
@@ -542,8 +548,10 @@ class Plyr {
    * Get the duration of the current media
    */
   get duration() {
-    // Faux duration set via config
-    const fauxDuration = parseFloat(this.config.duration);
+    // Faux duration set via config or media fragment
+    const fauxDuration = parseFloat(
+      this.config.duration || (this.mediaFragment.enabled && this.mediaFragment.duration),
+    );
     // Media duration can be NaN or Infinity before the media has loaded
     const realDuration = (this.media || {}).duration;
     const duration = !is.number(realDuration) || realDuration === Infinity ? 0 : realDuration;
