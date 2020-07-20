@@ -58,7 +58,7 @@ class Editor {
 
   get visibleWindow() {
     const { container } = this.elements;
-    const { duration } = this.player.media;
+    const { duration } = this.player;
     const containerRect = container.getBoundingClientRect();
     const timelineRect = container.timeline.getBoundingClientRect();
     const zoom = parseFloat(container.timeline.style.width);
@@ -348,9 +348,6 @@ class Editor {
     if (this.previewThumbnailsReady) {
       // Disable editor mode in preview thumbnails
       previewThumbnails.editor = false;
-
-      // Once all images are loaded remove the container from the preview thumbs
-      previewThumbnails.elements.editor = {};
     }
 
     // Once all images are loaded set the width of the parent video container to display them

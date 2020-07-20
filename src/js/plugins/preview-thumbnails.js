@@ -94,7 +94,6 @@ class PreviewThumbnails {
     this.elements = {
       thumb: {},
       scrubbing: {},
-      editor: {},
     };
 
     this.load();
