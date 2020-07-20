@@ -44,8 +44,13 @@ class Trim {
   }
 
   // Get the current trim time
+  // If trimming a media fragment the start can be different from the media's start time so use the media time
   get trimTime() {
-    return { startTime: this.startTime, endTime: this.endTime };
+    const { mediaFragment } = this.player;
+    const startTime = mediaFragment.getMediaTime(this.startTime);
+    const endTime = mediaFragment.getMediaTime(this.endTime);
+
+    return { startTime, endTime };
   }
 
   get trimLength() {

@@ -12,7 +12,7 @@ class MediaFragment {
     this.startTime = 0;
     this.duration = player.media.duration;
 
-    this.load();
+    this.player.once('loadedmetadata', () => this.load());
   }
 
   get enabled() {
@@ -40,6 +40,11 @@ class MediaFragment {
     this.duration = clamp(endTime, 0, this.player.media.duration);
   }
 
+  getMediaTime(input) {
+    if (!this.enabled || !this.active) return input;
+    return input + this.startTime;
+  }
+
   destroy() {
     if (!this.enabled) return;
 
@@ -49,7 +54,7 @@ class MediaFragment {
 
     // Reset start and duration back to default values
     config.startTime = 0;
-    this.once('loadedmetadata', () => {
+    this.player.once('loadedmetadata', () => {
       config.duration = this.media.duration;
     });
   }

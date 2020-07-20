@@ -757,6 +757,7 @@ class Listeners {
     this.bind(elements.buttons.captions, 'click', () => player.toggleCaptions());
 
     // Download
+    // Note: For media fragments the whole video will be downloaded
     this.bind(
       elements.buttons.download,
       'click',
