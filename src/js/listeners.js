@@ -118,6 +118,8 @@ class Listeners {
         case 75:
           // Space and K key
           if (!repeat) {
+            // Manually trigger restart for media fragment
+            if (player.mediaFragment.active && player.ended) this.proxy(event, player.restart, 'restart');
             silencePromise(player.togglePlay());
           }
           break;
@@ -427,6 +429,17 @@ class Listeners {
     on.call(player, player.media, 'playing play pause ended emptied timeupdate', event =>
       ui.checkPlaying.call(player, event),
     );
+
+    // Handle media fragments end event, as event is not fired by default
+    on.call(player, player.media, 'timeupdate seeking seeked', () => {
+      if (!player.mediaFragment.enabled || player.currentTime < player.duration) return;
+
+      // Media fragments are not automatically stopped at end of playback
+      player.pause();
+
+      // Manually trigger default event ended as ended event will not trigger for media fragments
+      triggerEvent.call(player, player.media, 'ended');
+    });
 
     // Loading state
     on.call(player, player.media, 'waiting canplay seeked playing', event => ui.checkLoading.call(player, event));
@@ -744,6 +757,7 @@ class Listeners {
     this.bind(elements.buttons.captions, 'click', () => player.toggleCaptions());
 
     // Download
+    // Note: For media fragments the whole video will be downloaded
     this.bind(
       elements.buttons.download,
       'click',

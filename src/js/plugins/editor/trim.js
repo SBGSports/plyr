@@ -44,8 +44,13 @@ class Trim {
   }
 
   // Get the current trim time
+  // If trimming a media fragment the start can be different from the media's start time so use the media time
   get trimTime() {
-    return { startTime: this.startTime, endTime: this.endTime };
+    const { mediaFragment } = this.player;
+    const startTime = mediaFragment.getMediaTime(this.startTime);
+    const endTime = mediaFragment.getMediaTime(this.endTime);
+
+    return { startTime, endTime };
   }
 
   get trimLength() {
@@ -76,20 +81,20 @@ class Trim {
   // Store the trim start time in seconds (limit)
   setStartTime(percentage) {
     const { maxTrimLength } = this.config;
-    const startTime = this.player.media.duration * (parseFloat(percentage) / 100);
+    const startTime = this.player.duration * (parseFloat(percentage) / 100);
     this.startTime = maxTrimLength >= 0 ? Math.max(startTime, this.endTime - this.config.maxTrimLength) : startTime;
   }
 
   // Store the trim end time in seconds
   setEndTime(percentage) {
     const { maxTrimLength } = this.config;
-    const endTime = this.player.media.duration * (parseFloat(percentage) / 100);
+    const endTime = this.player.duration * (parseFloat(percentage) / 100);
     this.endTime = maxTrimLength >= 0 ? Math.min(endTime, this.startTime + this.config.maxTrimLength) : endTime;
   }
 
   getMaxTrimLength(startPercentage, endPercentage) {
-    const startTime = this.player.media.duration * (parseFloat(startPercentage) / 100);
-    const endTime = this.player.media.duration * (parseFloat(endPercentage) / 100);
+    const startTime = this.player.duration * (parseFloat(startPercentage) / 100);
+    const endTime = this.player.duration * (parseFloat(endPercentage) / 100);
 
     if (this.config.maxTrimLength >= 0 && endTime - startTime >= this.config.maxTrimLength) {
       return true;

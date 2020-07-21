@@ -154,6 +154,8 @@ declare class Plyr {
 
   readonly trim: Plyr.TrimControl;
 
+  readonly mediaFragment: Plyr.MediaFragment;
+
   readonly fullscreen: Plyr.FullscreenControl;
 
   /**
@@ -379,6 +381,18 @@ declare namespace Plyr {
      * Toggle trimming tool.
      */
     toggle(): void;
+  }
+
+  interface MediaFragment {
+    /**
+     * Indicates if the player is playing only the media fragment.
+     */
+    readonly active: boolean;
+
+    /**
+     * Indicates whether media fragments are enabled.
+     */
+    readonly enabled: boolean;
   }
 
   interface FullscreenControl {

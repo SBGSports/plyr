@@ -52,7 +52,10 @@ class Markers {
 
   addMarker(id, name, time) {
     const { timeline } = this.player.editor.elements.container;
+    const { mediaFragment } = this.player;
     const markerTime = time || this.player.currentTime;
+    // For media fragments the start time can be different from the media's start time
+    const mediaMarkerTime = mediaFragment.getMediaTime(markerTime);
     const percentage = clamp((100 / this.player.duration) * parseFloat(markerTime), 0, 100);
 
     if (!timeline) {
@@ -107,11 +110,11 @@ class Markers {
     marker.appendChild(label);
 
     // Marker added event
-    triggerEvent.call(this.player, this.player.media, 'markeradded', false, { id, time: markerTime });
+    triggerEvent.call(this.player, this.player.media, 'markeradded', false, { id, time: mediaMarkerTime });
   }
 
   moveMarker(id) {
-    const { currentTime } = this.player;
+    const { currentTime, mediaFragment } = this.player;
     const marker = this.elements.markers.find(x => x.id === id);
     const percentage = (currentTime / this.player.media.duration) * 100;
 
@@ -122,10 +125,13 @@ class Markers {
     marker.setAttribute('aria-valuenow', currentTime);
     marker.setAttribute('aria-valuetext', formatTime(currentTime));
 
+    // For media fragments the start time can be different from the media's start time
+    const mediaCurrentTime = mediaFragment.getMediaTime(parseFloat(currentTime));
+
     // Trigger marker change event
     triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
       id: marker.id,
-      time: parseFloat(currentTime),
+      time: mediaCurrentTime,
     });
   }
 
@@ -174,15 +180,20 @@ class Markers {
   }
 
   setEditing(event) {
+    const { mediaFragment } = this.player;
     const { type, currentTarget } = event;
     const marker = this.editing;
 
     if (type === 'mouseup' || type === 'touchend') {
       const value = marker.getAttribute('aria-valuenow');
+      // For media fragments the start time can be different from the media's start time
+      const mediaValue = mediaFragment.getMediaTime(parseFloat(value));
+
       triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
         id: marker.id,
-        time: parseFloat(value),
+        time: mediaValue,
       });
+
       this.editing = null;
 
       if (this.previewThumbnailsReady) {
