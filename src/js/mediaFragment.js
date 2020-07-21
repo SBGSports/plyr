@@ -12,7 +12,10 @@ class MediaFragment {
     this.startTime = 0;
     this.duration = player.media.duration;
 
-    this.player.once('loadedmetadata', () => this.load());
+    // Wait until player has duration before setting media fragment
+    this.player.on('loadedmetadata', () => {
+      if (this.player.duration && !this.active) this.load();
+    });
   }
 
   get enabled() {
@@ -20,7 +23,7 @@ class MediaFragment {
   }
 
   load() {
-    const mediaFragment = parseUrlHash(this.player.source).match('t=[0-9]+,[0-9]+');
+    const mediaFragment = parseUrlHash(this.player.source).match('t=[0-9]+(.([0-9]+))?,[0-9]+(.([0-9]+))?');
 
     if (!mediaFragment) return;
 
@@ -31,9 +34,9 @@ class MediaFragment {
       return;
     }
 
-    const resourceTimes = mediaFragment[0].match(/[0-9]+/g);
-    const startTime = parseInt(resourceTimes[0], 10);
-    const endTime = parseInt(resourceTimes[1], 10) - parseInt(resourceTimes[0], 10);
+    const resourceTimes = mediaFragment[0].replace('t=', '').split(',');
+    const startTime = parseFloat(resourceTimes[0]);
+    const endTime = parseFloat(resourceTimes[1]) - parseFloat(resourceTimes[0]);
 
     this.active = true;
     this.startTime = clamp(startTime, 0, this.player.media.duration);
