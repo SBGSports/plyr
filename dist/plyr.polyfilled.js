@@ -13233,16 +13233,17 @@ typeof navigator === "object" && (function (global, factory) {
       this.config = config.mediaFragment;
       this.active = false;
       this.startTime = 0;
-      this.duration = player.media.duration;
-      this.player.once('loadedmetadata', function () {
-        return _this.load();
+      this.duration = player.media.duration; // Wait until player has duration before setting media fragment
+
+      this.player.on('loadedmetadata', function () {
+        if (_this.player.duration && !_this.active) _this.load();
       });
     }
 
     _createClass(MediaFragment, [{
       key: "load",
       value: function load() {
-        var mediaFragment = parseUrlHash(this.player.source).match('t=[0-9]+,[0-9]+');
+        var mediaFragment = parseUrlHash(this.player.source).match('t=[0-9]+(.([0-9]+))?,[0-9]+(.([0-9]+))?');
         if (!mediaFragment) return;
         var config = this.player.config;
 
@@ -13251,9 +13252,9 @@ typeof navigator === "object" && (function (global, factory) {
           return;
         }
 
-        var resourceTimes = mediaFragment[0].match(/[0-9]+/g);
-        var startTime = parseInt(resourceTimes[0], 10);
-        var endTime = parseInt(resourceTimes[1], 10) - parseInt(resourceTimes[0], 10);
+        var resourceTimes = mediaFragment[0].replace('t=', '').split(',');
+        var startTime = parseFloat(resourceTimes[0]);
+        var endTime = parseFloat(resourceTimes[1]) - parseFloat(resourceTimes[0]);
         this.active = true;
         this.startTime = clamp(startTime, 0, this.player.media.duration);
         this.duration = clamp(endTime, 0, this.player.media.duration);
@@ -15680,7 +15681,7 @@ typeof navigator === "object" && (function (global, factory) {
       key: "setStartTime",
       value: function setStartTime(percentage) {
         var maxTrimLength = this.config.maxTrimLength;
-        var startTime = this.player.media.duration * (parseFloat(percentage) / 100);
+        var startTime = this.player.duration * (parseFloat(percentage) / 100);
         this.startTime = maxTrimLength >= 0 ? Math.max(startTime, this.endTime - this.config.maxTrimLength) : startTime;
       } // Store the trim end time in seconds
 
@@ -15688,14 +15689,14 @@ typeof navigator === "object" && (function (global, factory) {
       key: "setEndTime",
       value: function setEndTime(percentage) {
         var maxTrimLength = this.config.maxTrimLength;
-        var endTime = this.player.media.duration * (parseFloat(percentage) / 100);
+        var endTime = this.player.duration * (parseFloat(percentage) / 100);
         this.endTime = maxTrimLength >= 0 ? Math.min(endTime, this.startTime + this.config.maxTrimLength) : endTime;
       }
     }, {
       key: "getMaxTrimLength",
       value: function getMaxTrimLength(startPercentage, endPercentage) {
-        var startTime = this.player.media.duration * (parseFloat(startPercentage) / 100);
-        var endTime = this.player.media.duration * (parseFloat(endPercentage) / 100);
+        var startTime = this.player.duration * (parseFloat(startPercentage) / 100);
+        var endTime = this.player.duration * (parseFloat(endPercentage) / 100);
 
         if (this.config.maxTrimLength >= 0 && endTime - startTime >= this.config.maxTrimLength) {
           return true;
