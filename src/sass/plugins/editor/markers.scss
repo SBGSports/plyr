@@ -11,6 +11,7 @@ $plyr-marker-border-width: var(--plyr-marker-border-width, 3px) !default;
   margin-left: calc(((#{$plyr-marker-size} / 2) * -1) + 1px);
   position: absolute;
   width: $plyr-marker-size;
+  z-index: 2;
 }
 
 .plyr__markers__marker {
