@@ -15396,11 +15396,7 @@ typeof navigator === "object" && (function (global, factory) {
         var mediaMarkerTime = mediaFragment.getMediaTime(markerTime);
         var percentage = clamp(100 / this.player.duration * parseFloat(markerTime), 0, 100);
 
-        if (!timeline) {
-          return;
-        }
-
-        if (!this.loaded) {
+        if (!this.loaded || !is$1.element(timeline)) {
           this.preLoadedMarkers.push({
             id: id,
             name: name,
@@ -15569,7 +15565,7 @@ typeof navigator === "object" && (function (global, factory) {
 
         this.player.on('loadeddata loadedmetadata', function () {
           // If markers have been added before the player has a duration add this markers
-          if (_this2.player.media.duration) {
+          if (_this2.player.media.duration && is$1.element(_this2.player.editor.elements.container.timeline)) {
             _this2.loaded = true;
 
             if (_this2.preLoadedMarkers.length) {

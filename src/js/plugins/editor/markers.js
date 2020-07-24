@@ -58,11 +58,7 @@ class Markers {
     const mediaMarkerTime = mediaFragment.getMediaTime(markerTime);
     const percentage = clamp((100 / this.player.duration) * parseFloat(markerTime), 0, 100);
 
-    if (!timeline) {
-      return;
-    }
-
-    if (!this.loaded) {
+    if (!this.loaded || !is.element(timeline)) {
       this.preLoadedMarkers.push({ id, name, time });
       return;
     }
@@ -234,7 +230,7 @@ class Markers {
   listeners() {
     this.player.on('loadeddata loadedmetadata', () => {
       // If markers have been added before the player has a duration add this markers
-      if (this.player.media.duration) {
+      if (this.player.media.duration && is.element(this.player.editor.elements.container.timeline)) {
         this.loaded = true;
         if (this.preLoadedMarkers.length) {
           this.preLoadedMarkers.forEach(marker => this.addMarker(marker.id, marker.name, marker.time));
