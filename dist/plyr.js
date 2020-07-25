@@ -3802,8 +3802,7 @@ typeof navigator === "object" && (function (global, factory) {
       // Close editor, on close of trimming tool
       maxTrimLength: -1,
       // Limit the maximum length of the trimming region in seconds
-      offsetContainer: true // Offset the trimming container window, to center the window based on the current time
-      // TODO: Make false
+      offsetContainer: false // Offset the trimming container window, to center the window based on the current time
 
     },
     mediaFragment: {
@@ -8450,7 +8449,7 @@ typeof navigator === "object" && (function (global, factory) {
             _this2.preLoadedMarkers = [];
           }
         });
-        this.player.on('trimchanging', function () {
+        this.player.on('trimchanging trimchange', function () {
           _this2.elements.markers.forEach(function (marker) {
             // eslint-disable-next-line no-param-reassign
             marker.style.left = "".concat(clamp(parseFloat(marker.style.left), _this2.lowerBound, _this2.upperBound), "%");
