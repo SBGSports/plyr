@@ -144,8 +144,10 @@ class Trim {
 
   // Add trim bar to the timeline
   createTrimBar() {
+    // If offsetContainer is set to true, we want to offset the start time of the container
+    const offset = this.config.offsetContainer ? this.trimLength / 2 : 0;
     // Set the trim bar from the current seek time percentage to x percent after and limit the end percentage to 100%
-    const start = clamp((100 / this.player.duration) * parseFloat(this.player.currentTime), 0, 100);
+    const start = clamp((100 / this.player.duration) * parseFloat(this.player.currentTime) - offset, 0, 100);
     const end = Math.min(parseFloat(start) + this.trimLength, 100);
 
     // Store the start and end video percentages in seconds
@@ -347,6 +349,8 @@ class Trim {
       const seekTime = this.player.media.duration * (percentage / 100);
       this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
     }
+
+    triggerEvent.call(this.player, this.player.media, 'trimchanging', false, this.trimTime);
   }
 
   setLeftThumbPosition(percentage) {

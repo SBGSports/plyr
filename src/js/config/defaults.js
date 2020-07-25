@@ -122,6 +122,7 @@ const defaults = {
 
   markers: {
     enabled: true, // Allow timeline markers?
+    lockToTrimRegion: true, // If the trimming tool is enabled prevent markers being added outside of the trimming bar
   },
 
   // Trim settings
@@ -129,6 +130,7 @@ const defaults = {
     enabled: true, // Allow trim?
     closeEditor: true, // Close editor, on close of trimming tool
     maxTrimLength: -1, // Limit the maximum length of the trimming region in seconds
+    offsetContainer: true, // Offset the trimming container window, to center the window based on the current time
   },
 
   mediaFragment: {
@@ -347,6 +349,7 @@ const defaults = {
     // Trimming
     'entertrim',
     'exittrim',
+    'trimchanging',
     'trimchange',
   ],
 
