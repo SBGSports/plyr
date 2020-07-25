@@ -130,7 +130,7 @@ const defaults = {
     enabled: true, // Allow trim?
     closeEditor: true, // Close editor, on close of trimming tool
     maxTrimLength: -1, // Limit the maximum length of the trimming region in seconds
-    offsetContainer: true, // Offset the trimming container window, to center the window based on the current time
+    offsetContainer: false, // Offset the trimming container window, to center the window based on the current time
   },
 
   mediaFragment: {
