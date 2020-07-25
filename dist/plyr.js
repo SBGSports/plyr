@@ -3789,7 +3789,9 @@ typeof navigator === "object" && (function (global, factory) {
 
     },
     markers: {
-      enabled: true // Allow timeline markers?
+      enabled: true,
+      // Allow timeline markers?
+      lockToTrimRegion: true // If the trimming tool is enabled prevent markers being added outside of the trimming bar
 
     },
     // Trim settings
@@ -3798,7 +3800,10 @@ typeof navigator === "object" && (function (global, factory) {
       // Allow trim?
       closeEditor: true,
       // Close editor, on close of trimming tool
-      maxTrimLength: -1 // Limit the maximum length of the trimming region in seconds
+      maxTrimLength: -1,
+      // Limit the maximum length of the trimming region in seconds
+      offsetContainer: true // Offset the trimming container window, to center the window based on the current time
+      // TODO: Make false
 
     },
     mediaFragment: {
@@ -3943,7 +3948,7 @@ typeof navigator === "object" && (function (global, factory) {
     'previewthumbnailsloaded', // Editor
     'entereditor', 'exiteditor', 'editorloaded', 'zoomchange', // Markers
     'markeradded', 'markerchange', // Trimming
-    'entertrim', 'exittrim', 'trimchange'],
+    'entertrim', 'exittrim', 'trimchanging', 'trimchange'],
     // Selectors
     // Change these to match your template if using custom HTML
     selectors: {
@@ -8304,8 +8309,9 @@ typeof navigator === "object" && (function (global, factory) {
             mediaFragment = _this$player.mediaFragment;
         var marker = this.elements.markers.find(function (x) {
           return x.id === id;
-        });
-        var percentage = currentTime / this.player.media.duration * 100;
+        }); // Calculate marker position in percent
+
+        var percentage = clamp(currentTime / this.player.media.duration * 100, this.lowerBound, this.upperBound);
         if (!marker) return; // Update the position of the marker
 
         marker.style.left = "".concat(percentage, "%");
@@ -8402,10 +8408,12 @@ typeof navigator === "object" && (function (global, factory) {
         if (is$1.nullOrUndefined(this.editing)) return; // Calculate hover position
 
         var timeline = this.player.editor.elements.container.timeline;
+        var duration = this.player.duration;
         var clientRect = timeline.getBoundingClientRect();
-        var xPos = event.type === 'touchmove' ? event.touches[0].pageX : event.pageX;
-        var percentage = clamp(100 / clientRect.width * (xPos - clientRect.left), 0, 100);
-        var time = this.player.media.duration * (percentage / 100); // Selected marker element
+        var xPos = event.type === 'touchmove' ? event.touches[0].pageX : event.pageX; // Calculate the position of the marker
+
+        var percentage = clamp(100 / clientRect.width * (xPos - clientRect.left), this.lowerBound, this.upperBound);
+        var time = duration * (percentage / 100); // Selected marker element
 
         var marker = this.editing; // Update the position of the marker
 
@@ -8424,19 +8432,29 @@ typeof navigator === "object" && (function (global, factory) {
         var _this2 = this;
 
         this.player.on('loadeddata loadedmetadata', function () {
-          // If markers have been added before the player has a duration add this markers
-          if (_this2.player.media.duration && is$1.element(_this2.player.editor.elements.container.timeline)) {
-            _this2.loaded = true;
+          var _this2$player = _this2.player,
+              duration = _this2$player.duration,
+              editor = _this2$player.editor; // If markers have been added before the player has a duration add this markers
 
-            if (_this2.preLoadedMarkers.length) {
-              _this2.preLoadedMarkers.forEach(function (marker) {
-                return _this2.addMarker(marker.id, marker.name, marker.time);
-              }); // Clear markers list as markers have been added
-
-
-              _this2.preLoadedMarkers = [];
-            }
+          if (!duration || editor.active && !is$1.element(editor.elements.container.timeline)) {
+            return;
           }
+
+          _this2.loaded = true;
+
+          if (_this2.preLoadedMarkers.length) {
+            _this2.preLoadedMarkers.forEach(function (marker) {
+              return _this2.addMarker(marker.id, marker.name, marker.time);
+            });
+
+            _this2.preLoadedMarkers = [];
+          }
+        });
+        this.player.on('trimchanging', function () {
+          _this2.elements.markers.forEach(function (marker) {
+            // eslint-disable-next-line no-param-reassign
+            marker.style.left = "".concat(clamp(parseFloat(marker.style.left), _this2.lowerBound, _this2.upperBound), "%");
+          });
         });
       }
     }, {
@@ -8492,6 +8510,22 @@ typeof navigator === "object" && (function (global, factory) {
         /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
 
         return previewThumbnails && previewThumbnails.loaded && duration > 0;
+      }
+    }, {
+      key: "lowerBound",
+      get: function get() {
+        var _this$player3 = this.player,
+            trim = _this$player3.trim,
+            duration = _this$player3.duration;
+        return trim.active && this.config.lockToTrimRegion ? trim.startTime / duration * 100 : 0;
+      }
+    }, {
+      key: "upperBound",
+      get: function get() {
+        var _this$player4 = this.player,
+            trim = _this$player4.trim,
+            duration = _this$player4.duration;
+        return trim.active && this.config.lockToTrimRegion ? trim.endTime / duration * 100 : 100;
       }
     }]);
 
@@ -8611,8 +8645,10 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "createTrimBar",
       value: function createTrimBar() {
-        // Set the trim bar from the current seek time percentage to x percent after and limit the end percentage to 100%
-        var start = clamp(100 / this.player.duration * parseFloat(this.player.currentTime), 0, 100);
+        // If offsetContainer is set to true, we want to offset the start time of the container
+        var offset = this.config.offsetContainer ? this.trimLength / 2 : 0; // Set the trim bar from the current seek time percentage to x percent after and limit the end percentage to 100%
+
+        var start = clamp(100 / this.player.duration * parseFloat(this.player.currentTime) - offset, 0, 100);
         var end = Math.min(parseFloat(start) + this.trimLength, 100); // Store the start and end video percentages in seconds
 
         this.setStartTime(start);
@@ -8807,6 +8843,8 @@ typeof navigator === "object" && (function (global, factory) {
           var seekTime = this.player.media.duration * (percentage / 100);
           this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
         }
+
+        triggerEvent.call(this.player, this.player.media, 'trimchanging', false, this.trimTime);
       }
     }, {
       key: "setLeftThumbPosition",
