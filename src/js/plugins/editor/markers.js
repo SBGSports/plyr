@@ -36,12 +36,6 @@ class Markers {
     return this.elements.markers.length > 0;
   }
 
-  get previewThumbnailsReady() {
-    const { previewThumbnails, duration } = this.player;
-    /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
-    return previewThumbnails && previewThumbnails.loaded && duration > 0;
-  }
-
   get lowerBound() {
     const { trim, duration } = this.player;
 
@@ -204,15 +198,6 @@ class Markers {
       });
 
       this.editing = null;
-
-      if (this.previewThumbnailsReady) {
-        this.player.previewThumbnails.endScrubbing(event);
-      }
-    } else if (type === 'mousedown' || type === 'touchstart') {
-      this.editing = currentTarget;
-      if (this.previewThumbnailsReady) {
-        this.player.previewThumbnails.startScrubbing(event);
-      }
     }
   }
 
@@ -234,12 +219,6 @@ class Markers {
     marker.style.left = `${percentage}%`;
     marker.setAttribute('aria-valuenow', time);
     marker.setAttribute('aria-valuetext', formatTime(time));
-
-    // Show the seek thumbnail
-    if (this.previewThumbnailsReady) {
-      const seekTime = this.player.media.duration * (percentage / 100);
-      this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
-    }
   }
 
   listeners() {
