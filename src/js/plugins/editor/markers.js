@@ -62,7 +62,7 @@ class Markers {
     const markerTime = time || this.player.currentTime;
     // For media fragments the start time can be different from the media's start time
     const mediaMarkerTime = mediaFragment.getMediaTime(markerTime);
-    const percentage = clamp((100 / this.player.duration) * parseFloat(markerTime), 0, 100);
+    const percentage = clamp((100 / this.player.duration) * parseFloat(markerTime), this.lowerBound, this.upperBound);
 
     if (!this.loaded || !is.element(timeline)) {
       this.preLoadedMarkers.push({ id, name, time });
