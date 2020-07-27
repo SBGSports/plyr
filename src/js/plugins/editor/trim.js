@@ -55,8 +55,22 @@ class Trim {
 
   get trimLength() {
     const { maxTrimLength } = this.config;
-    // Default is 20% or the maximum trimming length
-    return maxTrimLength > 0 ? clamp((100 / this.player.duration) * parseFloat(maxTrimLength), 0, 100) : 20;
+    // Default is 100% or the maximum trimming length
+    return maxTrimLength > 0 ? clamp((100 / this.player.duration) * parseFloat(maxTrimLength), 0, 100) : 100;
+  }
+
+  // Calculate the lower Limit of the trim region
+  get lowerBound() {
+    const { lowerBound } = this.config;
+
+    return lowerBound > 0 ? (lowerBound / this.player.duration) * 100 : 0;
+  }
+
+  // Calculate the upper Limit of the trim region
+  get upperBound() {
+    const { upperBound } = this.config;
+
+    return upperBound > 0 ? (upperBound / this.player.duration) * 100 : 100;
   }
 
   get previewThumbnailsReady() {
@@ -147,8 +161,12 @@ class Trim {
     // If offsetContainer is set to true, we want to offset the start time of the container
     const offset = this.config.offsetContainer ? this.trimLength / 2 : 0;
     // Set the trim bar from the current seek time percentage to x percent after and limit the end percentage to 100%
-    const start = clamp((100 / this.player.duration) * parseFloat(this.player.currentTime) - offset, 0, 100);
-    const end = Math.min(parseFloat(start) + this.trimLength, 100);
+    const start = clamp(
+      (100 / this.player.duration) * parseFloat(this.player.currentTime) - offset,
+      this.lowerBound,
+      this.upperBound,
+    );
+    const end = Math.min(parseFloat(start) + this.trimLength, this.upperBound);
 
     // Store the start and end video percentages in seconds
     this.setStartTime(start);
@@ -331,7 +349,7 @@ class Trim {
     const { timeline } = this.player.editor.elements.container;
     const clientRect = timeline.getBoundingClientRect();
     const xPos = event.type === 'touchmove' ? event.touches[0].pageX : event.pageX;
-    const percentage = clamp((100 / clientRect.width) * (xPos - clientRect.left), 0, 100);
+    const percentage = clamp((100 / clientRect.width) * (xPos - clientRect.left), this.lowerBound, this.upperBound);
     const { leftThumb, rightThumb } = this.player.config.classNames.trim;
 
     // Update the position of the trim range tool

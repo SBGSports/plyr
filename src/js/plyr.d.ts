@@ -677,6 +677,8 @@ declare namespace Plyr {
     enabled?: boolean;
     closeEditor?: boolean;
     maxTrimLength?: number;
+    lowerBound?: number;
+    upperBound?: number;
     offsetContainer: boolean;
   }
 
