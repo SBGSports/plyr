@@ -42,6 +42,18 @@ class Markers {
     return previewThumbnails && previewThumbnails.loaded && duration > 0;
   }
 
+  get lowerBound() {
+    const { trim, duration } = this.player;
+
+    return trim.active && this.config.lockToTrimRegion ? (trim.startTime / duration) * 100 : 0;
+  }
+
+  get upperBound() {
+    const { trim, duration } = this.player;
+
+    return trim.active && this.config.lockToTrimRegion ? (trim.endTime / duration) * 100 : 100;
+  }
+
   load() {
     // Marker listeners
     this.listeners();
@@ -112,7 +124,8 @@ class Markers {
   moveMarker(id) {
     const { currentTime, mediaFragment } = this.player;
     const marker = this.elements.markers.find(x => x.id === id);
-    const percentage = (currentTime / this.player.media.duration) * 100;
+    // Calculate marker position in percent
+    const percentage = clamp((currentTime / this.player.media.duration) * 100, this.lowerBound, this.upperBound);
 
     if (!marker) return;
 
@@ -208,10 +221,12 @@ class Markers {
 
     // Calculate hover position
     const { timeline } = this.player.editor.elements.container;
+    const { duration } = this.player;
     const clientRect = timeline.getBoundingClientRect();
     const xPos = event.type === 'touchmove' ? event.touches[0].pageX : event.pageX;
-    const percentage = clamp((100 / clientRect.width) * (xPos - clientRect.left), 0, 100);
-    const time = this.player.media.duration * (percentage / 100);
+    // Calculate the position of the marker
+    const percentage = clamp((100 / clientRect.width) * (xPos - clientRect.left), this.lowerBound, this.upperBound);
+    const time = duration * (percentage / 100);
     // Selected marker element
     const marker = this.editing;
 
@@ -229,15 +244,25 @@ class Markers {
 
   listeners() {
     this.player.on('loadeddata loadedmetadata', () => {
+      const { duration, editor } = this.player;
       // If markers have been added before the player has a duration add this markers
-      if (this.player.media.duration && is.element(this.player.editor.elements.container.timeline)) {
-        this.loaded = true;
-        if (this.preLoadedMarkers.length) {
-          this.preLoadedMarkers.forEach(marker => this.addMarker(marker.id, marker.name, marker.time));
-          // Clear markers list as markers have been added
-          this.preLoadedMarkers = [];
-        }
+      if (!duration || (editor.active && !is.element(editor.elements.container.timeline))) {
+        return;
       }
+
+      this.loaded = true;
+
+      if (this.preLoadedMarkers.length) {
+        this.preLoadedMarkers.forEach(marker => this.addMarker(marker.id, marker.name, marker.time));
+        this.preLoadedMarkers = [];
+      }
+    });
+
+    this.player.on('trimchanging trimchange', () => {
+      this.elements.markers.forEach(marker => {
+        // eslint-disable-next-line no-param-reassign
+        marker.style.left = `${clamp(parseFloat(marker.style.left), this.lowerBound, this.upperBound)}%`;
+      });
     });
   }
 

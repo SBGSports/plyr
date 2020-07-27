@@ -292,6 +292,7 @@ declare namespace Plyr {
     | 'exiteditor'
     | 'editorloaded'
     | 'zoomchange'
+    | 'trimchanging'
     | 'trimchange'
     | 'markeradded'
     | 'markerchange';
@@ -669,12 +670,14 @@ declare namespace Plyr {
 
   interface MarkersOptions {
     enabled?: boolean;
+    lockToTrimRegion?: boolean;
   }
 
   interface TrimOptions {
     enabled?: boolean;
     closeEditor?: boolean;
     maxTrimLength?: number;
+    offsetContainer: boolean;
   }
 
   interface TrimTime {
