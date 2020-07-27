@@ -7601,11 +7601,13 @@ var Editor = /*#__PURE__*/function () {
         this.createEditor();
       }
 
+      this.shown = true;
       toggleHidden(this.elements.container, false);
     }
   }, {
     key: "hideEditor",
     value: function hideEditor() {
+      this.shown = false;
       toggleHidden(this.elements.container, true);
     }
   }, {
@@ -8088,17 +8090,14 @@ var Editor = /*#__PURE__*/function () {
     value: function listeners() {
       var _this2 = this;
 
-      this.player.once('canplay', function () {
-        _this2.loaded = true;
-
-        if (_this2.shown) {
-          _this2.createEditor();
-        }
-      }); // If the duration changes after loading the editor, the corresponding timestamps need to be updated
+      // If the duration changes after loading the editor, the corresponding timestamps need to be updated
       // If the duration of the video or previewthumbnails has loaded, update
-
       this.player.on('loadeddata loadedmetadata', function () {
+        if (_this2.player.media.duration) _this2.loaded = true;
+
         if (_this2.loaded && _this2.shown) {
+          _this2.showEditor();
+
           _this2.updateTimestamps();
 
           _this2.setVideoTimelimeContent();
@@ -8119,7 +8118,7 @@ var Editor = /*#__PURE__*/function () {
       } // Trigger an event
 
 
-      triggerEvent.call(this.player, this.player.media, this.active ? 'entereditor' : 'exiteditor', false);
+      triggerEvent.call(this.player, this.player.media, this.shown ? 'entereditor' : 'exiteditor', false);
     } // Update UI
 
   }, {
@@ -8144,11 +8143,10 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "enter",
     value: function enter() {
-      if (!this.enabled || this.active) {
+      if (!this.enabled) {
         return;
       }
 
-      this.shown = true;
       this.showEditor();
       this.onChange();
     } // Exit Editor
@@ -8160,7 +8158,6 @@ var Editor = /*#__PURE__*/function () {
         return;
       }
 
-      this.shown = false;
       this.hideEditor();
       this.onChange();
     } // Toggle state
@@ -8189,7 +8186,7 @@ var Editor = /*#__PURE__*/function () {
         return false;
       }
 
-      return this.shown;
+      return this.shown && is$1.element(this.player.elements.container);
     }
   }, {
     key: "previewThumbnailsReady",
