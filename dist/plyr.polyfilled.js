@@ -15528,10 +15528,6 @@ typeof navigator === "object" && (function (global, factory) {
             time: mediaValue
           });
           this.editing = null;
-
-          if (this.previewThumbnailsReady) {
-            this.player.previewThumbnails.endScrubbing(event);
-          }
         } else if (type === 'mousedown' || type === 'touchstart') {
           this.editing = currentTarget;
 
@@ -15557,12 +15553,7 @@ typeof navigator === "object" && (function (global, factory) {
 
         marker.style.left = "".concat(percentage, "%");
         marker.setAttribute('aria-valuenow', time);
-        marker.setAttribute('aria-valuetext', formatTime(time)); // Show the seek thumbnail
-
-        if (this.previewThumbnailsReady) {
-          var seekTime = this.player.media.duration * (percentage / 100);
-          this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
-        }
+        marker.setAttribute('aria-valuetext', formatTime(time));
       }
     }, {
       key: "listeners",
@@ -15640,29 +15631,19 @@ typeof navigator === "object" && (function (global, factory) {
         return this.elements.markers.length > 0;
       }
     }, {
-      key: "previewThumbnailsReady",
-      get: function get() {
-        var _this$player2 = this.player,
-            previewThumbnails = _this$player2.previewThumbnails,
-            duration = _this$player2.duration;
-        /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
-
-        return previewThumbnails && previewThumbnails.loaded && duration > 0;
-      }
-    }, {
       key: "lowerBound",
       get: function get() {
-        var _this$player3 = this.player,
-            trim = _this$player3.trim,
-            duration = _this$player3.duration;
+        var _this$player2 = this.player,
+            trim = _this$player2.trim,
+            duration = _this$player2.duration;
         return trim.active && this.config.lockToTrimRegion ? trim.startTime / duration * 100 : 0;
       }
     }, {
       key: "upperBound",
       get: function get() {
-        var _this$player4 = this.player,
-            trim = _this$player4.trim,
-            duration = _this$player4.duration;
+        var _this$player3 = this.player,
+            trim = _this$player3.trim,
+            duration = _this$player3.duration;
         return trim.active && this.config.lockToTrimRegion ? trim.endTime / duration * 100 : 100;
       }
     }]);
