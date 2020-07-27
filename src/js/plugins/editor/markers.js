@@ -198,6 +198,11 @@ class Markers {
       });
 
       this.editing = null;
+    } else if (type === 'mousedown' || type === 'touchstart') {
+      this.editing = currentTarget;
+      if (this.previewThumbnailsReady) {
+        this.player.previewThumbnails.startScrubbing(event);
+      }
     }
   }
 
