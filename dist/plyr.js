@@ -3802,6 +3802,10 @@ typeof navigator === "object" && (function (global, factory) {
       // Close editor, on close of trimming tool
       maxTrimLength: -1,
       // Limit the maximum length of the trimming region in seconds
+      lowerBound: -1,
+      // Limit the start time of the trimming region in seconds
+      upperBound: -1,
+      // Limit the end time of the trimming region in seconds
       offsetContainer: false // Offset the trimming container window, to center the window based on the current time
 
     },
@@ -8257,7 +8261,7 @@ typeof navigator === "object" && (function (global, factory) {
         var markerTime = time || this.player.currentTime; // For media fragments the start time can be different from the media's start time
 
         var mediaMarkerTime = mediaFragment.getMediaTime(markerTime);
-        var percentage = clamp(100 / this.player.duration * parseFloat(markerTime), 0, 100);
+        var percentage = clamp(100 / this.player.duration * parseFloat(markerTime), this.lowerBound, this.upperBound);
 
         if (!this.loaded || !is$1.element(timeline)) {
           this.preLoadedMarkers.push({
@@ -8627,8 +8631,8 @@ typeof navigator === "object" && (function (global, factory) {
         // If offsetContainer is set to true, we want to offset the start time of the container
         var offset = this.config.offsetContainer ? this.trimLength / 2 : 0; // Set the trim bar from the current seek time percentage to x percent after and limit the end percentage to 100%
 
-        var start = clamp(100 / this.player.duration * parseFloat(this.player.currentTime) - offset, 0, 100);
-        var end = Math.min(parseFloat(start) + this.trimLength, 100); // Store the start and end video percentages in seconds
+        var start = clamp(100 / this.player.duration * parseFloat(this.player.currentTime) - offset, this.lowerBound, this.upperBound);
+        var end = Math.min(parseFloat(start) + this.trimLength, this.upperBound); // Store the start and end video percentages in seconds
 
         this.setStartTime(start);
         this.setEndTime(end);
@@ -8804,7 +8808,7 @@ typeof navigator === "object" && (function (global, factory) {
         var timeline = this.player.editor.elements.container.timeline;
         var clientRect = timeline.getBoundingClientRect();
         var xPos = event.type === 'touchmove' ? event.touches[0].pageX : event.pageX;
-        var percentage = clamp(100 / clientRect.width * (xPos - clientRect.left), 0, 100);
+        var percentage = clamp(100 / clientRect.width * (xPos - clientRect.left), this.lowerBound, this.upperBound);
         var _this$player$config$c2 = this.player.config.classNames.trim,
             leftThumb = _this$player$config$c2.leftThumb,
             rightThumb = _this$player$config$c2.rightThumb; // Update the position of the trim range tool
@@ -9052,9 +9056,23 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "trimLength",
       get: function get() {
-        var maxTrimLength = this.config.maxTrimLength; // Default is 20% or the maximum trimming length
+        var maxTrimLength = this.config.maxTrimLength; // Default is 100% or the maximum trimming length
 
-        return maxTrimLength > 0 ? clamp(100 / this.player.duration * parseFloat(maxTrimLength), 0, 100) : 20;
+        return maxTrimLength > 0 ? clamp(100 / this.player.duration * parseFloat(maxTrimLength), 0, 100) : 100;
+      } // Calculate the lower Limit of the trim region
+
+    }, {
+      key: "lowerBound",
+      get: function get() {
+        var lowerBound = this.config.lowerBound;
+        return lowerBound > 0 ? lowerBound / this.player.duration * 100 : 0;
+      } // Calculate the upper Limit of the trim region
+
+    }, {
+      key: "upperBound",
+      get: function get() {
+        var upperBound = this.config.upperBound;
+        return upperBound > 0 ? upperBound / this.player.duration * 100 : 100;
       }
     }, {
       key: "previewThumbnailsReady",
