@@ -7607,13 +7607,11 @@ typeof navigator === "object" && (function (global, factory) {
           this.createEditor();
         }
 
-        this.shown = true;
         toggleHidden(this.elements.container, false);
       }
     }, {
       key: "hideEditor",
       value: function hideEditor() {
-        this.shown = false;
         toggleHidden(this.elements.container, true);
       }
     }, {
@@ -8153,6 +8151,7 @@ typeof navigator === "object" && (function (global, factory) {
           return;
         }
 
+        this.shown = true;
         this.showEditor();
         this.onChange();
       } // Exit Editor
@@ -8164,6 +8163,7 @@ typeof navigator === "object" && (function (global, factory) {
           return;
         }
 
+        this.shown = false;
         this.hideEditor();
         this.onChange();
       } // Toggle state

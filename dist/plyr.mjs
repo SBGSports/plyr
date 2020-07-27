@@ -7601,13 +7601,11 @@ var Editor = /*#__PURE__*/function () {
         this.createEditor();
       }
 
-      this.shown = true;
       toggleHidden(this.elements.container, false);
     }
   }, {
     key: "hideEditor",
     value: function hideEditor() {
-      this.shown = false;
       toggleHidden(this.elements.container, true);
     }
   }, {
@@ -8147,6 +8145,7 @@ var Editor = /*#__PURE__*/function () {
         return;
       }
 
+      this.shown = true;
       this.showEditor();
       this.onChange();
     } // Exit Editor
@@ -8158,6 +8157,7 @@ var Editor = /*#__PURE__*/function () {
         return;
       }
 
+      this.shown = false;
       this.hideEditor();
       this.onChange();
     } // Toggle state
