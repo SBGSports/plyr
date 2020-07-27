@@ -243,7 +243,7 @@ class Markers {
   }
 
   listeners() {
-    this.player.on('loadeddata loadedmetadata', () => {
+    this.player.on('loadeddata loadedmetadata editorloaded', () => {
       const { duration, editor } = this.player;
       // If markers have been added before the player has a duration add this markers
       if (!duration || (editor.active && !is.element(editor.elements.container.timeline))) {

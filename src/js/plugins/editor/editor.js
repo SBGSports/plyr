@@ -438,13 +438,11 @@ class Editor {
   setSeeking(event) {
     const { classList } = event.target;
     const { leftThumb, rightThumb } = this.player.config.classNames.trim;
-    const { marker } = this.player.config.classNames.markers;
 
     // Disable seeking event if selecting the trimming tool or a marker on the timeline
     if (
       ((event.type === 'mousedown' || event.type === 'touchstart') && classList.contains(leftThumb)) ||
-      classList.contains(rightThumb) ||
-      classList.contains(marker)
+      classList.contains(rightThumb)
     ) {
       return;
     }
