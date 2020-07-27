@@ -15088,10 +15088,9 @@ typeof navigator === "object" && (function (global, factory) {
         var classList = event.target.classList;
         var _this$player$config$c = this.player.config.classNames.trim,
             leftThumb = _this$player$config$c.leftThumb,
-            rightThumb = _this$player$config$c.rightThumb;
-        var marker = this.player.config.classNames.markers.marker; // Disable seeking event if selecting the trimming tool or a marker on the timeline
+            rightThumb = _this$player$config$c.rightThumb; // Disable seeking event if selecting the trimming tool or a marker on the timeline
 
-        if ((event.type === 'mousedown' || event.type === 'touchstart') && classList.contains(leftThumb) || classList.contains(rightThumb) || classList.contains(marker)) {
+        if ((event.type === 'mousedown' || event.type === 'touchstart') && classList.contains(leftThumb) || classList.contains(rightThumb)) {
           return;
         } // Only act on left mouse button (0), or touch device (event.button does not exist or is false)
 
@@ -15570,7 +15569,7 @@ typeof navigator === "object" && (function (global, factory) {
       value: function listeners() {
         var _this2 = this;
 
-        this.player.on('loadeddata loadedmetadata', function () {
+        this.player.on('loadeddata loadedmetadata editorloaded', function () {
           var _this2$player = _this2.player,
               duration = _this2$player.duration,
               editor = _this2$player.editor; // If markers have been added before the player has a duration add this markers
