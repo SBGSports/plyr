@@ -47,7 +47,7 @@ class Editor {
       return false;
     }
 
-    return this.shown;
+    return this.shown && is.element(this.player.elements.container);
   }
 
   get previewThumbnailsReady() {
@@ -584,17 +584,12 @@ class Editor {
   }
 
   listeners() {
-    this.player.once('canplay', () => {
-      this.loaded = true;
-      if (this.shown) {
-        this.createEditor();
-      }
-    });
-
     // If the duration changes after loading the editor, the corresponding timestamps need to be updated
     // If the duration of the video or previewthumbnails has loaded, update
     this.player.on('loadeddata loadedmetadata', () => {
+      if (this.player.media.duration) this.loaded = true;
       if (this.loaded && this.shown) {
+        this.showEditor();
         this.updateTimestamps();
         this.setVideoTimelimeContent();
       }
@@ -614,7 +609,7 @@ class Editor {
     }
 
     // Trigger an event
-    triggerEvent.call(this.player, this.player.media, this.active ? 'entereditor' : 'exiteditor', false);
+    triggerEvent.call(this.player, this.player.media, this.shown ? 'entereditor' : 'exiteditor', false);
   }
 
   // Update UI
@@ -637,7 +632,7 @@ class Editor {
 
   // Enter Editor
   enter() {
-    if (!this.enabled || this.active) {
+    if (!this.enabled) {
       return;
     }
     this.shown = true;
