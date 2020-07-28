@@ -82,7 +82,7 @@ class Editor {
   }
 
   showEditor() {
-    if (is.empty(this.elements.container)) {
+    if (!is.element(this.elements.container) && is.element(this.player.elements.container)) {
       this.createEditor();
     }
 
@@ -95,16 +95,14 @@ class Editor {
 
   async createEditor() {
     const { container } = this.player.elements;
-    if (is.element(container) && this.loaded) {
-      this.createContainer(container);
-      this.createControls();
-      this.createTimeline();
-      this.createTimeStamps();
-      this.createVideoTimeline();
-      this.createSeekHandle();
-      this.player.listeners.editor();
-      triggerEvent.call(this.player, this.player.media, 'editorloaded');
-    }
+    this.createContainer(container);
+    this.createControls();
+    this.createTimeline();
+    this.createTimeStamps();
+    this.createVideoTimeline();
+    this.createSeekHandle();
+    this.player.listeners.editor();
+    triggerEvent.call(this.player, this.player.media, 'editorloaded');
   }
 
   createContainer(container) {
@@ -595,7 +593,7 @@ class Editor {
       }
     });
 
-    this.player.on('previewThumbnailsReady', () => {
+    this.player.on('previewthumbnailsloaded', () => {
       if (this.loaded && this.shown) {
         this.setVideoTimelimeContent();
       }
