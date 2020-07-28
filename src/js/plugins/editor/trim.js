@@ -40,7 +40,7 @@ class Trim {
       return false;
     }
 
-    return this.trimming;
+    return this.trimming && is.element(this.player.elements.container);
   }
 
   // Get the current trim time
