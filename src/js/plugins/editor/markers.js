@@ -214,7 +214,7 @@ class Markers {
   setMarkerPosition(marker, percentage, triggerChange) {
     const { mediaFragment, duration } = this.player;
     const clampedPercentage = clamp(parseFloat(percentage), this.lowerBound, this.upperBound);
-    const time = clamp(duration * (clampedPercentage / 100), this.lowerBound, this.upperBound);
+    const time = duration * (clampedPercentage / 100);
     const mediaCurrentTime = mediaFragment.getMediaTime(time);
 
     // eslint-disable-next-line no-param-reassign
