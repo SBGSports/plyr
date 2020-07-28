@@ -679,7 +679,7 @@ declare namespace Plyr {
     maxTrimLength?: number;
     lowerBound?: number;
     upperBound?: number;
-    offsetContainer: boolean;
+    offsetContainer?: boolean;
   }
 
   interface TrimTime {
