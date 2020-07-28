@@ -14743,7 +14743,7 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "showEditor",
       value: function showEditor() {
-        if (is$1.empty(this.elements.container)) {
+        if (!is$1.element(this.elements.container) && is$1.element(this.player.elements.container)) {
           this.createEditor();
         }
 
@@ -14764,19 +14764,16 @@ typeof navigator === "object" && (function (global, factory) {
               switch (_context.prev = _context.next) {
                 case 0:
                   container = this.player.elements.container;
+                  this.createContainer(container);
+                  this.createControls();
+                  this.createTimeline();
+                  this.createTimeStamps();
+                  this.createVideoTimeline();
+                  this.createSeekHandle();
+                  this.player.listeners.editor();
+                  triggerEvent.call(this.player, this.player.media, 'editorloaded');
 
-                  if (is$1.element(container) && this.loaded) {
-                    this.createContainer(container);
-                    this.createControls();
-                    this.createTimeline();
-                    this.createTimeStamps();
-                    this.createVideoTimeline();
-                    this.createSeekHandle();
-                    this.player.listeners.editor();
-                    triggerEvent.call(this.player, this.player.media, 'editorloaded');
-                  }
-
-                case 2:
+                case 9:
                 case "end":
                   return _context.stop();
               }
@@ -15247,7 +15244,7 @@ typeof navigator === "object" && (function (global, factory) {
             _this2.setVideoTimelimeContent();
           }
         });
-        this.player.on('previewThumbnailsReady', function () {
+        this.player.on('previewthumbnailsloaded', function () {
           if (_this2.loaded && _this2.shown) {
             _this2.setVideoTimelimeContent();
           }
@@ -16175,7 +16172,7 @@ typeof navigator === "object" && (function (global, factory) {
           return false;
         }
 
-        return this.trimming;
+        return this.trimming && is$1.element(this.player.elements.container);
       } // Get the current trim time
       // If trimming a media fragment the start can be different from the media's start time so use the media time
 
