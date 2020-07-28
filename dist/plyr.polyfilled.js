@@ -15546,7 +15546,7 @@ typeof navigator === "object" && (function (global, factory) {
             mediaFragment = _this$player.mediaFragment,
             duration = _this$player.duration;
         var clampedPercentage = clamp(parseFloat(percentage), this.lowerBound, this.upperBound);
-        var time = clamp(duration * (clampedPercentage / 100), this.lowerBound, this.upperBound);
+        var time = duration * (clampedPercentage / 100);
         var mediaCurrentTime = mediaFragment.getMediaTime(time); // eslint-disable-next-line no-param-reassign
 
         marker.style.left = "".concat(clampedPercentage, "%");
