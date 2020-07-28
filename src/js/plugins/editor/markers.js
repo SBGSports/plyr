@@ -56,13 +56,13 @@ class Markers {
     this.update();
   }
 
-  addMarker(id, name, time) {
+  addMarker(id, name, time = this.player.currentTime) {
     const { timeline } = this.player.editor.elements.container;
     const { mediaFragment } = this.player;
-    const markerTime = time || this.player.currentTime;
     // For media fragments the start time can be different from the media's start time
+    const percentage = clamp((100 / this.player.duration) * parseFloat(time), this.lowerBound, this.upperBound);
+    const markerTime = this.player.duration * (parseFloat(percentage) / 100);
     const mediaMarkerTime = mediaFragment.getMediaTime(markerTime);
-    const percentage = clamp((100 / this.player.duration) * parseFloat(markerTime), this.lowerBound, this.upperBound);
 
     if (!this.loaded || !is.element(timeline)) {
       this.preLoadedMarkers.push({ id, name, time });
@@ -116,7 +116,7 @@ class Markers {
   }
 
   moveMarker(id) {
-    const { currentTime, mediaFragment } = this.player;
+    const { currentTime } = this.player;
     const marker = this.elements.markers.find(x => x.id === id);
     // Calculate marker position in percent
     const percentage = clamp((currentTime / this.player.media.duration) * 100, this.lowerBound, this.upperBound);
@@ -124,18 +124,7 @@ class Markers {
     if (!marker) return;
 
     // Update the position of the marker
-    marker.style.left = `${percentage}%`;
-    marker.setAttribute('aria-valuenow', currentTime);
-    marker.setAttribute('aria-valuetext', formatTime(currentTime));
-
-    // For media fragments the start time can be different from the media's start time
-    const mediaCurrentTime = mediaFragment.getMediaTime(parseFloat(currentTime));
-
-    // Trigger marker change event
-    triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
-      id: marker.id,
-      time: mediaCurrentTime,
-    });
+    this.setMarkerPosition(marker, percentage, true);
   }
 
   goToMarker(id) {
@@ -177,7 +166,7 @@ class Markers {
     // Move marker if selected
     this.player.listeners.bind(document.body, 'mousemove touchmove', event => {
       if (!is.nullOrUndefined(this.editing)) {
-        this.setMarkerPosition(event);
+        this.setMarkerPositionByXPos(event);
       }
     });
   }
@@ -206,24 +195,39 @@ class Markers {
     }
   }
 
-  setMarkerPosition(event) {
+  setMarkerPositionByXPos(event) {
     if (is.nullOrUndefined(this.editing)) return;
 
     // Calculate hover position
     const { timeline } = this.player.editor.elements.container;
-    const { duration } = this.player;
     const clientRect = timeline.getBoundingClientRect();
     const xPos = event.type === 'touchmove' ? event.touches[0].pageX : event.pageX;
     // Calculate the position of the marker
     const percentage = clamp((100 / clientRect.width) * (xPos - clientRect.left), this.lowerBound, this.upperBound);
-    const time = duration * (percentage / 100);
     // Selected marker element
     const marker = this.editing;
 
     // Update the position of the marker
-    marker.style.left = `${percentage}%`;
+    this.setMarkerPosition(marker, percentage, false);
+  }
+
+  setMarkerPosition(marker, percentage, triggerChange) {
+    const { mediaFragment, duration } = this.player;
+    const clampedPercentage = clamp(parseFloat(percentage), this.lowerBound, this.upperBound);
+    const time = clamp(duration * (clampedPercentage / 100), this.lowerBound, this.upperBound);
+    const mediaCurrentTime = mediaFragment.getMediaTime(time);
+
+    // eslint-disable-next-line no-param-reassign
+    marker.style.left = `${clampedPercentage}%`;
     marker.setAttribute('aria-valuenow', time);
     marker.setAttribute('aria-valuetext', formatTime(time));
+
+    if (!triggerChange) return;
+
+    triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
+      id: marker.id,
+      time: mediaCurrentTime,
+    });
   }
 
   listeners() {
@@ -242,11 +246,14 @@ class Markers {
       }
     });
 
-    this.player.on('trimchanging trimchange', () => {
-      this.elements.markers.forEach(marker => {
-        // eslint-disable-next-line no-param-reassign
-        marker.style.left = `${clamp(parseFloat(marker.style.left), this.lowerBound, this.upperBound)}%`;
-      });
+    this.player.on('trimchanging', () => {
+      if (!this.config.lockToTrimRegion) return;
+      this.elements.markers.forEach(marker => this.setMarkerPosition(marker, marker.style.left, false));
+    });
+
+    this.player.on('trimchange', () => {
+      if (!this.config.lockToTrimRegion) return;
+      this.elements.markers.forEach(marker => this.setMarkerPosition(marker, marker.style.left, true));
     });
   }
 
