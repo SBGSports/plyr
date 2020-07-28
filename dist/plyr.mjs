@@ -8243,13 +8243,14 @@ var Markers = /*#__PURE__*/function () {
     }
   }, {
     key: "addMarker",
-    value: function addMarker(id, name, time) {
+    value: function addMarker(id, name) {
+      var time = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.player.currentTime;
       var timeline = this.player.editor.elements.container.timeline;
-      var mediaFragment = this.player.mediaFragment;
-      var markerTime = time || this.player.currentTime; // For media fragments the start time can be different from the media's start time
+      var mediaFragment = this.player.mediaFragment; // For media fragments the start time can be different from the media's start time
 
+      var percentage = clamp(100 / this.player.duration * parseFloat(time), this.lowerBound, this.upperBound);
+      var markerTime = this.player.duration * (parseFloat(percentage) / 100);
       var mediaMarkerTime = mediaFragment.getMediaTime(markerTime);
-      var percentage = clamp(100 / this.player.duration * parseFloat(markerTime), this.lowerBound, this.upperBound);
 
       if (!this.loaded || !is$1.element(timeline)) {
         this.preLoadedMarkers.push({
@@ -8294,9 +8295,7 @@ var Markers = /*#__PURE__*/function () {
   }, {
     key: "moveMarker",
     value: function moveMarker(id) {
-      var _this$player = this.player,
-          currentTime = _this$player.currentTime,
-          mediaFragment = _this$player.mediaFragment;
+      var currentTime = this.player.currentTime;
       var marker = this.elements.markers.find(function (x) {
         return x.id === id;
       }); // Calculate marker position in percent
@@ -8304,16 +8303,7 @@ var Markers = /*#__PURE__*/function () {
       var percentage = clamp(currentTime / this.player.media.duration * 100, this.lowerBound, this.upperBound);
       if (!marker) return; // Update the position of the marker
 
-      marker.style.left = "".concat(percentage, "%");
-      marker.setAttribute('aria-valuenow', currentTime);
-      marker.setAttribute('aria-valuetext', formatTime(currentTime)); // For media fragments the start time can be different from the media's start time
-
-      var mediaCurrentTime = mediaFragment.getMediaTime(parseFloat(currentTime)); // Trigger marker change event
-
-      triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
-        id: marker.id,
-        time: mediaCurrentTime
-      });
+      this.setMarkerPosition(marker, percentage, true);
     }
   }, {
     key: "goToMarker",
@@ -8359,7 +8349,7 @@ var Markers = /*#__PURE__*/function () {
 
       this.player.listeners.bind(document.body, 'mousemove touchmove', function (event) {
         if (!is$1.nullOrUndefined(_this.editing)) {
-          _this.setMarkerPosition(event);
+          _this.setMarkerPositionByXPos(event);
         }
       });
     }
@@ -8389,23 +8379,38 @@ var Markers = /*#__PURE__*/function () {
       }
     }
   }, {
-    key: "setMarkerPosition",
-    value: function setMarkerPosition(event) {
+    key: "setMarkerPositionByXPos",
+    value: function setMarkerPositionByXPos(event) {
       if (is$1.nullOrUndefined(this.editing)) return; // Calculate hover position
 
       var timeline = this.player.editor.elements.container.timeline;
-      var duration = this.player.duration;
       var clientRect = timeline.getBoundingClientRect();
       var xPos = event.type === 'touchmove' ? event.touches[0].pageX : event.pageX; // Calculate the position of the marker
 
-      var percentage = clamp(100 / clientRect.width * (xPos - clientRect.left), this.lowerBound, this.upperBound);
-      var time = duration * (percentage / 100); // Selected marker element
+      var percentage = clamp(100 / clientRect.width * (xPos - clientRect.left), this.lowerBound, this.upperBound); // Selected marker element
 
       var marker = this.editing; // Update the position of the marker
 
-      marker.style.left = "".concat(percentage, "%");
+      this.setMarkerPosition(marker, percentage, false);
+    }
+  }, {
+    key: "setMarkerPosition",
+    value: function setMarkerPosition(marker, percentage, triggerChange) {
+      var _this$player = this.player,
+          mediaFragment = _this$player.mediaFragment,
+          duration = _this$player.duration;
+      var clampedPercentage = clamp(parseFloat(percentage), this.lowerBound, this.upperBound);
+      var time = duration * (clampedPercentage / 100);
+      var mediaCurrentTime = mediaFragment.getMediaTime(time); // eslint-disable-next-line no-param-reassign
+
+      marker.style.left = "".concat(clampedPercentage, "%");
       marker.setAttribute('aria-valuenow', time);
       marker.setAttribute('aria-valuetext', formatTime(time));
+      if (!triggerChange) return;
+      triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
+        id: marker.id,
+        time: mediaCurrentTime
+      });
     }
   }, {
     key: "listeners",
@@ -8431,10 +8436,18 @@ var Markers = /*#__PURE__*/function () {
           _this2.preLoadedMarkers = [];
         }
       });
-      this.player.on('trimchanging trimchange', function () {
+      this.player.on('trimchanging', function () {
+        if (!_this2.config.lockToTrimRegion) return;
+
         _this2.elements.markers.forEach(function (marker) {
-          // eslint-disable-next-line no-param-reassign
-          marker.style.left = "".concat(clamp(parseFloat(marker.style.left), _this2.lowerBound, _this2.upperBound), "%");
+          return _this2.setMarkerPosition(marker, marker.style.left, false);
+        });
+      });
+      this.player.on('trimchange', function () {
+        if (!_this2.config.lockToTrimRegion) return;
+
+        _this2.elements.markers.forEach(function (marker) {
+          return _this2.setMarkerPosition(marker, marker.style.left, true);
         });
       });
     }
