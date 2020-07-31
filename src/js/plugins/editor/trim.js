@@ -359,9 +359,6 @@ class Trim {
       this.setRightThumbPosition(percentage);
     }
 
-    // Update the shaded out regions on the timeline
-    this.setShadedRegions();
-
     // Show the seek thumbnail
     if (this.previewThumbnailsReady) {
       const seekTime = this.player.media.duration * (percentage / 100);
@@ -369,6 +366,20 @@ class Trim {
     }
 
     triggerEvent.call(this.player, this.player.media, 'trimchanging', false, this.trimTime);
+  }
+
+  setTrimStart(time = this.player.currentTime) {
+    const percentage = clamp((100 / this.player.duration) * parseFloat(time), this.lowerBound, this.upperBound);
+    this.setLeftThumbPosition(percentage);
+
+    triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
+  }
+
+  setTrimEnd(time = this.player.currentTime) {
+    const percentage = clamp((100 / this.player.duration) * parseFloat(time), this.lowerBound, this.upperBound);
+    this.setRightThumbPosition(percentage);
+
+    triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
   }
 
   setLeftThumbPosition(percentage) {
@@ -391,6 +402,7 @@ class Trim {
     // Set the timestamp of the current trim handle position
     this.setThumbTimeStamps();
     this.setThumbAriaData();
+    this.setShadedRegions();
   }
 
   setRightThumbPosition(percentage) {
@@ -421,6 +433,7 @@ class Trim {
     // Set the timestamp of the current trim handle position
     this.setThumbTimeStamps();
     this.setThumbAriaData();
+    this.setShadedRegions();
   }
 
   setThumbTimeStamps() {
