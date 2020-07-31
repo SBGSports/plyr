@@ -173,6 +173,15 @@ class Listeners {
           player.loop = !player.loop;
           break;
 
+        case 73:
+          // I key
+          player.trim.setTrimStart();
+          break;
+        case 79:
+          // O key
+          player.trim.setTrimEnd();
+          break;
+
         /* case 73:
                     this.setLoop('start');
                     break;

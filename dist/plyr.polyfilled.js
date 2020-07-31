@@ -11264,6 +11264,16 @@ typeof navigator === "object" && (function (global, factory) {
               // L key
               player.loop = !player.loop;
               break;
+
+            case 73:
+              // I key
+              player.trim.setTrimStart();
+              break;
+
+            case 79:
+              // O key
+              player.trim.setTrimEnd();
+              break;
           } // Escape is handle natively when in full screen
           // So we only need to worry about non native
 
@@ -15964,10 +15974,8 @@ typeof navigator === "object" && (function (global, factory) {
           this.setLeftThumbPosition(percentage);
         } else if (this.editing === rightThumb) {
           this.setRightThumbPosition(percentage);
-        } // Update the shaded out regions on the timeline
+        } // Show the seek thumbnail
 
-
-        this.setShadedRegions(); // Show the seek thumbnail
 
         if (this.previewThumbnailsReady) {
           var seekTime = this.player.media.duration * (percentage / 100);
@@ -15975,6 +15983,22 @@ typeof navigator === "object" && (function (global, factory) {
         }
 
         triggerEvent.call(this.player, this.player.media, 'trimchanging', false, this.trimTime);
+      }
+    }, {
+      key: "setTrimStart",
+      value: function setTrimStart() {
+        var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.player.currentTime;
+        var percentage = clamp(100 / this.player.duration * parseFloat(time), this.lowerBound, this.upperBound);
+        this.setLeftThumbPosition(percentage);
+        triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
+      }
+    }, {
+      key: "setTrimEnd",
+      value: function setTrimEnd() {
+        var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.player.currentTime;
+        var percentage = clamp(100 / this.player.duration * parseFloat(time), this.lowerBound, this.upperBound);
+        this.setRightThumbPosition(percentage);
+        triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
       }
     }, {
       key: "setLeftThumbPosition",
@@ -15998,6 +16022,7 @@ typeof navigator === "object" && (function (global, factory) {
 
         this.setThumbTimeStamps();
         this.setThumbAriaData();
+        this.setShadedRegions();
       }
     }, {
       key: "setRightThumbPosition",
@@ -16029,6 +16054,7 @@ typeof navigator === "object" && (function (global, factory) {
 
         this.setThumbTimeStamps();
         this.setThumbAriaData();
+        this.setShadedRegions();
       }
     }, {
       key: "setThumbTimeStamps",
