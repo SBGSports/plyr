@@ -387,7 +387,7 @@ class Trim {
     const { left, width } = bar.style;
     const leftThumbPos = parseFloat(left);
     const rightThumbPos = leftThumbPos + parseFloat(width);
-    const rightThumbRelativePos = parseFloat(width) - (percentage - leftThumbPos);
+    const rightThumbRelativePos = Math.max(parseFloat(width) - (percentage - leftThumbPos), 0);
     const maxTrimLength = this.getMaxTrimLength(percentage, rightThumbPos);
 
     // Set the width to be in the position previously unless region is longer than max trim length
@@ -418,7 +418,7 @@ class Trim {
       this.setStartTime(leftThumbPos + (percentage - rightThumbPos));
     } else {
       // Update the width of trim bar (right thumb)
-      bar.style.width = `${percentage - leftThumbPos}%`;
+      bar.style.width = `${Math.max(percentage - leftThumbPos, 0)}%`;
     }
 
     // Store and convert the end position on the timeline as time

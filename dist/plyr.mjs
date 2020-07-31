@@ -8863,7 +8863,7 @@ var Trim = /*#__PURE__*/function () {
           width = _bar$style.width;
       var leftThumbPos = parseFloat(left);
       var rightThumbPos = leftThumbPos + parseFloat(width);
-      var rightThumbRelativePos = parseFloat(width) - (percentage - leftThumbPos);
+      var rightThumbRelativePos = Math.max(parseFloat(width) - (percentage - leftThumbPos), 0);
       var maxTrimLength = this.getMaxTrimLength(percentage, rightThumbPos); // Set the width to be in the position previously unless region is longer than max trim length
 
       if (!maxTrimLength) bar.style.width = "".concat(rightThumbRelativePos, "%"); // Store and convert the start percentage to time
@@ -8894,7 +8894,7 @@ var Trim = /*#__PURE__*/function () {
         this.setStartTime(leftThumbPos + (percentage - rightThumbPos));
       } else {
         // Update the width of trim bar (right thumb)
-        bar.style.width = "".concat(percentage - leftThumbPos, "%");
+        bar.style.width = "".concat(Math.max(percentage - leftThumbPos, 0), "%");
       } // Store and convert the end position on the timeline as time
 
 
