@@ -5177,7 +5177,7 @@ var Listeners = /*#__PURE__*/function () {
       }); // Handle media fragments end event, as event is not fired by default
 
       on.call(player, player.media, 'timeupdate seeking seeked', function () {
-        if (!player.mediaFragment.enabled || player.currentTime < player.duration) return; // Media fragments are not automatically stopped at end of playback
+        if (!player.mediaFragment.enabled || !player.duration || player.currentTime < player.duration) return; // Media fragments are not automatically stopped at end of playback
 
         player.pause(); // Manually trigger default event ended as ended event will not trigger for media fragments
 
@@ -6896,16 +6896,12 @@ var MediaFragment = /*#__PURE__*/function () {
   }, {
     key: "destroy",
     value: function destroy() {
-      var _this2 = this;
-
       if (!this.enabled) return;
       var config = this.player.config;
       this.active = false; // Reset start and duration back to default values
 
       config.startTime = 0;
-      this.player.once('loadedmetadata', function () {
-        config.duration = _this2.media.duration;
-      });
+      if (this.media) config.duration = this.media.duration;
     }
   }, {
     key: "enabled",
@@ -10382,9 +10378,9 @@ var Plyr = /*#__PURE__*/function () {
 
 
     if (this.isHTML5 && this.config.autoplay) {
-      setTimeout(function () {
+      this.once('canplay', function () {
         return silencePromise(_this.play());
-      }, 10);
+      });
     } // Seek time will be recorded (in listeners.js) so we can prevent hiding controls for a few seconds after seek
 
 
