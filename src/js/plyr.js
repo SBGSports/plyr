@@ -324,7 +324,7 @@ class Plyr {
 
     // Autoplay if required
     if (this.isHTML5 && this.config.autoplay) {
-      setTimeout(() => silencePromise(this.play()), 10);
+      this.on('canplay', () => silencePromise(this.play()));
     }
 
     // Seek time will be recorded (in listeners.js) so we can prevent hiding controls for a few seconds after seek
