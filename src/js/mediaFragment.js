@@ -57,9 +57,7 @@ class MediaFragment {
 
     // Reset start and duration back to default values
     config.startTime = 0;
-    this.player.once('loadedmetadata', () => {
-      config.duration = this.media.duration;
-    });
+    if (this.media) config.duration = this.media.duration;
   }
 }
 

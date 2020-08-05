@@ -441,7 +441,7 @@ class Listeners {
 
     // Handle media fragments end event, as event is not fired by default
     on.call(player, player.media, 'timeupdate seeking seeked', () => {
-      if (!player.mediaFragment.enabled || player.currentTime < player.duration) return;
+      if (!player.mediaFragment.enabled || !player.duration || player.currentTime < player.duration) return;
 
       // Media fragments are not automatically stopped at end of playback
       player.pause();
