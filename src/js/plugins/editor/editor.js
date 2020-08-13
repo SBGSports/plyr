@@ -555,9 +555,9 @@ class Editor {
       }
     } else if (percentage < lowerSeek) {
       if (playing || this.seeking) {
-        offset = Math.min(offset - (lowerSeek - percentage) / -scrollSpeed, 0);
+        offset = Math.min(offset - ((lowerSeek - percentage) / scrollSpeed) * -1, 0);
       } else {
-        offset = Math.min(offset - (lowerSeek - percentage), 0);
+        offset = Math.min(offset - (lowerSeek - percentage) * -1, 0);
       }
     }
 
