@@ -40,7 +40,7 @@ class Trim {
       return false;
     }
 
-    return this.trimming && is.element(this.player.elements.container);
+    return this.trimming && is.element(this.elements.container);
   }
 
   // Get the current trim time
@@ -145,6 +145,7 @@ class Trim {
       this.createTrimBarThumbs();
       this.createShadedRegions();
       this.createThumbTime();
+      triggerEvent.call(this.player, this.player.media, 'trimloaded');
     }
   }
 
@@ -505,7 +506,7 @@ class Trim {
     }
 
     // Trigger an event
-    triggerEvent.call(this.player, this.player.media, this.active ? 'entertrim' : 'exittrim', false, this.trimTime);
+    triggerEvent.call(this.player, this.player.media, this.trimming ? 'entertrim' : 'exittrim', false, this.trimTime);
   }
 
   // Update UI

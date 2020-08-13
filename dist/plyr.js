@@ -3951,7 +3951,7 @@ typeof navigator === "object" && (function (global, factory) {
     'previewthumbnailsloaded', // Editor
     'entereditor', 'exiteditor', 'editorloaded', 'zoomchange', // Markers
     'markeradded', 'markerchange', // Trimming
-    'entertrim', 'exittrim', 'trimchanging', 'trimchange'],
+    'entertrim', 'exittrim', 'trimloaded', 'trimchanging', 'trimchange'],
     // Selectors
     // Change these to match your template if using custom HTML
     selectors: {
@@ -8064,12 +8064,14 @@ typeof navigator === "object" && (function (global, factory) {
         var upperBound = this.seeking ? upperSeek : upperPlaying; // Calculate the timeline offset position
 
         if (percentage > upperBound && zoom - offset > 100) {
+          // If the seek handle is visibe move by scroll percentage else move into view
           if (percentage <= 100) {
             offset = Math.max(offset - (percentage - upperBound) / scrollSpeed, (zoom - 100) * -1);
           } else {
             offset = Math.max(offset - (percentage - upperBound), (zoom - 100) * -1);
           }
         } else if (percentage < lowerSeek) {
+          // If the seek handle is visibe move by scroll percentage else move into view
           if (percentage >= 0) {
             offset = Math.min(offset - (lowerSeek - percentage) / scrollSpeed * -1, 0);
           } else {
@@ -8634,6 +8636,7 @@ typeof navigator === "object" && (function (global, factory) {
           this.createTrimBarThumbs();
           this.createShadedRegions();
           this.createThumbTime();
+          triggerEvent.call(this.player, this.player.media, 'trimloaded');
         }
       } // Add trim container to the timeline
 
@@ -9002,7 +9005,7 @@ typeof navigator === "object" && (function (global, factory) {
         } // Trigger an event
 
 
-        triggerEvent.call(this.player, this.player.media, this.active ? 'entertrim' : 'exittrim', false, this.trimTime);
+        triggerEvent.call(this.player, this.player.media, this.trimming ? 'entertrim' : 'exittrim', false, this.trimTime);
       } // Update UI
 
     }, {
@@ -9075,7 +9078,7 @@ typeof navigator === "object" && (function (global, factory) {
           return false;
         }
 
-        return this.trimming && is$1.element(this.player.elements.container);
+        return this.trimming && is$1.element(this.elements.container);
       } // Get the current trim time
       // If trimming a media fragment the start can be different from the media's start time so use the media time
 
