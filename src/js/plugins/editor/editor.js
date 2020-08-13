@@ -548,13 +548,15 @@ class Editor {
 
     // Calculate the timeline offset position
     if (percentage > upperBound && zoom - offset > 100) {
-      if (playing || this.seeking) {
+      // If the seek handle is visibe move by scroll percentage else move into view
+      if (percentage <= 100) {
         offset = Math.max(offset - (percentage - upperBound) / scrollSpeed, (zoom - 100) * -1);
       } else {
         offset = Math.max(offset - (percentage - upperBound), (zoom - 100) * -1);
       }
     } else if (percentage < lowerSeek) {
-      if (playing || this.seeking) {
+      // If the seek handle is visibe move by scroll percentage else move into view
+      if (percentage >= 0) {
         offset = Math.min(offset - ((lowerSeek - percentage) / scrollSpeed) * -1, 0);
       } else {
         offset = Math.min(offset - (lowerSeek - percentage) * -1, 0);
