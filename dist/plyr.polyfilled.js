@@ -15204,9 +15204,17 @@ typeof navigator === "object" && (function (global, factory) {
         var upperBound = this.seeking ? upperSeek : upperPlaying; // Calculate the timeline offset position
 
         if (percentage > upperBound && zoom - offset > 100) {
-          offset = Math.max(offset - (percentage - upperBound) / scrollSpeed, (zoom - 100) * -1);
+          if (playing || this.seeking) {
+            offset = Math.max(offset - (percentage - upperBound) / scrollSpeed, (zoom - 100) * -1);
+          } else {
+            offset = Math.max(offset - (percentage - upperBound), (zoom - 100) * -1);
+          }
         } else if (percentage < lowerSeek) {
-          offset = Math.min(offset - (lowerSeek - percentage) / -scrollSpeed, 0);
+          if (playing || this.seeking) {
+            offset = Math.min(offset - (lowerSeek - percentage) / -scrollSpeed, 0);
+          } else {
+            offset = Math.min(offset - (lowerSeek - percentage), 0);
+          }
         }
 
         if (offset === parseFloat(container.timeline.style.left)) {
