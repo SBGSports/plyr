@@ -351,6 +351,7 @@ const defaults = {
     // Trimming
     'entertrim',
     'exittrim',
+    'trimloaded',
     'trimchanging',
     'trimchange',
   ],
