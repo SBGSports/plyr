@@ -15204,16 +15204,16 @@ typeof navigator === "object" && (function (global, factory) {
         var upperBound = this.seeking ? upperSeek : upperPlaying; // Calculate the timeline offset position
 
         if (percentage > upperBound && zoom - offset > 100) {
-          if (playing || this.seeking) {
+          if (percentage <= 100) {
             offset = Math.max(offset - (percentage - upperBound) / scrollSpeed, (zoom - 100) * -1);
           } else {
             offset = Math.max(offset - (percentage - upperBound), (zoom - 100) * -1);
           }
         } else if (percentage < lowerSeek) {
-          if (playing || this.seeking) {
-            offset = Math.min(offset - (lowerSeek - percentage) / -scrollSpeed, 0);
+          if (percentage >= 0) {
+            offset = Math.min(offset - (lowerSeek - percentage) / scrollSpeed * -1, 0);
           } else {
-            offset = Math.min(offset - (lowerSeek - percentage), 0);
+            offset = Math.min(offset - (lowerSeek - percentage) * -1, 0);
           }
         }
 
