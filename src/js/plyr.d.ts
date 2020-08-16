@@ -552,6 +552,11 @@ declare namespace Plyr {
     invertTime?: boolean;
 
     /**
+     * Display match time instead of the current time (using source sync points).
+     */
+    matchTime?: boolean;
+
+    /**
      * Allow users to click to toggle the above.
      */
     toggleInvert?: boolean;
@@ -741,6 +746,11 @@ declare namespace Plyr {
      * Booleans are converted to HTML5 value-less attributes.
      */
     tracks?: Track[];
+
+    /**
+     * An array of Sync points. Used to specify key events in the video and can be used to match time.
+     */
+    syncPoints?: SyncPoint[];
   }
 
   interface Source {
@@ -776,6 +786,13 @@ declare namespace Plyr {
     src: string;
 
     default?: boolean;
+  }
+
+  interface SyncPoint {
+    id: string;
+    time: number;
+    start: number;
+    duration: duration;
   }
 
   interface PlyrEvent extends CustomEvent {

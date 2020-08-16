@@ -124,6 +124,9 @@ const source = {
           }
         }
 
+        // Set up sync points
+        this.config.syncPoints = input.syncPoints;
+
         // If HTML5 or embed but not fully supported, setupInterface and call ready now
         if (this.isHTML5 || (this.isEmbed && !this.supported.ui)) {
           // Setup interface

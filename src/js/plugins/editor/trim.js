@@ -2,13 +2,13 @@
 // Plyr Trim control
 // ==========================================================================
 
+import controls from '../../controls';
 import { createElement, toggleClass, toggleHidden } from '../../utils/elements';
 import { on, triggerEvent } from '../../utils/events';
 import i18n from '../../utils/i18n';
 import is from '../../utils/is';
 import { clamp } from '../../utils/numbers';
 import { extend } from '../../utils/objects';
-import { formatTime } from '../../utils/time';
 
 class Trim {
   constructor(player) {
@@ -200,7 +200,7 @@ class Trim {
         'aria-valuemin': 0,
         'aria-valuemax': this.player.duration,
         'aria-valuenow': this.startTime,
-        'aria-valuetext': formatTime(this.startTime),
+        'aria-valuetext': controls.formatTime.call(this.player, this.startTime),
         'aria-label': i18n.get('trimStart', this.player.config),
       }),
     );
@@ -214,7 +214,7 @@ class Trim {
         'aria-valuemin': 0,
         'aria-valuemax': this.player.duration,
         'aria-valuenow': this.endTime,
-        'aria-valuetext': formatTime(this.endTime),
+        'aria-valuetext': controls.formatTime.call(this.player, this.endTime),
         'aria-label': i18n.get('trimEnd', this.player.config),
       }),
     );
@@ -299,9 +299,9 @@ class Trim {
     });
 
     // Append the time element to the container
-    leftThumb.timeContainer.time = createElement('span', {}, formatTime(this.startTime));
+    leftThumb.timeContainer.time = createElement('span', {}, controls.formatTime.call(this.player, this.startTime));
     leftThumb.timeContainer.appendChild(leftThumb.timeContainer.time);
-    rightThumb.timeContainer.time = createElement('span', {}, formatTime(this.endTime));
+    rightThumb.timeContainer.time = createElement('span', {}, controls.formatTime.call(this.player, this.endTime));
     rightThumb.timeContainer.appendChild(rightThumb.timeContainer.time);
 
     // Append the time container to the bar
@@ -439,17 +439,17 @@ class Trim {
 
   setThumbTimeStamps() {
     const { bar } = this.elements.container;
-    bar.leftThumb.timeContainer.time.innerText = formatTime(this.startTime);
-    bar.rightThumb.timeContainer.time.innerText = formatTime(this.endTime);
+    bar.leftThumb.timeContainer.time.innerText = controls.formatTime.call(this.player, this.startTime);
+    bar.rightThumb.timeContainer.time.innerText = controls.formatTime.call(this.player, this.endTime);
   }
 
   setThumbAriaData() {
     const { bar } = this.elements.container;
     // Update the aria-value and text
     bar.leftThumb.setAttribute('aria-valuenow', this.startTime);
-    bar.leftThumb.setAttribute('aria-valuetext', formatTime(this.startTime));
+    bar.leftThumb.setAttribute('aria-valuetext', controls.formatTime.call(this.player, this.startTime));
     bar.rightThumb.setAttribute('aria-valuenow', this.endTime);
-    bar.rightThumb.setAttribute('aria-valuetext', formatTime(this.endTime));
+    bar.rightThumb.setAttribute('aria-valuetext', controls.formatTime.call(this.player, this.endTime));
   }
 
   toggleTimeContainer(element, toggle = false) {

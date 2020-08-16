@@ -36,6 +36,10 @@
       padding: 0 calc(#{$plyr-control-spacing} / 2);
     }
 
+    &.plyr__time.plyr--match-time {
+      min-width: 4rem;
+    }
+
     &.plyr__progress__container:first-child,
     &.plyr__time:first-child,
     &.plyr__time + .plyr__time {

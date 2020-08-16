@@ -1,10 +1,10 @@
+import controls from '../../controls';
 import { createElement, toggleHidden } from '../../utils/elements';
 import { triggerEvent } from '../../utils/events';
 import i18n from '../../utils/i18n';
 import is from '../../utils/is';
 import { clamp } from '../../utils/numbers';
 import { extend } from '../../utils/objects';
-import { formatTime } from '../../utils/time';
 
 class Markers {
   constructor(player) {
@@ -77,7 +77,7 @@ class Markers {
         'aria-valuemin': 0,
         'aria-valuemax': this.player.duration,
         'aria-valuenow': markerTime,
-        'aria-valuetext': formatTime(markerTime),
+        'aria-valuetext': controls.formatTime.call(this.player, markerTime),
         'aria-label': i18n.get('marker', this.player.config),
       }),
     );
@@ -220,7 +220,7 @@ class Markers {
     // eslint-disable-next-line no-param-reassign
     marker.style.left = `${clampedPercentage}%`;
     marker.setAttribute('aria-valuenow', time);
-    marker.setAttribute('aria-valuetext', formatTime(time));
+    marker.setAttribute('aria-valuetext', controls.formatTime(this.player, time));
 
     if (!triggerChange) return;
 
