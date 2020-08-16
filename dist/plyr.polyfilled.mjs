@@ -8018,6 +8018,9 @@ var getMinutes = function getMinutes(value) {
 };
 var getSeconds = function getSeconds(value) {
   return Math.trunc(value % 60, 10);
+};
+var secondsToMinutes = function secondsToMinutes(value) {
+  return Math.floor(value / 60);
 }; // Format time to UI friendly string
 
 function formatTime() {
@@ -8048,6 +8051,28 @@ function formatTime() {
 
 
   return "".concat(inverted && time > 0 ? '-' : '').concat(hours).concat(format(mins), ":").concat(format(secs));
+}
+function matchTime(time, syncPoints) {
+  var syncPointsOrdered = syncPoints.sort(function (a, b) {
+    return b.time - a.time;
+  });
+  var syncPoint = syncPointsOrdered.find(function (x) {
+    return x.time <= time;
+  }) || syncPointsOrdered[syncPointsOrdered.length - 1];
+  var timeIntoPeriod = Math.max(time - syncPoint.time, 0); // Time into period
+
+  var seconds = getSeconds(timeIntoPeriod);
+  var minutes = secondsToMinutes(syncPoint.start + timeIntoPeriod - seconds);
+  var minutesIntoPeriod = secondsToMinutes(timeIntoPeriod - seconds); // Added time into period
+
+  var addedTime = minutesIntoPeriod >= secondsToMinutes(syncPoint.duration);
+  var addedMinutes = minutesIntoPeriod - Math.min(minutesIntoPeriod, secondsToMinutes(syncPoint.duration)); // Format time component to add leading zero
+
+  var format = function format(value) {
+    return "0".concat(value).slice(-2);
+  };
+
+  return "".concat(format(minutes)).concat(addedTime ? "+".concat(format(addedMinutes)) : '', ":").concat(format(seconds));
 }
 
 var controls = {
@@ -8360,7 +8385,9 @@ var controls = {
     var container = createElement('div', extend(attributes, {
       class: "".concat(attributes.class ? attributes.class : '', " ").concat(this.config.classNames.display.time, " ").trim(),
       'aria-label': i18n.get(type, this.config)
-    }), this.currentTime ? formatTime(this.currentTime) : '00:00'); // Reference for updates
+    }), this.currentTime ? formatTime(this.currentTime) : '00:00'); // Toggle Match time class
+
+    toggleClass(container, this.config.classNames.matchTime, this.config.matchTime); // Reference for updates
 
     this.elements.display[type] = container;
     return container;
@@ -8510,6 +8537,11 @@ var controls = {
 
 
     var forceHours = getHours(this.duration) > 0;
+
+    if (this.config.matchTime && this.config.syncPoints) {
+      return matchTime(time, this.config.syncPoints);
+    }
+
     return formatTime(time, forceHours, inverted);
   },
   // Update the displayed time
@@ -8524,7 +8556,7 @@ var controls = {
     } // eslint-disable-next-line no-param-reassign
 
 
-    target.innerText = controls.formatTime(time, inverted);
+    target.innerText = controls.formatTime.call(this, time, inverted);
   },
   // Update volume UI and storage
   updateVolume: function updateVolume() {
@@ -8614,8 +8646,8 @@ var controls = {
 
     if (matches$1(range, this.config.selectors.inputs.seek)) {
       range.setAttribute('aria-valuenow', this.currentTime);
-      var currentTime = controls.formatTime(this.currentTime);
-      var duration = controls.formatTime(this.duration);
+      var currentTime = controls.formatTime.call(this, this.currentTime);
+      var duration = controls.formatTime.call(this, this.duration);
       var format = i18n.get('seekLabel', this.config);
       range.setAttribute('aria-valuetext', format.replace('{currentTime}', currentTime).replace('{duration}', duration));
     } else if (matches$1(range, this.config.selectors.inputs.volume)) {
@@ -10064,6 +10096,8 @@ var defaults$1 = {
     forced: false,
     onChange: null
   },
+  // Display match time instead of the current time (using source sync points)
+  matchTime: false,
   // Set loops
   loop: {
     active: false // start: null,
@@ -10340,6 +10374,7 @@ var defaults$1 = {
     isTouch: 'plyr--is-touch',
     uiSupported: 'plyr--full-ui',
     noTransition: 'plyr--no-transition',
+    matchTime: 'plyr--match-time',
     display: {
       time: 'plyr__time'
     },
@@ -14911,7 +14946,7 @@ var Editor = /*#__PURE__*/function () {
       for (var i = 0; i < this.numOfTimestamps; i += 1) {
         var timeStamp = createElement('span', {
           class: this.player.config.classNames.editor.timeStamp
-        }, formatTime(Math.round(step * i))); // Append the element to the timeline
+        }, controls.formatTime.call(this.player, Math.round(step * i))); // Append the element to the timeline
 
         timeline.timestampsContainer.appendChild(timeStamp); // Add the element to the list of elements
 
@@ -14924,6 +14959,8 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "updateTimestamps",
     value: function updateTimestamps() {
+      var _this2 = this;
+
       var timeline = this.elements.container.timeline;
       var duration = this.player.duration;
 
@@ -14936,7 +14973,7 @@ var Editor = /*#__PURE__*/function () {
       var step = duration / this.numOfTimestamps;
       timeline.timestampsContainer.timeStamps.forEach(function (timestamp, i) {
         // eslint-disable-next-line no-param-reassign
-        timestamp.innerText = formatTime(Math.round(step * i));
+        timestamp.innerText = controls.formatTime.call(_this2.player, Math.round(step * i));
       });
     }
   }, {
@@ -15013,7 +15050,7 @@ var Editor = /*#__PURE__*/function () {
     key: "createSeekHandle",
     value: function createSeekHandle() {
       var timeline = this.elements.container.timeline;
-      var duration = controls.formatTime(this.player.duration); // Create seek Container
+      var duration = controls.formatTime.call(this.player, this.player.duration); // Create seek Container
 
       timeline.seekHandle = createElement('div', {
         class: this.player.config.classNames.editor.seekHandle,
@@ -15133,8 +15170,8 @@ var Editor = /*#__PURE__*/function () {
       var percentage = clamp(100 / this.player.duration * parseFloat(this.player.currentTime), 0, 100);
       timeline.seekHandle.style.left = "".concat(percentage, "%");
       this.setTimelineOffset();
-      var currentTime = controls.formatTime(this.player.currentTime);
-      var duration = controls.formatTime(this.player.duration);
+      var currentTime = controls.formatTime.call(this.player, this.player.currentTime);
+      var duration = controls.formatTime.call(this.player, this.player.duration);
       var format = i18n.get('seekLabel', this.player.config); // Update aria values
 
       timeline.seekHandle.setAttribute('aria-valuenow', currentTime);
@@ -15239,24 +15276,24 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "listeners",
     value: function listeners() {
-      var _this2 = this;
+      var _this3 = this;
 
       // If the duration changes after loading the editor, the corresponding timestamps need to be updated
       // If the duration of the video or previewthumbnails has loaded, update
       this.player.on('loadeddata loadedmetadata', function () {
-        if (_this2.player.media.duration) _this2.loaded = true;
+        if (_this3.player.media.duration) _this3.loaded = true;
 
-        if (_this2.loaded && _this2.shown) {
-          _this2.showEditor();
+        if (_this3.loaded && _this3.shown) {
+          _this3.showEditor();
 
-          _this2.updateTimestamps();
+          _this3.updateTimestamps();
 
-          _this2.setVideoTimelimeContent();
+          _this3.setVideoTimelimeContent();
         }
       });
       this.player.on('previewthumbnailsloaded', function () {
-        if (_this2.loaded && _this2.shown) {
-          _this2.setVideoTimelimeContent();
+        if (_this3.loaded && _this3.shown) {
+          _this3.setVideoTimelimeContent();
         }
       });
     } // On toggle of the editor, trigger event
@@ -15423,7 +15460,7 @@ var Markers = /*#__PURE__*/function () {
         'aria-valuemin': 0,
         'aria-valuemax': this.player.duration,
         'aria-valuenow': markerTime,
-        'aria-valuetext': formatTime(markerTime),
+        'aria-valuetext': controls.formatTime.call(this.player, markerTime),
         'aria-label': i18n.get('marker', this.player.config)
       }));
       this.elements.markers.push(container);
@@ -15561,7 +15598,7 @@ var Markers = /*#__PURE__*/function () {
 
       marker.style.left = "".concat(clampedPercentage, "%");
       marker.setAttribute('aria-valuenow', time);
-      marker.setAttribute('aria-valuetext', formatTime(time));
+      marker.setAttribute('aria-valuetext', controls.formatTime(this.player, time));
       if (!triggerChange) return;
       triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
         id: marker.id,
@@ -15818,7 +15855,7 @@ var Trim = /*#__PURE__*/function () {
         'aria-valuemin': 0,
         'aria-valuemax': this.player.duration,
         'aria-valuenow': this.startTime,
-        'aria-valuetext': formatTime(this.startTime),
+        'aria-valuetext': controls.formatTime.call(this.player, this.startTime),
         'aria-label': i18n.get('trimStart', this.player.config)
       })); // Create the trim bar thumb elements
 
@@ -15828,7 +15865,7 @@ var Trim = /*#__PURE__*/function () {
         'aria-valuemin': 0,
         'aria-valuemax': this.player.duration,
         'aria-valuenow': this.endTime,
-        'aria-valuetext': formatTime(this.endTime),
+        'aria-valuetext': controls.formatTime.call(this.player, this.endTime),
         'aria-label': i18n.get('trimEnd', this.player.config)
       })); // Add the thumbs to the bar
 
@@ -15906,9 +15943,9 @@ var Trim = /*#__PURE__*/function () {
         class: this.player.config.classNames.trim.timeContainer
       }); // Append the time element to the container
 
-      leftThumb.timeContainer.time = createElement('span', {}, formatTime(this.startTime));
+      leftThumb.timeContainer.time = createElement('span', {}, controls.formatTime.call(this.player, this.startTime));
       leftThumb.timeContainer.appendChild(leftThumb.timeContainer.time);
-      rightThumb.timeContainer.time = createElement('span', {}, formatTime(this.endTime));
+      rightThumb.timeContainer.time = createElement('span', {}, controls.formatTime.call(this.player, this.endTime));
       rightThumb.timeContainer.appendChild(rightThumb.timeContainer.time); // Append the time container to the bar
 
       leftThumb.appendChild(leftThumb.timeContainer);
@@ -16061,8 +16098,8 @@ var Trim = /*#__PURE__*/function () {
     key: "setThumbTimeStamps",
     value: function setThumbTimeStamps() {
       var bar = this.elements.container.bar;
-      bar.leftThumb.timeContainer.time.innerText = formatTime(this.startTime);
-      bar.rightThumb.timeContainer.time.innerText = formatTime(this.endTime);
+      bar.leftThumb.timeContainer.time.innerText = controls.formatTime.call(this.player, this.startTime);
+      bar.rightThumb.timeContainer.time.innerText = controls.formatTime.call(this.player, this.endTime);
     }
   }, {
     key: "setThumbAriaData",
@@ -16070,9 +16107,9 @@ var Trim = /*#__PURE__*/function () {
       var bar = this.elements.container.bar; // Update the aria-value and text
 
       bar.leftThumb.setAttribute('aria-valuenow', this.startTime);
-      bar.leftThumb.setAttribute('aria-valuetext', formatTime(this.startTime));
+      bar.leftThumb.setAttribute('aria-valuetext', controls.formatTime.call(this.player, this.startTime));
       bar.rightThumb.setAttribute('aria-valuenow', this.endTime);
-      bar.rightThumb.setAttribute('aria-valuetext', formatTime(this.endTime));
+      bar.rightThumb.setAttribute('aria-valuetext', controls.formatTime.call(this.player, this.endTime));
     }
   }, {
     key: "toggleTimeContainer",
@@ -16594,7 +16631,7 @@ var PreviewThumbnails = /*#__PURE__*/function () {
 
         this.mousePosX = event.pageX; // Set time text inside image container
 
-        this.elements.thumb.time.innerText = formatTime(this.seekTime);
+        this.elements.thumb.time.innerText = controls.formatTime.call(this.player, this.seekTime);
       } // Download and show image
 
 
@@ -17236,8 +17273,10 @@ var source = {
         if (Object.keys(input).includes('tracks')) {
           source.insertElements.call(_this2, 'track', input.tracks);
         }
-      } // If HTML5 or embed but not fully supported, setupInterface and call ready now
+      } // Set up sync points
 
+
+      _this2.config.syncPoints = input.syncPoints; // If HTML5 or embed but not fully supported, setupInterface and call ready now
 
       if (_this2.isHTML5 || _this2.isEmbed && !_this2.supported.ui) {
         // Setup interface
