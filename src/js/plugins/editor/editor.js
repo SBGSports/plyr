@@ -5,7 +5,6 @@ import { on, triggerEvent } from '../../utils/events';
 import i18n from '../../utils/i18n';
 import is from '../../utils/is';
 import { clamp } from '../../utils/numbers';
-import { formatTime } from '../../utils/time';
 
 class Editor {
   constructor(player) {
@@ -249,7 +248,7 @@ class Editor {
       const timeStamp = createElement(
         'span',
         { class: this.player.config.classNames.editor.timeStamp },
-        formatTime(Math.round(step * i)),
+        controls.formatTime.call(this.player, Math.round(step * i)),
       );
       // Append the element to the timeline
       timeline.timestampsContainer.appendChild(timeStamp);
@@ -276,7 +275,7 @@ class Editor {
 
     timeline.timestampsContainer.timeStamps.forEach((timestamp, i) => {
       // eslint-disable-next-line no-param-reassign
-      timestamp.innerText = formatTime(Math.round(step * i));
+      timestamp.innerText = controls.formatTime.call(this.player, Math.round(step * i));
     });
   }
 
@@ -354,7 +353,7 @@ class Editor {
 
   createSeekHandle() {
     const { timeline } = this.elements.container;
-    const duration = controls.formatTime(this.player.duration);
+    const duration = controls.formatTime.call(this.player, this.player.duration);
 
     // Create seek Container
     timeline.seekHandle = createElement('div', {
@@ -481,8 +480,8 @@ class Editor {
     timeline.seekHandle.style.left = `${percentage}%`;
     this.setTimelineOffset();
 
-    const currentTime = controls.formatTime(this.player.currentTime);
-    const duration = controls.formatTime(this.player.duration);
+    const currentTime = controls.formatTime.call(this.player, this.player.currentTime);
+    const duration = controls.formatTime.call(this.player, this.player.duration);
     const format = i18n.get('seekLabel', this.player.config);
 
     // Update aria values

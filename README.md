@@ -397,6 +397,7 @@ Note the single quotes encapsulating the JSON and double quotes on the object ke
 | `duration`           | Number                     | `null`                                                                                                                         | Specify a custom duration for media.                                                                                                                                                                                                                                                                                                                                                                    |
 | `displayDuration`    | Boolean                    | `true`                                                                                                                         | Displays the duration of the media on the "metadataloaded" event (on startup) in the current time display. This will only work if the `preload` attribute is not set to `none` (or is not set at all) and you choose not to display the duration (see `controls` option).                                                                                                                               |
 | `invertTime`         | Boolean                    | `true`                                                                                                                         | Display the current time as a countdown rather than an incremental counter.                                                                                                                                                                                                                                                                                                                             |
+| `matchTime`          | Boolean                    | `true`                                                                                                                         | Display match time instead of the current time (using source sync points).                                                                                                                                                                                                                                                                                                                              |
 | `toggleInvert`       | Boolean                    | `true`                                                                                                                         | Allow users to click to toggle the above.                                                                                                                                                                                                                                                                                                                                                               |
 | `listeners`          | Object                     | `null`                                                                                                                         | Allows binding of event listeners to the controls before the default handlers. See the `defaults.js` for available listeners. If your handler prevents default on the event (`event.preventDefault()`), the default handler will not fire.                                                                                                                                                              |
 | `captions`           | Object                     | `{ active: false, language: 'auto', update: false }`                                                                           | `active`: Toggles if captions should be active by default. `language`: Sets the default language to load (if available). 'auto' uses the browser language. `update`: Listen to changes to tracks and update menu. This is needed for some streaming libraries, but can result in unselectable language options).                                                                                        |
@@ -563,6 +564,20 @@ player.source = {
   previewThumbnails: {
     src: '/path/to/thumbnails.vtt',
   },
+  syncPoints: [
+    {
+      id: 'FIRST_HALF',
+      time: 10,
+      start: 0,
+      duration: 2700,
+    },
+    {
+      id: 'SECOND_HALF',
+      time: 3600,
+      start: 45,
+      duration: 2700,
+    },
+  ],
   tracks: [
     {
       kind: 'captions',
@@ -638,6 +653,7 @@ _Note:_ `src` property for YouTube and Vimeo can either be the video ID or the w
 | `poster`&sup1;            | String | The URL for the poster image (HTML5 video only).                                                                                                                                                                                                                                                                                                                                                               |
 | `tracks`&sup1;            | String | An array of track objects. Each element in the array is mapped directly to a track element and any keys mapped directly to HTML attributes so as in the example above, it will render as `<track kind="captions" label="English" srclang="en" src="https://cdn.selz.com/plyr/1.0/example_captions_en.vtt" default>` and similar for the French version. Booleans are converted to HTML5 value-less attributes. |
 | `previewThumbnails`&sup1; | Object | The same object like in the `previewThumbnails` constructor option. This means you can either change the thumbnails vtt via the `src` key or disable the thumbnails plugin for the next video by passing `{ enabled: false }`.                                                                                                                                                                                 |
+| `syncPoints`              | Object | Specify key media events and can be used for displaying match time.                                                                                                                                                                                                                                                                                                                                            |
 
 1.  HTML5 only
 

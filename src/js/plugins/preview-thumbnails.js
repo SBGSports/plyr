@@ -1,8 +1,8 @@
+import controls from '../controls';
 import { createElement } from '../utils/elements';
 import { once, triggerEvent } from '../utils/events';
 import fetch from '../utils/fetch';
 import is from '../utils/is';
-import { formatTime } from '../utils/time';
 
 // Arg: vttDataString example: "WEBVTT\n\n1\n00:00:05.000 --> 00:00:10.000\n1080p-00001.jpg"
 const parseVtt = vttDataString => {
@@ -251,7 +251,7 @@ class PreviewThumbnails {
       this.mousePosX = event.pageX;
 
       // Set time text inside image container
-      this.elements.thumb.time.innerText = formatTime(this.seekTime);
+      this.elements.thumb.time.innerText = controls.formatTime.call(this.player, this.seekTime);
     }
 
     // Download and show image

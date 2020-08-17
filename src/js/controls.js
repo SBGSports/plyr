@@ -31,7 +31,7 @@ import is from './utils/is';
 import loadSprite from './utils/load-sprite';
 import { extend } from './utils/objects';
 import { getPercentage, replaceAll, toCamelCase, toTitleCase } from './utils/strings';
-import { formatTime, getHours } from './utils/time';
+import { matchTime, formatTime, getHours } from './utils/time';
 
 // TODO: Don't export a massive object - break down and create class
 const controls = {
@@ -408,6 +408,9 @@ const controls = {
       this.currentTime ? formatTime(this.currentTime) : '00:00',
     );
 
+    // Toggle Match time class
+    toggleClass(container, this.config.classNames.matchTime, this.config.matchTime);
+
     // Reference for updates
     this.elements.display[type] = container;
 
@@ -574,6 +577,10 @@ const controls = {
     // Always display hours if duration is over an hour
     const forceHours = getHours(this.duration) > 0;
 
+    if (this.config.matchTime && this.config.syncPoints) {
+      return matchTime(time, this.config.syncPoints);
+    }
+
     return formatTime(time, forceHours, inverted);
   },
 
@@ -585,7 +592,7 @@ const controls = {
     }
 
     // eslint-disable-next-line no-param-reassign
-    target.innerText = controls.formatTime(time, inverted);
+    target.innerText = controls.formatTime.call(this, time, inverted);
   },
 
   // Update volume UI and storage
@@ -683,8 +690,8 @@ const controls = {
     // Set aria values for https://github.com/sampotts/plyr/issues/905
     if (matches(range, this.config.selectors.inputs.seek)) {
       range.setAttribute('aria-valuenow', this.currentTime);
-      const currentTime = controls.formatTime(this.currentTime);
-      const duration = controls.formatTime(this.duration);
+      const currentTime = controls.formatTime.call(this, this.currentTime);
+      const duration = controls.formatTime.call(this, this.duration);
       const format = i18n.get('seekLabel', this.config);
       range.setAttribute(
         'aria-valuetext',

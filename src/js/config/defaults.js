@@ -78,6 +78,9 @@ const defaults = {
     onChange: null,
   },
 
+  // Display match time instead of the current time (using source sync points)
+  matchTime: false,
+
   // Set loops
   loop: {
     active: false,
@@ -429,6 +432,7 @@ const defaults = {
     isTouch: 'plyr--is-touch',
     uiSupported: 'plyr--full-ui',
     noTransition: 'plyr--no-transition',
+    matchTime: 'plyr--match-time',
     display: {
       time: 'plyr__time',
     },
