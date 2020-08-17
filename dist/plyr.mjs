@@ -1,4 +1,40 @@
-typeof navigator === "object" && function _classCallCheck(instance, Constructor) {
+typeof navigator === "object" && function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+  try {
+    var info = gen[key](arg);
+    var value = info.value;
+  } catch (error) {
+    reject(error);
+    return;
+  }
+
+  if (info.done) {
+    resolve(value);
+  } else {
+    Promise.resolve(value).then(_next, _throw);
+  }
+}
+
+function _asyncToGenerator(fn) {
+  return function () {
+    var self = this,
+        args = arguments;
+    return new Promise(function (resolve, reject) {
+      var gen = fn.apply(self, args);
+
+      function _next(value) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+      }
+
+      function _throw(err) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+      }
+
+      _next(undefined);
+    });
+  };
+}
+
+function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
   }
@@ -69,20 +105,52 @@ function _objectSpread2(target) {
   return target;
 }
 
+function _objectWithoutPropertiesLoose(source, excluded) {
+  if (source == null) return {};
+  var target = {};
+  var sourceKeys = Object.keys(source);
+  var key, i;
+
+  for (i = 0; i < sourceKeys.length; i++) {
+    key = sourceKeys[i];
+    if (excluded.indexOf(key) >= 0) continue;
+    target[key] = source[key];
+  }
+
+  return target;
+}
+
+function _objectWithoutProperties(source, excluded) {
+  if (source == null) return {};
+
+  var target = _objectWithoutPropertiesLoose(source, excluded);
+
+  var key, i;
+
+  if (Object.getOwnPropertySymbols) {
+    var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
+
+    for (i = 0; i < sourceSymbolKeys.length; i++) {
+      key = sourceSymbolKeys[i];
+      if (excluded.indexOf(key) >= 0) continue;
+      if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue;
+      target[key] = source[key];
+    }
+  }
+
+  return target;
+}
+
 function _slicedToArray(arr, i) {
-  return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
+  return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
 }
 
 function _toConsumableArray(arr) {
-  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
+  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
 }
 
 function _arrayWithoutHoles(arr) {
-  if (Array.isArray(arr)) {
-    for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-
-    return arr2;
-  }
+  if (Array.isArray(arr)) return _arrayLikeToArray(arr);
 }
 
 function _arrayWithHoles(arr) {
@@ -90,14 +158,11 @@ function _arrayWithHoles(arr) {
 }
 
 function _iterableToArray(iter) {
-  if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+  if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
 }
 
 function _iterableToArrayLimit(arr, i) {
-  if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) {
-    return;
-  }
-
+  if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
   var _arr = [];
   var _n = true;
   var _d = false;
@@ -123,102 +188,142 @@ function _iterableToArrayLimit(arr, i) {
   return _arr;
 }
 
+function _unsupportedIterableToArray(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(n);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+}
+
+function _arrayLikeToArray(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+
+  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+
+  return arr2;
+}
+
 function _nonIterableSpread() {
-  throw new TypeError("Invalid attempt to spread non-iterable instance");
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
 function _nonIterableRest() {
-  throw new TypeError("Invalid attempt to destructure non-iterable instance");
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+function _classCallCheck$1(e, t) {
+  if (!(e instanceof t)) throw new TypeError("Cannot call a class as a function");
+}
+
+function _defineProperties$1(e, t) {
+  for (var n = 0; n < t.length; n++) {
+    var r = t[n];
+    r.enumerable = r.enumerable || !1, r.configurable = !0, "value" in r && (r.writable = !0), Object.defineProperty(e, r.key, r);
+  }
+}
+
+function _createClass$1(e, t, n) {
+  return t && _defineProperties$1(e.prototype, t), n && _defineProperties$1(e, n), e;
+}
+
+function _defineProperty$1(e, t, n) {
+  return t in e ? Object.defineProperty(e, t, {
+    value: n,
+    enumerable: !0,
+    configurable: !0,
+    writable: !0
+  }) : e[t] = n, e;
+}
+
+function ownKeys$1(e, t) {
+  var n = Object.keys(e);
+
+  if (Object.getOwnPropertySymbols) {
+    var r = Object.getOwnPropertySymbols(e);
+    t && (r = r.filter(function (t) {
+      return Object.getOwnPropertyDescriptor(e, t).enumerable;
+    })), n.push.apply(n, r);
+  }
+
+  return n;
+}
+
+function _objectSpread2$1(e) {
+  for (var t = 1; t < arguments.length; t++) {
+    var n = null != arguments[t] ? arguments[t] : {};
+    t % 2 ? ownKeys$1(Object(n), !0).forEach(function (t) {
+      _defineProperty$1(e, t, n[t]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(n)) : ownKeys$1(Object(n)).forEach(function (t) {
+      Object.defineProperty(e, t, Object.getOwnPropertyDescriptor(n, t));
+    });
+  }
+
+  return e;
 }
 
 var defaults = {
-  addCSS: true,
-  // Add CSS to the element to improve usability (required here or in your CSS!)
+  addCSS: !0,
   thumbWidth: 15,
-  // The width of the thumb handle
-  watch: true // Watch for new elements that match a string target
-
+  watch: !0
 };
 
-// Element matches a selector
-function matches(element, selector) {
+function matches(e, t) {
+  return function () {
+    return Array.from(document.querySelectorAll(t)).includes(this);
+  }.call(e, t);
+}
 
-  function match() {
-    return Array.from(document.querySelectorAll(selector)).includes(this);
+function trigger(e, t) {
+  if (e && t) {
+    var n = new Event(t, {
+      bubbles: !0
+    });
+    e.dispatchEvent(n);
   }
-
-  var matches =  match;
-  return matches.call(element, selector);
 }
 
-// Trigger event
-function trigger(element, type) {
-  if (!element || !type) {
-    return;
-  } // Create and dispatch the event
-
-
-  var event = new Event(type); // Dispatch the event
-
-  element.dispatchEvent(event);
-}
-
-// ==========================================================================
-// Type checking utils
-// ==========================================================================
-var getConstructor = function getConstructor(input) {
-  return input !== null && typeof input !== 'undefined' ? input.constructor : null;
-};
-
-var instanceOf = function instanceOf(input, constructor) {
-  return Boolean(input && constructor && input instanceof constructor);
-};
-
-var isNullOrUndefined = function isNullOrUndefined(input) {
-  return input === null || typeof input === 'undefined';
-};
-
-var isObject = function isObject(input) {
-  return getConstructor(input) === Object;
-};
-
-var isNumber = function isNumber(input) {
-  return getConstructor(input) === Number && !Number.isNaN(input);
-};
-
-var isString = function isString(input) {
-  return getConstructor(input) === String;
-};
-
-var isBoolean = function isBoolean(input) {
-  return getConstructor(input) === Boolean;
-};
-
-var isFunction = function isFunction(input) {
-  return getConstructor(input) === Function;
-};
-
-var isArray = function isArray(input) {
-  return Array.isArray(input);
-};
-
-var isNodeList = function isNodeList(input) {
-  return instanceOf(input, NodeList);
-};
-
-var isElement = function isElement(input) {
-  return instanceOf(input, Element);
-};
-
-var isEvent = function isEvent(input) {
-  return instanceOf(input, Event);
-};
-
-var isEmpty = function isEmpty(input) {
-  return isNullOrUndefined(input) || (isString(input) || isArray(input) || isNodeList(input)) && !input.length || isObject(input) && !Object.keys(input).length;
-};
-
-var is = {
+var getConstructor = function getConstructor(e) {
+  return null != e ? e.constructor : null;
+},
+    instanceOf = function instanceOf(e, t) {
+  return !!(e && t && e instanceof t);
+},
+    isNullOrUndefined = function isNullOrUndefined(e) {
+  return null == e;
+},
+    isObject = function isObject(e) {
+  return getConstructor(e) === Object;
+},
+    isNumber = function isNumber(e) {
+  return getConstructor(e) === Number && !Number.isNaN(e);
+},
+    isString = function isString(e) {
+  return getConstructor(e) === String;
+},
+    isBoolean = function isBoolean(e) {
+  return getConstructor(e) === Boolean;
+},
+    isFunction = function isFunction(e) {
+  return getConstructor(e) === Function;
+},
+    isArray = function isArray(e) {
+  return Array.isArray(e);
+},
+    isNodeList = function isNodeList(e) {
+  return instanceOf(e, NodeList);
+},
+    isElement = function isElement(e) {
+  return instanceOf(e, Element);
+},
+    isEvent = function isEvent(e) {
+  return instanceOf(e, Event);
+},
+    isEmpty = function isEmpty(e) {
+  return isNullOrUndefined(e) || (isString(e) || isArray(e) || isNodeList(e)) && !e.length || isObject(e) && !Object.keys(e).length;
+},
+    is = {
   nullOrUndefined: isNullOrUndefined,
   object: isObject,
   number: isNumber,
@@ -232,219 +337,98 @@ var is = {
   empty: isEmpty
 };
 
-// Get the number of decimal places
-function getDecimalPlaces(value) {
-  var match = "".concat(value).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
-
-  if (!match) {
-    return 0;
-  }
-
-  return Math.max(0, // Number of digits right of decimal point.
-  (match[1] ? match[1].length : 0) - ( // Adjust for scientific notation.
-  match[2] ? +match[2] : 0));
-} // Round to the nearest step
-
-function round(number, step) {
-  if (step < 1) {
-    var places = getDecimalPlaces(step);
-    return parseFloat(number.toFixed(places));
-  }
-
-  return Math.round(number / step) * step;
+function getDecimalPlaces(e) {
+  var t = "".concat(e).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+  return t ? Math.max(0, (t[1] ? t[1].length : 0) - (t[2] ? +t[2] : 0)) : 0;
 }
 
-var RangeTouch =
-/*#__PURE__*/
-function () {
-  /**
-   * Setup a new instance
-   * @param {String|Element} target
-   * @param {Object} options
-   */
-  function RangeTouch(target, options) {
-    _classCallCheck(this, RangeTouch);
-
-    if (is.element(target)) {
-      // An Element is passed, use it directly
-      this.element = target;
-    } else if (is.string(target)) {
-      // A CSS Selector is passed, fetch it from the DOM
-      this.element = document.querySelector(target);
-    }
-
-    if (!is.element(this.element) || !is.empty(this.element.rangeTouch)) {
-      return;
-    }
-
-    this.config = Object.assign({}, defaults, options);
-    this.init();
+function round(e, t) {
+  if (1 > t) {
+    var n = getDecimalPlaces(t);
+    return parseFloat(e.toFixed(n));
   }
 
-  _createClass(RangeTouch, [{
+  return Math.round(e / t) * t;
+}
+
+var RangeTouch = function () {
+  function e(t, n) {
+    _classCallCheck$1(this, e), is.element(t) ? this.element = t : is.string(t) && (this.element = document.querySelector(t)), is.element(this.element) && is.empty(this.element.rangeTouch) && (this.config = _objectSpread2$1({}, defaults, {}, n), this.init());
+  }
+
+  return _createClass$1(e, [{
     key: "init",
-    value: function init() {
-      // Bail if not a touch enabled device
-      if (!RangeTouch.enabled) {
-        return;
-      } // Add useful CSS
-
-
-      if (this.config.addCSS) {
-        // TODO: Restore original values on destroy
-        this.element.style.userSelect = 'none';
-        this.element.style.webKitUserSelect = 'none';
-        this.element.style.touchAction = 'manipulation';
-      }
-
-      this.listeners(true);
-      this.element.rangeTouch = this;
+    value: function value() {
+      e.enabled && (this.config.addCSS && (this.element.style.userSelect = "none", this.element.style.webKitUserSelect = "none", this.element.style.touchAction = "manipulation"), this.listeners(!0), this.element.rangeTouch = this);
     }
   }, {
     key: "destroy",
-    value: function destroy() {
-      // Bail if not a touch enabled device
-      if (!RangeTouch.enabled) {
-        return;
-      }
-
-      this.listeners(false);
-      this.element.rangeTouch = null;
+    value: function value() {
+      e.enabled && (this.config.addCSS && (this.element.style.userSelect = "", this.element.style.webKitUserSelect = "", this.element.style.touchAction = ""), this.listeners(!1), this.element.rangeTouch = null);
     }
   }, {
     key: "listeners",
-    value: function listeners(toggle) {
-      var _this = this;
-
-      var method = toggle ? 'addEventListener' : 'removeEventListener'; // Listen for events
-
-      ['touchstart', 'touchmove', 'touchend'].forEach(function (type) {
-        _this.element[method](type, function (event) {
-          return _this.set(event);
-        }, false);
+    value: function value(e) {
+      var t = this,
+          n = e ? "addEventListener" : "removeEventListener";
+      ["touchstart", "touchmove", "touchend"].forEach(function (e) {
+        t.element[n](e, function (e) {
+          return t.set(e);
+        }, !1);
       });
     }
-    /**
-     * Get the value based on touch position
-     * @param {Event} event
-     */
-
   }, {
     key: "get",
-    value: function get(event) {
-      if (!RangeTouch.enabled || !is.event(event)) {
-        return null;
-      }
-
-      var input = event.target;
-      var touch = event.changedTouches[0];
-      var min = parseFloat(input.getAttribute('min')) || 0;
-      var max = parseFloat(input.getAttribute('max')) || 100;
-      var step = parseFloat(input.getAttribute('step')) || 1;
-      var delta = max - min; // Calculate percentage
-
-      var percent;
-      var clientRect = input.getBoundingClientRect();
-      var thumbWidth = 100 / clientRect.width * (this.config.thumbWidth / 2) / 100; // Determine left percentage
-
-      percent = 100 / clientRect.width * (touch.clientX - clientRect.left); // Don't allow outside bounds
-
-      if (percent < 0) {
-        percent = 0;
-      } else if (percent > 100) {
-        percent = 100;
-      } // Factor in the thumb offset
-
-
-      if (percent < 50) {
-        percent -= (100 - percent * 2) * thumbWidth;
-      } else if (percent > 50) {
-        percent += (percent - 50) * 2 * thumbWidth;
-      } // Find the closest step to the mouse position
-
-
-      return min + round(delta * (percent / 100), step);
+    value: function value(t) {
+      if (!e.enabled || !is.event(t)) return null;
+      var n,
+          r = t.target,
+          i = t.changedTouches[0],
+          o = parseFloat(r.getAttribute("min")) || 0,
+          s = parseFloat(r.getAttribute("max")) || 100,
+          u = parseFloat(r.getAttribute("step")) || 1,
+          c = r.getBoundingClientRect(),
+          a = 100 / c.width * (this.config.thumbWidth / 2) / 100;
+      return 0 > (n = 100 / c.width * (i.clientX - c.left)) ? n = 0 : 100 < n && (n = 100), 50 > n ? n -= (100 - 2 * n) * a : 50 < n && (n += 2 * (n - 50) * a), o + round(n / 100 * (s - o), u);
     }
-    /**
-     * Update range value based on position
-     * @param {Event} event
-     */
-
   }, {
     key: "set",
-    value: function set(event) {
-      if (!RangeTouch.enabled || !is.event(event) || event.target.disabled) {
-        return;
-      } // Prevent text highlight on iOS
-
-
-      event.preventDefault(); // Set value
-
-      event.target.value = this.get(event); // Trigger event
-
-      trigger(event.target, event.type === 'touchend' ? 'change' : 'input');
+    value: function value(t) {
+      e.enabled && is.event(t) && !t.target.disabled && (t.preventDefault(), t.target.value = this.get(t), trigger(t.target, "touchend" === t.type ? "change" : "input"));
     }
   }], [{
     key: "setup",
+    value: function value(t) {
+      var n = 1 < arguments.length && void 0 !== arguments[1] ? arguments[1] : {},
+          r = null;
+      if (is.empty(t) || is.string(t) ? r = Array.from(document.querySelectorAll(is.string(t) ? t : 'input[type="range"]')) : is.element(t) ? r = [t] : is.nodeList(t) ? r = Array.from(t) : is.array(t) && (r = t.filter(is.element)), is.empty(r)) return null;
 
-    /**
-     * Setup multiple instances
-     * @param {String|Element|NodeList|Array} target
-     * @param {Object} options
-     */
-    value: function setup(target) {
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var targets = null;
+      var i = _objectSpread2$1({}, defaults, {}, n);
 
-      if (is.empty(target) || is.string(target)) {
-        targets = Array.from(document.querySelectorAll(is.string(target) ? target : 'input[type="range"]'));
-      } else if (is.element(target)) {
-        targets = [target];
-      } else if (is.nodeList(target)) {
-        targets = Array.from(target);
-      } else if (is.array(target)) {
-        targets = target.filter(is.element);
-      }
-
-      if (is.empty(targets)) {
-        return null;
-      }
-
-      var config = Object.assign({}, defaults, options);
-
-      if (is.string(target) && config.watch) {
-        // Create an observer instance
-        var observer = new MutationObserver(function (mutations) {
-          Array.from(mutations).forEach(function (mutation) {
-            Array.from(mutation.addedNodes).forEach(function (node) {
-              if (!is.element(node) || !matches(node, target)) {
-                return;
-              } // eslint-disable-next-line no-unused-vars
-
-
-              var range = new RangeTouch(node, config);
+      if (is.string(t) && i.watch) {
+        var o = new MutationObserver(function (n) {
+          Array.from(n).forEach(function (n) {
+            Array.from(n.addedNodes).forEach(function (n) {
+              is.element(n) && matches(n, t) && new e(n, i);
             });
           });
-        }); // Pass in the target node, as well as the observer options
-
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true
+        });
+        o.observe(document.body, {
+          childList: !0,
+          subtree: !0
         });
       }
 
-      return targets.map(function (t) {
-        return new RangeTouch(t, options);
+      return r.map(function (t) {
+        return new e(t, n);
       });
     }
   }, {
     key: "enabled",
     get: function get() {
-      return 'ontouchstart' in document.documentElement;
+      return "ontouchstart" in document.documentElement;
     }
-  }]);
-
-  return RangeTouch;
+  }]), e;
 }();
 
 // ==========================================================================
@@ -519,7 +503,7 @@ var isTrack = function isTrack(input) {
 };
 
 var isPromise = function isPromise(input) {
-  return instanceOf$1(input, Promise);
+  return instanceOf$1(input, Promise) && isFunction$1(input.then);
 };
 
 var isEmpty$1 = function isEmpty(input) {
@@ -861,12 +845,33 @@ function hasClass(element, className) {
 } // Element matches selector
 
 function matches$1(element, selector) {
+  var _Element = Element,
+      prototype = _Element.prototype;
 
   function match() {
     return Array.from(document.querySelectorAll(selector)).includes(this);
   }
 
-  var method =  match;
+  var method = prototype.matches || prototype.webkitMatchesSelector || prototype.mozMatchesSelector || prototype.msMatchesSelector || match;
+  return method.call(element, selector);
+} // Closest ancestor element matching selector (also tests element itself)
+
+function closest(element, selector) {
+  var _Element2 = Element,
+      prototype = _Element2.prototype; // https://developer.mozilla.org/en-US/docs/Web/API/Element/closest#Polyfill
+
+  function closestElement() {
+    var el = this;
+
+    do {
+      if (matches$1.matches(el, selector)) return el;
+      el = el.parentElement || el.parentNode;
+    } while (el !== null && el.nodeType === 1);
+
+    return null;
+  }
+
+  var method = prototype.closest || closestElement;
   return method.call(element, selector);
 } // Find all elements
 
@@ -1138,6 +1143,19 @@ function ready() {
   }).then(function () {});
 }
 
+/**
+ * Silence a Promise-like object.
+ * This is useful for avoiding non-harmful, but potentially confusing "uncaught
+ * play promise" rejection error messages.
+ * @param  {Object} value An object that may or may not be `Promise`-like.
+ */
+
+function silencePromise(value) {
+  if (is$1.promise(value)) {
+    value.then(null, function () {});
+  }
+}
+
 function validateRatio(input) {
   if (!is$1.array(input) && (!is$1.string(input) || !input.includes(':'))) {
     return false;
@@ -1206,8 +1224,8 @@ function setAspectRatio(input) {
   var padding = 100 / w * h;
   wrapper.style.paddingBottom = "".concat(padding, "%"); // For Vimeo we have an extra <div> to hide the standard controls and UI
 
-  if (this.isVimeo && this.supported.ui) {
-    var height = 240;
+  if (this.isVimeo && !this.config.vimeo.premium && this.supported.ui) {
+    var height = 100 / this.media.offsetWidth * parseInt(window.getComputedStyle(this.media).paddingBottom, 10);
     var offset = (height - padding) / (height / 50);
     this.media.style.transform = "translateY(-".concat(offset, "%)");
   } else if (this.isHTML5) {
@@ -1314,7 +1332,7 @@ var html5 = {
               player.currentTime = currentTime; // Resume playing
 
               if (!paused) {
-                player.play();
+                silencePromise(player.play());
               }
             }); // Load new source
 
@@ -1363,7 +1381,7 @@ function dedupe(array) {
   });
 } // Get the closest value in an array
 
-function closest(array, value) {
+function closest$1(array, value) {
   if (!is$1.array(array) || !array.length) {
     return null;
   }
@@ -1401,19 +1419,19 @@ function getPercentage(current, max) {
   return (current / max * 100).toFixed(2);
 } // Replace all occurances of a string in a string
 
-function replaceAll() {
+var replaceAll = function replaceAll() {
   var input = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
   var find = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
   var replace = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
   return input.replace(new RegExp(find.toString().replace(/([.*+?^=!:${}()|[\]/\\])/g, '\\$1'), 'g'), replace.toString());
-} // Convert to title case
+}; // Convert to title case
 
-function toTitleCase() {
+var toTitleCase = function toTitleCase() {
   var input = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
   return input.toString().replace(/\w\S*/g, function (text) {
     return text.charAt(0).toUpperCase() + text.substr(1).toLowerCase();
   });
-} // Convert string to pascalCase
+}; // Convert string to pascalCase
 
 function toPascalCase() {
   var input = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
@@ -1492,9 +1510,7 @@ var i18n = {
   }
 };
 
-var Storage =
-/*#__PURE__*/
-function () {
+var Storage = /*#__PURE__*/function () {
   function Storage(player) {
     _classCallCheck(this, Storage);
 
@@ -1681,6 +1697,9 @@ var getMinutes = function getMinutes(value) {
 };
 var getSeconds = function getSeconds(value) {
   return Math.trunc(value % 60, 10);
+};
+var secondsToMinutes = function secondsToMinutes(value) {
+  return Math.floor(value / 60);
 }; // Format time to UI friendly string
 
 function formatTime() {
@@ -1712,6 +1731,28 @@ function formatTime() {
 
   return "".concat(inverted && time > 0 ? '-' : '').concat(hours).concat(format(mins), ":").concat(format(secs));
 }
+function matchTime(time, syncPoints) {
+  var syncPointsOrdered = syncPoints.sort(function (a, b) {
+    return b.time - a.time;
+  });
+  var syncPoint = syncPointsOrdered.find(function (x) {
+    return x.time <= time;
+  }) || syncPointsOrdered[syncPointsOrdered.length - 1];
+  var timeIntoPeriod = Math.max(time - syncPoint.time, 0); // Time into period
+
+  var seconds = getSeconds(timeIntoPeriod);
+  var minutes = secondsToMinutes(syncPoint.start + timeIntoPeriod - seconds);
+  var minutesIntoPeriod = secondsToMinutes(timeIntoPeriod - seconds); // Added time into period
+
+  var addedTime = minutesIntoPeriod >= secondsToMinutes(syncPoint.duration);
+  var addedMinutes = minutesIntoPeriod - Math.min(minutesIntoPeriod, secondsToMinutes(syncPoint.duration)); // Format time component to add leading zero
+
+  var format = function format(value) {
+    return "0".concat(value).slice(-2);
+  };
+
+  return "".concat(format(minutes)).concat(addedTime ? "+".concat(format(addedMinutes)) : '', ":").concat(format(seconds));
+}
 
 var controls = {
   // Get icon URL
@@ -1734,11 +1775,14 @@ var controls = {
         restart: getElement.call(this, this.config.selectors.buttons.restart),
         rewind: getElement.call(this, this.config.selectors.buttons.rewind),
         fastForward: getElement.call(this, this.config.selectors.buttons.fastForward),
+        frameRewind: getElement.call(this, this.config.selectors.buttons.frameRewind),
+        frameForward: getElement.call(this, this.config.selectors.buttons.frameForward),
         mute: getElement.call(this, this.config.selectors.buttons.mute),
         pip: getElement.call(this, this.config.selectors.buttons.pip),
         airplay: getElement.call(this, this.config.selectors.buttons.airplay),
         settings: getElement.call(this, this.config.selectors.buttons.settings),
         captions: getElement.call(this, this.config.selectors.buttons.captions),
+        trim: getElement.call(this, this.config.selectors.buttons.trim),
         fullscreen: getElement.call(this, this.config.selectors.buttons.fullscreen)
       }; // Progress
 
@@ -1752,6 +1796,7 @@ var controls = {
       this.elements.display = {
         buffer: getElement.call(this, this.config.selectors.display.buffer),
         currentTime: getElement.call(this, this.config.selectors.display.currentTime),
+        editorCurrentTime: getElement.call(this, this.config.selectors.display.currentTime),
         duration: getElement.call(this, this.config.selectors.display.duration)
       }; // Seek tooltip
 
@@ -1776,7 +1821,7 @@ var controls = {
 
     var icon = document.createElementNS(namespace, 'svg');
     setAttributes(icon, extend(attributes, {
-      role: 'presentation',
+      'aria-hidden': 'true',
       focusable: 'false'
     })); // Create the <use> to reference sprite
 
@@ -1882,6 +1927,24 @@ var controls = {
         props.labelPressed = 'disableCaptions';
         props.icon = 'captions-off';
         props.iconPressed = 'captions-on';
+        break;
+
+      case 'zoomOut':
+        props.label = 'zoomOut';
+        props.icon = 'zoom-out';
+        break;
+
+      case 'zoomIn':
+        props.label = 'zoomIn';
+        props.icon = 'zoom-in';
+        break;
+
+      case 'trim':
+        props.toggle = true;
+        props.label = 'enterTrim';
+        props.labelPressed = 'exitTrim';
+        props.icon = 'enter-trim';
+        props.iconPressed = 'exit-trim';
         break;
 
       case 'fullscreen':
@@ -2001,7 +2064,9 @@ var controls = {
     var container = createElement('div', extend(attributes, {
       class: "".concat(attributes.class ? attributes.class : '', " ").concat(this.config.classNames.display.time, " ").trim(),
       'aria-label': i18n.get(type, this.config)
-    }), '00:00'); // Reference for updates
+    }), this.currentTime ? formatTime(this.currentTime) : '00:00'); // Toggle Match time class
+
+    toggleClass(container, this.config.classNames.matchTime, this.config.matchTime); // Reference for updates
 
     this.elements.display[type] = container;
     return container;
@@ -2151,6 +2216,11 @@ var controls = {
 
 
     var forceHours = getHours(this.duration) > 0;
+
+    if (this.config.matchTime && this.config.syncPoints) {
+      return matchTime(time, this.config.syncPoints);
+    }
+
     return formatTime(time, forceHours, inverted);
   },
   // Update the displayed time
@@ -2165,7 +2235,7 @@ var controls = {
     } // eslint-disable-next-line no-param-reassign
 
 
-    target.innerText = controls.formatTime(time, inverted);
+    target.innerText = controls.formatTime.call(this, time, inverted);
   },
   // Update volume UI and storage
   updateVolume: function updateVolume() {
@@ -2255,8 +2325,8 @@ var controls = {
 
     if (matches$1(range, this.config.selectors.inputs.seek)) {
       range.setAttribute('aria-valuenow', this.currentTime);
-      var currentTime = controls.formatTime(this.currentTime);
-      var duration = controls.formatTime(this.duration);
+      var currentTime = controls.formatTime.call(this, this.currentTime);
+      var duration = controls.formatTime.call(this, this.duration);
       var format = i18n.get('seekLabel', this.config);
       range.setAttribute('aria-valuetext', format.replace('{currentTime}', currentTime).replace('{duration}', duration));
     } else if (matches$1(range, this.config.selectors.inputs.volume)) {
@@ -2273,7 +2343,7 @@ var controls = {
     } // Set CSS custom property
 
 
-    range.style.setProperty('--value', "".concat(range.value / range.max * 100, "%"));
+    range.style.setProperty('--value', "".concat((range.value - range.min) / (range.max - range.min) * 100, "%"));
   },
   // Update hover tooltip for seeking
   updateSeekTooltip: function updateSeekTooltip(event) {
@@ -2330,7 +2400,9 @@ var controls = {
     // Only invert if only one time element is displayed and used for both duration and currentTime
     var invert = !is$1.element(this.elements.display.duration) && this.config.invertTime; // Duration
 
-    controls.updateTimeDisplay.call(this, this.elements.display.currentTime, invert ? this.duration - this.currentTime : this.currentTime, invert); // Ignore updates while seeking
+    controls.updateTimeDisplay.call(this, this.elements.display.currentTime, invert ? this.duration - this.currentTime : this.currentTime, invert); // Editor Duration
+
+    controls.updateTimeDisplay.call(this, this.elements.display.editorCurrentTime, this.currentTime); // Ignore updates while seeking
 
     if (event && event.type === 'timeupdate' && this.media.seeking) {
       return;
@@ -2513,39 +2585,39 @@ var controls = {
   // Set the looping options
 
   /* setLoopMenu() {
-      // Menu required
-      if (!is.element(this.elements.settings.panels.loop)) {
-          return;
-      }
-       const options = ['start', 'end', 'all', 'reset'];
-      const list = this.elements.settings.panels.loop.querySelector('[role="menu"]');
-       // Show the pane and tab
-      toggleHidden(this.elements.settings.buttons.loop, false);
-      toggleHidden(this.elements.settings.panels.loop, false);
-       // Toggle the pane and tab
-      const toggle = !is.empty(this.loop.options);
-      controls.toggleMenuButton.call(this, 'loop', toggle);
-       // Empty the menu
-      emptyElement(list);
-       options.forEach(option => {
-          const item = createElement('li');
-           const button = createElement(
-              'button',
-              extend(getAttributesFromSelector(this.config.selectors.buttons.loop), {
-                  type: 'button',
-                  class: this.config.classNames.control,
-                  'data-plyr-loop-action': option,
-              }),
-              i18n.get(option, this.config)
-          );
-           if (['start', 'end'].includes(option)) {
-              const badge = controls.createBadge.call(this, '00:00');
-              button.appendChild(badge);
-          }
-           item.appendChild(button);
-          list.appendChild(item);
-      });
-  }, */
+        // Menu required
+        if (!is.element(this.elements.settings.panels.loop)) {
+            return;
+        }
+          const options = ['start', 'end', 'all', 'reset'];
+        const list = this.elements.settings.panels.loop.querySelector('[role="menu"]');
+          // Show the pane and tab
+        toggleHidden(this.elements.settings.buttons.loop, false);
+        toggleHidden(this.elements.settings.panels.loop, false);
+          // Toggle the pane and tab
+        const toggle = !is.empty(this.loop.options);
+        controls.toggleMenuButton.call(this, 'loop', toggle);
+          // Empty the menu
+        emptyElement(list);
+          options.forEach(option => {
+            const item = createElement('li');
+              const button = createElement(
+                'button',
+                extend(getAttributesFromSelector(this.config.selectors.buttons.loop), {
+                    type: 'button',
+                    class: this.config.classNames.control,
+                    'data-plyr-loop-action': option,
+                }),
+                i18n.get(option, this.config)
+            );
+              if (['start', 'end'].includes(option)) {
+                const badge = controls.createBadge.call(this, '00:00');
+                button.appendChild(badge);
+            }
+              item.appendChild(button);
+            list.appendChild(item);
+        });
+    }, */
   // Get current selected caption language
   // TODO: rework this to user the getter in the API?
   // Set a list of available captions languages
@@ -2800,7 +2872,7 @@ var controls = {
         showMenuPanel = controls.showMenuPanel;
     this.elements.controls = null; // Larger overlaid play button
 
-    if (this.config.controls.includes('play-large')) {
+    if (is$1.array(this.config.controls) && this.config.controls.includes('play-large')) {
       this.elements.container.appendChild(createButton.call(this, 'play-large'));
     } // Create the container
 
@@ -2812,7 +2884,7 @@ var controls = {
       class: 'plyr__controls__item'
     }; // Loop through controls in order
 
-    dedupe(this.config.controls).forEach(function (control) {
+    dedupe(is$1.array(this.config.controls) ? this.config.controls : []).forEach(function (control) {
       // Restart button
       if (control === 'restart') {
         container.appendChild(createButton.call(_this10, 'restart', defaultAttributes));
@@ -3012,6 +3084,16 @@ var controls = {
         container.appendChild(wrapper);
         _this10.elements.settings.popup = popup;
         _this10.elements.settings.menu = wrapper;
+      } // Frame Reverse button
+
+
+      if (control === 'frame-rewind') {
+        container.appendChild(createButton.call(_this10, 'frame-rewind', defaultAttributes));
+      } // Frame Forward button
+
+
+      if (control === 'frame-forward') {
+        container.appendChild(createButton.call(_this10, 'frame-forward', defaultAttributes));
       } // Picture in picture button
 
 
@@ -3047,6 +3129,11 @@ var controls = {
         }
 
         container.appendChild(createButton.call(_this10, 'download', _attributes));
+      } // Toggle trim button
+
+
+      if (control === 'trim') {
+        container.appendChild(createButton.call(_this10, 'trim', defaultAttributes));
       } // Toggle fullscreen button
 
 
@@ -3131,8 +3218,6 @@ var controls = {
     if (update) {
       if (is$1.string(this.config.controls)) {
         container = replace(container);
-      } else if (is$1.element(container)) {
-        container.innerHTML = replace(container.innerHTML);
       }
     } // Controls container
 
@@ -3239,6 +3324,13 @@ function buildUrlParams(input) {
   }
 
   return params;
+} // Parse URL Parameters
+
+function parseUrlHash(input) {
+  var _URL = new URL(input),
+      hash = _URL.hash;
+
+  return hash;
 }
 
 var captions = {
@@ -3347,9 +3439,15 @@ var captions = {
         meta.set(track, {
           default: track.mode === 'showing'
         }); // Turn off native caption rendering to avoid double captions
+        // Note: mode='hidden' forces a track to download. To ensure every track
+        // isn't downloaded at once, only 'showing' tracks should be reassigned
         // eslint-disable-next-line no-param-reassign
 
-        track.mode = 'hidden'; // Add event listener for cue changes
+        if (track.mode === 'showing') {
+          // eslint-disable-next-line no-param-reassign
+          track.mode = 'hidden';
+        } // Add event listener for cue changes
+
 
         on.call(_this, track, 'cuechange', function () {
           return captions.updateCues.call(_this);
@@ -3366,13 +3464,15 @@ var captions = {
 
     toggleClass(this.elements.container, this.config.classNames.captions.enabled, !is$1.empty(tracks)); // Update available languages in list
 
-    if ((this.config.controls || []).includes('settings') && this.config.settings.includes('captions')) {
+    if (is$1.array(this.config.controls) && this.config.controls.includes('settings') && this.config.settings.includes('captions')) {
       controls.setCaptionsMenu.call(this);
     }
   },
   // Toggle captions display
   // Used internally for the toggleCaptions method, with the passive option forced to false
   toggle: function toggle(input) {
+    var _this2 = this;
+
     var passive = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
     // If there's no full support
@@ -3419,7 +3519,15 @@ var captions = {
       controls.updateSetting.call(this, 'captions'); // Trigger event (not used internally)
 
       triggerEvent.call(this, this.media, active ? 'captionsenabled' : 'captionsdisabled');
-    }
+    } // Wait for the call stack to clear before setting mode='hidden'
+    // on the active track - forcing the browser to download it
+
+
+    setTimeout(function () {
+      if (active && _this2.captions.toggled) {
+        _this2.captions.currentTrackNode.mode = 'hidden';
+      }
+    });
   },
   // Set captions by track index
   // Used internally for the currentTrack setter with the passive option forced to false
@@ -3500,7 +3608,7 @@ var captions = {
   // If update is false it will also ignore tracks without metadata
   // This is used to "freeze" the language options when captions.update is false
   getTracks: function getTracks() {
-    var _this2 = this;
+    var _this3 = this;
 
     var update = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
     // Handle media or textTracks missing or null
@@ -3508,20 +3616,20 @@ var captions = {
     // Filter out removed tracks and tracks that aren't captions/subtitles (for example metadata)
 
     return tracks.filter(function (track) {
-      return !_this2.isHTML5 || update || _this2.captions.meta.has(track);
+      return !_this3.isHTML5 || update || _this3.captions.meta.has(track);
     }).filter(function (track) {
       return ['captions', 'subtitles'].includes(track.kind);
     });
   },
   // Match tracks based on languages and get the first
   findTrack: function findTrack(languages) {
-    var _this3 = this;
+    var _this4 = this;
 
     var force = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
     var tracks = captions.getTracks.call(this);
 
     var sortIsDefault = function sortIsDefault(track) {
-      return Number((_this3.captions.meta.get(track) || {}).default);
+      return Number((_this4.captions.meta.get(track) || {}).default);
     };
 
     var sorted = Array.from(tracks).sort(function (a, b) {
@@ -3628,6 +3736,8 @@ var defaults$1 = {
   playsinline: true,
   // Default time to skip when rewind/fast forward
   seekTime: 10,
+  // Default frame rate of video
+  frameRate: 25,
   // Default volume
   volume: 1,
   muted: false,
@@ -3654,7 +3764,7 @@ var defaults$1 = {
   // Sprite (for icons)
   loadSprite: true,
   iconPrefix: 'plyr',
-  iconUrl: 'https://cdn.plyr.io/3.5.10/plyr.svg',
+  iconUrl: 'https://cdn.plyr.io/3.6.1/plyr.svg',
   // Blank video (used to prevent errors on source change)
   blankVideo: 'https://cdn.plyr.io/static/blank.mp4',
   // Quality default
@@ -3665,6 +3775,8 @@ var defaults$1 = {
     forced: false,
     onChange: null
   },
+  // Display match time instead of the current time (using source sync points)
+  matchTime: false,
   // Set loops
   loop: {
     active: false // start: null,
@@ -3695,6 +3807,40 @@ var defaults$1 = {
     // This is needed for streaming captions, but may result in unselectable options
     update: false
   },
+  // Editor settings
+  editor: {
+    enabled: true,
+    // Allow Editor?
+    target: null,
+    // Target Container for Editor (if no container is specified, video editor will be appended to the video container)
+    maxZoom: 8 // Default max zoom level
+
+  },
+  markers: {
+    enabled: true,
+    // Allow timeline markers?
+    lockToTrimRegion: true // If the trimming tool is enabled prevent markers being added outside of the trimming bar
+
+  },
+  // Trim settings
+  trim: {
+    enabled: true,
+    // Allow trim?
+    closeEditor: true,
+    // Close editor, on close of trimming tool
+    maxTrimLength: -1,
+    // Limit the maximum length of the trimming region in seconds
+    lowerBound: -1,
+    // Limit the start time of the trimming region in seconds
+    upperBound: -1,
+    // Limit the end time of the trimming region in seconds
+    offsetContainer: false // Offset the trimming container window, to center the window based on the current time
+
+  },
+  mediaFragment: {
+    enabled: true // Enable media fragments?
+
+  },
   // Fullscreen settings
   fullscreen: {
     enabled: true,
@@ -3702,6 +3848,9 @@ var defaults$1 = {
     fallback: true,
     // Fallback using full viewport/window
     iosNative: false // Use the native fullscreen in iOS (disables custom controls)
+    // Selector for the fullscreen container so contextual / non-player content can remain visible in fullscreen mode
+    // Non-ancestors of the player element will be ignored
+    // container: null, // defaults to the player element
 
   },
   // Local storage
@@ -3713,8 +3862,11 @@ var defaults$1 = {
   controls: ['play-large', // 'restart',
   // 'rewind',
   'play', // 'fast-forward',
+  // 'frame-rewind',
+  // 'frame-forward',
   'progress', 'current-time', // 'duration',
   'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', // 'download',
+  // 'trim',
   'fullscreen'],
   settings: ['captions', 'quality', 'speed'],
   // Localisation
@@ -3724,6 +3876,8 @@ var defaults$1 = {
     play: 'Play',
     pause: 'Pause',
     fastForward: 'Forward {seektime}s',
+    frameRewind: 'Rewind Frame',
+    frameForward: 'Forward Frame',
     seek: 'Seek',
     seekLabel: '{currentTime} of {duration}',
     played: 'Played',
@@ -3736,6 +3890,17 @@ var defaults$1 = {
     enableCaptions: 'Enable captions',
     disableCaptions: 'Disable captions',
     download: 'Download',
+    enterEditor: 'Enter Editor',
+    exitEditor: 'Exit Editor',
+    editorCurrentTime: 'Current time',
+    zoom: 'Zoom Timeline',
+    zoomOut: 'Zoom Out',
+    zoomIn: 'Zoom In',
+    enterTrim: 'Enter trim',
+    exitTrim: 'Exit trim',
+    trimStart: 'Trim Start',
+    trimEnd: 'Trim End',
+    marker: 'Video Marker',
     enterFullscreen: 'Enter fullscreen',
     exitFullscreen: 'Exit fullscreen',
     frameTitle: 'Player for {title}',
@@ -3787,9 +3952,13 @@ var defaults$1 = {
     restart: null,
     rewind: null,
     fastForward: null,
+    frameRewind: null,
+    frameForward: null,
     mute: null,
     volume: null,
     captions: null,
+    editor: null,
+    trim: null,
     download: null,
     fullscreen: null,
     pip: null,
@@ -3803,10 +3972,14 @@ var defaults$1 = {
   events: [// Events to watch on HTML5 media elements and bubble
   // https://developer.mozilla.org/en/docs/Web/Guide/Events/Media_events
   'ended', 'progress', 'stalled', 'playing', 'waiting', 'canplay', 'canplaythrough', 'loadstart', 'loadeddata', 'loadedmetadata', 'timeupdate', 'volumechange', 'play', 'pause', 'error', 'seeking', 'seeked', 'emptied', 'ratechange', 'cuechange', // Custom events
-  'download', 'enterfullscreen', 'exitfullscreen', 'captionsenabled', 'captionsdisabled', 'languagechange', 'controlshidden', 'controlsshown', 'ready', // YouTube
+  'download', 'enterfullscreen', 'exitfullscreen', 'captionsenabled', 'captionsdisabled', 'languagechange', 'controlshidden', 'controlsshown', 'ready', 'destroyed', // YouTube
   'statechange', // Quality
   'qualitychange', // Ads
-  'adsloaded', 'adscontentpause', 'adscontentresume', 'adstarted', 'adsmidpoint', 'adscomplete', 'adsallcomplete', 'adsimpression', 'adsclick'],
+  'adsloaded', 'adscontentpause', 'adscontentresume', 'adstarted', 'adsmidpoint', 'adscomplete', 'adsallcomplete', 'adsimpression', 'adsclick', // Preview thumbnails
+  'previewthumbnailsloaded', // Editor
+  'entereditor', 'exiteditor', 'editorloaded', 'zoomchange', // Markers
+  'markeradded', 'markerchange', // Trimming
+  'entertrim', 'exittrim', 'trimloaded', 'trimchanging', 'trimchange'],
   // Selectors
   // Change these to match your template if using custom HTML
   selectors: {
@@ -3823,9 +3996,12 @@ var defaults$1 = {
       restart: '[data-plyr="restart"]',
       rewind: '[data-plyr="rewind"]',
       fastForward: '[data-plyr="fast-forward"]',
+      frameRewind: '[data-plyr="frame-rewind"]',
+      frameForward: '[data-plyr="frame-forward"]',
       mute: '[data-plyr="mute"]',
       captions: '[data-plyr="captions"]',
       download: '[data-plyr="download"]',
+      trim: '[data-plyr="trim"]',
       fullscreen: '[data-plyr="fullscreen"]',
       pip: '[data-plyr="pip"]',
       airplay: '[data-plyr="airplay"]',
@@ -3877,6 +4053,7 @@ var defaults$1 = {
     isTouch: 'plyr--is-touch',
     uiSupported: 'plyr--full-ui',
     noTransition: 'plyr--no-transition',
+    matchTime: 'plyr--match-time',
     display: {
       time: 'plyr__time'
     },
@@ -3888,6 +4065,39 @@ var defaults$1 = {
     captions: {
       enabled: 'plyr--captions-enabled',
       active: 'plyr--captions-active'
+    },
+    editor: {
+      container: 'plyr__editor__container',
+      controls: 'plyr__editor__controls',
+      timeContainer: 'plyr__editor__controls__time-container',
+      time: 'plyr__editor__controls__time',
+      zoomContainer: 'plyr__editor__controls__zoom__container',
+      timeline: 'plyr__editor__timeline',
+      videoContainerParent: 'plyr__editor__video-container-parent',
+      videoContainer: 'plyr__editor__video-container',
+      previewThumb: 'plyr__editor__preview-thumb',
+      timeStampsContainer: 'plyr__editor__time-stamps-container',
+      timeStamp: 'plyr__editor__time-stamp',
+      seekHandle: 'plyr__editor__seek-handle',
+      seekHandleHead: 'plyr__editor__seek-handle-head',
+      seekHandleLine: 'plyr__editor__seek-handle-line'
+    },
+    markers: {
+      container: 'plyr__markers__container',
+      marker: 'plyr__markers__marker',
+      label: 'plyr__markers__label'
+    },
+    trim: {
+      enabled: 'plyr--trim-enabled',
+      active: 'plyr--trim-active',
+      // Trim tool
+      container: 'plyr__trim__container',
+      trimTool: 'plyr__trim-tool',
+      shadedRegion: 'plyr__trim-tool__shaded-region',
+      leftThumb: 'plyr__trim-tool__thumb-left',
+      rightThumb: 'plyr__trim-tool__thumb-right',
+      timeContainer: 'plyr__trim-tool__time-container',
+      timeContainerShown: 'plyr__trim-tool__time-container--is-shown'
     },
     fullscreen: {
       enabled: 'plyr--fullscreen-enabled',
@@ -3930,7 +4140,8 @@ var defaults$1 = {
   // Preview Thumbnails plugin
   previewThumbnails: {
     enabled: false,
-    src: ''
+    src: '',
+    enableScrubbing: true
   },
   // Vimeo plugin
   vimeo: {
@@ -3939,16 +4150,16 @@ var defaults$1 = {
     title: false,
     speed: true,
     transparent: false,
-    // These settings require a pro or premium account to work
-    sidedock: false,
-    controls: false,
+    // Whether the owner of the video has a Pro or Business account
+    // (which allows us to properly hide controls without CSS hacks, etc)
+    premium: false,
     // Custom settings from Plyr
     referrerPolicy: null // https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement/referrerPolicy
 
   },
   // YouTube plugin
   youtube: {
-    noCookie: false,
+    noCookie: true,
     // Whether to use an alternative version of YouTube without cookies
     rel: 0,
     // No related vids
@@ -4005,9 +4216,7 @@ function getProviderByUrl(url) {
 // ==========================================================================
 var noop = function noop() {};
 
-var Console =
-/*#__PURE__*/
-function () {
+var Console = /*#__PURE__*/function () {
   function Console() {
     var enabled = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
@@ -4043,9 +4252,7 @@ function () {
   return Console;
 }();
 
-var Fullscreen =
-/*#__PURE__*/
-function () {
+var Fullscreen = /*#__PURE__*/function () {
   function Fullscreen(player) {
     var _this = this;
 
@@ -4062,7 +4269,10 @@ function () {
       y: 0
     }; // Force the use of 'full window/browser' rather than fullscreen
 
-    this.forceFallback = player.config.fullscreen.fallback === 'force'; // Register event listeners
+    this.forceFallback = player.config.fullscreen.fallback === 'force'; // Get the fullscreen element
+    // Checks container is an ancestor, defaults to null
+
+    this.player.elements.fullscreen = player.config.fullscreen.container && closest(this.player.elements.container, player.config.fullscreen.container); // Register event listeners
     // Handle event (incase user presses escape etc)
 
     on.call(this.player, document, this.prefix === 'ms' ? 'MSFullscreenChange' : "".concat(this.prefix, "fullscreenchange"), function () {
@@ -4099,10 +4309,12 @@ function () {
 
       if (is$1.element(button)) {
         button.pressed = this.active;
-      } // Trigger an event
+      } // Always trigger events on the plyr / media element (not a fullscreen container) and let them bubble up
 
 
-      triggerEvent.call(this.player, this.target, this.active ? 'enterfullscreen' : 'exitfullscreen', true);
+      var target = this.target === this.player.media ? this.target : this.player.elements.container; // Trigger an event
+
+      triggerEvent.call(this.player, target, this.active ? 'enterfullscreen' : 'exitfullscreen', true);
     }
   }, {
     key: "toggleFallback",
@@ -4235,7 +4447,7 @@ function () {
 
       if (browser.isIos && this.player.config.fullscreen.iosNative) {
         this.target.webkitExitFullscreen();
-        this.player.play();
+        silencePromise(this.player.play());
       } else if (!Fullscreen.native || this.forceFallback) {
         this.toggleFallback(false);
       } else if (!this.prefix) {
@@ -4282,13 +4494,13 @@ function () {
       }
 
       var element = !this.prefix ? document.fullscreenElement : document["".concat(this.prefix).concat(this.property, "Element")];
-      return element === this.target;
+      return element && element.shadowRoot ? element === this.target.getRootNode().host : element === this.target;
     } // Get target element
 
   }, {
     key: "target",
     get: function get() {
-      return browser.isIos && this.player.config.fullscreen.iosNative ? this.player.media : this.player.elements.container;
+      return browser.isIos && this.player.config.fullscreen.iosNative ? this.player.media : this.player.elements.fullscreen || this.player.elements.container;
     }
   }], [{
     key: "native",
@@ -4350,11 +4562,10 @@ function loadImage(src) {
   });
 }
 
-// ==========================================================================
 var ui = {
-  addStyleHook: function addStyleHook() {
-    toggleClass(this.elements.container, this.config.selectors.container.replace('.', ''), true);
-    toggleClass(this.elements.container, this.config.classNames.uiSupported, this.supported.ui);
+  addStyleHook: function addStyleHook(container) {
+    toggleClass(container, this.config.selectors.container.replace('.', ''), true);
+    toggleClass(container, this.config.classNames.uiSupported, this.supported.ui);
   },
   // Toggle native HTML5 media controls
   toggleNativeControls: function toggleNativeControls() {
@@ -4485,12 +4696,7 @@ var ui = {
     } // Set property synchronously to respect the call order
 
 
-    this.media.setAttribute('poster', poster); // HTML5 uses native poster attribute
-
-    if (this.isHTML5) {
-      return Promise.resolve(poster);
-    } // Wait until ui is ready
-
+    this.media.setAttribute('data-poster', poster); // Wait until ui is ready
 
     return ready.call(this) // Load image
     .then(function () {
@@ -4566,12 +4772,30 @@ var ui = {
 
       this.toggleControls(Boolean(force || this.loading || this.paused || controlsElement.pressed || controlsElement.hover || recentTouchSeek));
     }
+  },
+  // Migrate any custom properties from the media to the parent
+  migrateStyles: function migrateStyles() {
+    var _this5 = this;
+
+    // Loop through values (as they are the keys when the object is spread 🤔)
+    Object.values(_objectSpread2({}, this.media.style)) // We're only fussed about Plyr specific properties
+    .filter(function (key) {
+      return !is$1.empty(key) && key.startsWith('--plyr');
+    }).forEach(function (key) {
+      // Set on the container
+      _this5.elements.container.style.setProperty(key, _this5.media.style.getPropertyValue(key)); // Clean up from media element
+
+
+      _this5.media.style.removeProperty(key);
+    }); // Remove attribute if empty
+
+    if (is$1.empty(this.media.style)) {
+      this.media.removeAttribute('style');
+    }
   }
 };
 
-var Listeners =
-/*#__PURE__*/
-function () {
+var Listeners = /*#__PURE__*/function () {
   function Listeners(player) {
     _classCallCheck(this, Listeners);
 
@@ -4595,7 +4819,7 @@ function () {
       var pressed = event.type === 'keydown';
       var repeat = pressed && code === this.lastKey; // Bail if a modifier key is set
 
-      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+      if (event.altKey || event.shiftKey) {
         return;
       } // If the event is bubbled from the media element
       // Firefox doesn't get the keycode for whatever reason
@@ -4640,6 +4864,22 @@ function () {
           event.stopPropagation();
         }
 
+        if (event.ctrlKey || event.metaKey) {
+          switch (code) {
+            case 39:
+              // Arrow forward
+              player.frameForward();
+              break;
+
+            case 37:
+              // Arrow Back
+              player.frameRewind();
+              break;
+          }
+
+          return;
+        }
+
         switch (code) {
           case 48:
           case 49:
@@ -4662,7 +4902,9 @@ function () {
           case 75:
             // Space and K key
             if (!repeat) {
-              player.togglePlay();
+              // Manually trigger restart for media fragment
+              if (player.mediaFragment.active && player.ended) this.proxy(event, player.restart, 'restart');
+              silencePromise(player.togglePlay());
             }
 
             break;
@@ -4695,6 +4937,11 @@ function () {
             player.rewind();
             break;
 
+          case 84:
+            // T key
+            player.trim.toggle();
+            break;
+
           case 70:
             // F key
             player.fullscreen.toggle();
@@ -4711,6 +4958,16 @@ function () {
           case 76:
             // L key
             player.loop = !player.loop;
+            break;
+
+          case 73:
+            // I key
+            player.trim.setTrimStart();
+            break;
+
+          case 79:
+            // O key
+            player.trim.setTrimEnd();
             break;
         } // Escape is handle natively when in full screen
         // So we only need to worry about non native
@@ -4776,15 +5033,17 @@ function () {
       removeCurrent(); // Delay the adding of classname until the focus has changed
       // This event fires before the focusin event
 
-      this.focusTimer = setTimeout(function () {
-        var focused = document.activeElement; // Ignore if current focus element isn't inside the player
+      if (event.type !== 'focusout') {
+        this.focusTimer = setTimeout(function () {
+          var focused = document.activeElement; // Ignore if current focus element isn't inside the player
 
-        if (!elements.container.contains(focused)) {
-          return;
-        }
+          if (!elements.container.contains(focused)) {
+            return;
+          }
 
-        toggleClass(document.activeElement, player.config.classNames.tabFocus, true);
-      }, 10);
+          toggleClass(document.activeElement, player.config.classNames.tabFocus, true);
+        }, 10);
+      }
     } // Global window & document listeners
 
   }, {
@@ -4802,7 +5061,7 @@ function () {
 
       once.call(player, document.body, 'touchstart', this.firstTouch); // Tab focus detection
 
-      toggleListener.call(player, document.body, 'keydown focus blur', this.setTabFocus, toggle, false, true);
+      toggleListener.call(player, document.body, 'keydown focus blur focusout', this.setTabFocus, toggle, false, true);
     } // Container listeners
 
   }, {
@@ -4845,7 +5104,7 @@ function () {
       }); // Set a gutter for Vimeo
 
       var setGutter = function setGutter(ratio, padding, toggle) {
-        if (!player.isVimeo) {
+        if (!player.isVimeo || player.config.vimeo.premium) {
           return;
         }
 
@@ -4902,7 +5161,7 @@ function () {
             ratio = _setPlayerSize.ratio; // Set Vimeo gutter
 
 
-        setGutter(ratio, padding, isEnter); // If not using native fullscreen, we need to check for resizes of viewport
+        setGutter(ratio, padding, isEnter); // If not using native browser fullscreen API, we need to check for resizes of viewport
 
         if (!usingNative) {
           if (isEnter) {
@@ -4950,6 +5209,14 @@ function () {
 
       on.call(player, player.media, 'playing play pause ended emptied timeupdate', function (event) {
         return ui.checkPlaying.call(player, event);
+      }); // Handle media fragments end event, as event is not fired by default
+
+      on.call(player, player.media, 'timeupdate seeking seeked', function () {
+        if (!player.mediaFragment.enabled || !player.duration || player.currentTime < player.duration) return; // Media fragments are not automatically stopped at end of playback
+
+        player.pause(); // Manually trigger default event ended as ended event will not trigger for media fragments
+
+        triggerEvent.call(player, player.media, 'ended');
       }); // Loading state
 
       on.call(player, player.media, 'waiting canplay seeked playing', function (event) {
@@ -4980,9 +5247,13 @@ function () {
           if (player.ended) {
             _this.proxy(event, player.restart, 'restart');
 
-            _this.proxy(event, player.play, 'play');
+            _this.proxy(event, function () {
+              silencePromise(player.play());
+            }, 'play');
           } else {
-            _this.proxy(event, player.togglePlay, 'play');
+            _this.proxy(event, function () {
+              silencePromise(player.togglePlay());
+            }, 'play');
           }
         });
       } // Disable right click
@@ -5034,6 +5305,120 @@ function () {
 
         triggerEvent.call(player, elements.container, event.type, true, detail);
       });
+    }
+  }, {
+    key: "editor",
+    value: function editor() {
+      var _this2 = this;
+
+      var timeline = this.player.editor.elements.container.timeline;
+      var editor = this.player.editor; // Stores setInterval for checking the timeline position, so can be cleaned up
+
+      var timelineInterval; // IE doesn't support input event, so we fallback to change
+
+      var inputEvent = browser.isIE ? 'change' : 'input'; // Use event listener to support IE, Edge and early versions of Safari
+
+      if ('ResizeObserver' in window) {
+        new ResizeObserver(function () {
+          if (editor.active) {
+            editor.setVideoTimelimeContent();
+          }
+        }).observe(timeline);
+      } else {
+        window.addEventListener('resize', function () {
+          if (editor.active) {
+            editor.setVideoTimelimeContent();
+          }
+        });
+      } // Set seeking start
+
+
+      this.bind(timeline, 'mousedown touchstart', function (event) {
+        if (editor.active) {
+          editor.setSeeking(event);
+
+          if (!_this2.player.trim.editing) {
+            // Adjust timeline position when we get near the end of the timeline
+            timelineInterval = setInterval(function () {
+              return editor.setTimelineOffset(true);
+            }, 50);
+          }
+        }
+      }); // Set seeking end
+
+      this.bind(document.body, 'mouseup touchend', function (event) {
+        if (editor.active) {
+          editor.setSeeking(event);
+        } // End check for adjusting the timeline position when near the end of the timeline
+
+
+        clearInterval(timelineInterval);
+      }); // Update seek position
+
+      this.bind(document.body, 'mousemove touchmove', function (event) {
+        if (editor.seeking) {
+          editor.setSeekTime(event);
+        }
+      }); // Zoom Timeline
+
+      this.bind(editor.elements.container.controls.zoomContainer.zoom, inputEvent, function (event) {
+        if (editor.active) {
+          editor.setZoom(event);
+        }
+      }); // Zoom Out Control
+
+      this.bind(editor.elements.container.controls.zoomContainer.zoomOut, 'click', function (event) {
+        editor.setZoom(event);
+      }); // Zoom Out Control
+
+      this.bind(editor.elements.container.controls.zoomContainer.zoomIn, 'click', function (event) {
+        editor.setZoom(event);
+      }); // Zoom timeline
+
+      this.bind(editor.elements.container, 'wheel', function (event) {
+        event.preventDefault();
+
+        if (editor.active) {
+          editor.setZoom(event);
+        }
+      }, 'editor', false);
+      this.bind(timeline.seekHandle, 'mousedown mouseup keydown keyup touchstart touchend', function (event) {
+        var player = _this2.player;
+        var seek = event.currentTarget;
+        var code = event.keyCode ? event.keyCode : event.which;
+        var attribute = 'play-on-seeked';
+
+        if (is$1.keyboardEvent(event) && code !== 39 && code !== 37) {
+          return;
+        } // Record seek time so we can prevent hiding controls for a few seconds after seek
+
+
+        player.lastSeekTime = Date.now(); // Was playing before?
+
+        var play = seek.hasAttribute(attribute); // Done seeking
+
+        var done = ['mouseup', 'touchend', 'keyup'].includes(event.type); // If we're done seeking and it was playing, resume playback
+
+        if (play && done) {
+          seek.removeAttribute(attribute);
+          silencePromise(player.play());
+        } else if (!done && player.playing) {
+          seek.setAttribute(attribute, '');
+          player.pause();
+        }
+      }); // Update seek-value attribute on mousemove
+
+      this.bind(timeline, 'mousedown mousemove', function (event) {
+        if (!_this2.player.editor.seeking) return;
+        var rect = timeline.getBoundingClientRect();
+        var percent = 100 / rect.width * (event.pageX - rect.left);
+        timeline.seekHandle.setAttribute('seek-value', percent); // Update video seek value as well
+
+        _this2.player.elements.inputs.seek.setAttribute('seek-value', percent);
+      });
+      this.player.on('timeupdate seeking seeked', function () {
+        editor.setSeekPosition();
+      });
     } // Run default and custom handlers
 
   }, {
@@ -5057,21 +5442,21 @@ function () {
   }, {
     key: "bind",
     value: function bind(element, type, defaultHandler, customHandlerKey) {
-      var _this2 = this;
+      var _this3 = this;
 
       var passive = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
       var player = this.player;
       var customHandler = player.config.listeners[customHandlerKey];
       var hasCustomHandler = is$1.function(customHandler);
       on.call(player, element, type, function (event) {
-        return _this2.proxy(event, defaultHandler, customHandlerKey);
+        return _this3.proxy(event, defaultHandler, customHandlerKey);
       }, passive && !hasCustomHandler);
     } // Listen for control events
 
   }, {
     key: "controls",
     value: function controls$1() {
-      var _this3 = this;
+      var _this4 = this;
 
       var player = this.player;
       var elements = player.elements; // IE doesn't support input event, so we fallback to change
@@ -5080,16 +5465,22 @@ function () {
 
       if (elements.buttons.play) {
         Array.from(elements.buttons.play).forEach(function (button) {
-          _this3.bind(button, 'click', player.togglePlay, 'play');
+          _this4.bind(button, 'click', function () {
+            silencePromise(player.togglePlay());
+          }, 'play');
         });
       } // Pause
 
 
       this.bind(elements.buttons.restart, 'click', player.restart, 'restart'); // Rewind
 
-      this.bind(elements.buttons.rewind, 'click', player.rewind, 'rewind'); // Rewind
+      this.bind(elements.buttons.rewind, 'click', player.rewind, 'rewind'); // FastForward
 
-      this.bind(elements.buttons.fastForward, 'click', player.forward, 'fastForward'); // Mute toggle
+      this.bind(elements.buttons.fastForward, 'click', player.forward, 'fastForward'); // Frame Back
+
+      this.bind(elements.buttons.frameRewind, 'click', player.frameRewind, 'rewind'); // Frame Forward
+
+      this.bind(elements.buttons.frameForward, 'click', player.frameForward, 'fastForward'); // Mute toggle
 
       this.bind(elements.buttons.mute, 'click', function () {
         player.muted = !player.muted;
@@ -5098,10 +5489,15 @@ function () {
       this.bind(elements.buttons.captions, 'click', function () {
         return player.toggleCaptions();
       }); // Download
+      // Note: For media fragments the whole video will be downloaded
 
       this.bind(elements.buttons.download, 'click', function () {
         triggerEvent.call(player, player.media, 'download');
-      }, 'download'); // Fullscreen toggle
+      }, 'download'); // Trim toggle
+
+      this.bind(elements.buttons.trim, 'click', function () {
+        player.trim.toggle();
+      }, 'trim'); // Fullscreen toggle
 
       this.bind(elements.buttons.fullscreen, 'click', function () {
         player.fullscreen.toggle();
@@ -5177,7 +5573,7 @@ function () {
 
         if (play && done) {
           seek.removeAttribute(attribute);
-          player.play();
+          silencePromise(player.play());
         } else if (!done && player.playing) {
           seek.setAttribute(attribute, '');
           player.pause();
@@ -5189,7 +5585,7 @@ function () {
       if (browser.isIos) {
         var inputs = getElements.call(player, 'input[type="range"]');
         Array.from(inputs).forEach(function (input) {
-          return _this3.bind(input, inputEvent, function (event) {
+          return _this4.bind(input, inputEvent, function (event) {
             return repaint(event.target);
           });
         });
@@ -5216,16 +5612,18 @@ function () {
 
       this.bind(elements.progress, 'mousemove touchmove', function (event) {
         var previewThumbnails = player.previewThumbnails;
+        var enableScrubbing = player.config.previewThumbnails.enableScrubbing;
 
-        if (previewThumbnails && previewThumbnails.loaded) {
+        if (previewThumbnails && previewThumbnails.loaded && (!previewThumbnails.mouseDown || enableScrubbing)) {
           previewThumbnails.startMove(event);
         }
       }); // Hide thumbnail preview - on mouse click, mouse leave, and video play/seek. All four are required, e.g., for buffering
 
       this.bind(elements.progress, 'mouseleave touchend click', function () {
         var previewThumbnails = player.previewThumbnails;
+        var enableScrubbing = player.config.previewThumbnails.enableScrubbing;
 
-        if (previewThumbnails && previewThumbnails.loaded) {
+        if (previewThumbnails && previewThumbnails.loaded && (!previewThumbnails.mouseDown || enableScrubbing)) {
           previewThumbnails.endMove(false, true);
         }
       }); // Show scrubbing preview
@@ -5247,7 +5645,7 @@ function () {
 
       if (browser.isWebkit) {
         Array.from(getElements.call(player, 'input[type="range"]')).forEach(function (element) {
-          _this3.bind(element, 'input', function (event) {
+          _this4.bind(element, 'input', function (event) {
             return controls.updateRangeFill.call(player, event.target);
           });
         });
@@ -5275,7 +5673,18 @@ function () {
 
       this.bind(elements.controls, 'mouseenter mouseleave', function (event) {
         elements.controls.hover = !player.touch && event.type === 'mouseenter';
-      }); // Update controls.pressed state (used for ui.toggleControls to avoid hiding when interacting)
+      }); // Also update controls.hover state for any non-player children of fullscreen element (as above)
+
+      if (elements.fullscreen) {
+        Array.from(elements.fullscreen.children).filter(function (c) {
+          return !c.contains(elements.container);
+        }).forEach(function (child) {
+          _this4.bind(child, 'mouseenter mouseleave', function (event) {
+            elements.controls.hover = !player.touch && event.type === 'mouseenter';
+          });
+        });
+      } // Update controls.pressed state (used for ui.toggleControls to avoid hiding when interacting)
+
 
       this.bind(elements.controls, 'mousedown mouseup touchstart touchend touchcancel', function (event) {
         elements.controls.pressed = ['mousedown', 'touchstart'].includes(event.type);
@@ -5293,7 +5702,7 @@ function () {
           toggleClass(elements.controls, config.classNames.noTransition, false);
         }, 0); // Delay a little more for mouse users
 
-        var delay = _this3.touch ? 3000 : 4000; // Clear timer
+        var delay = _this4.touch ? 3000 : 4000; // Clear timer
 
         clearTimeout(timers.controls); // Hide again after delay
 
@@ -5691,15 +6100,28 @@ var vimeo = {
     var _this = this;
 
     var player = this;
-    var config = player.config.vimeo; // Get Vimeo params for the iframe
+    var config = player.config.vimeo;
 
-    var params = buildUrlParams(extend({}, {
+    var premium = config.premium,
+        referrerPolicy = config.referrerPolicy,
+        frameParams = _objectWithoutProperties(config, ["premium", "referrerPolicy"]); // If the owner has a pro or premium account then we can hide controls etc
+
+
+    if (premium) {
+      Object.assign(frameParams, {
+        controls: false,
+        sidedock: false
+      });
+    } // Get Vimeo params for the iframe
+
+
+    var params = buildUrlParams(_objectSpread2({
       loop: player.config.loop.active,
       autoplay: player.autoplay,
       muted: player.muted,
       gesture: 'media',
       playsinline: !this.config.fullscreen.iosNative
-    }, config)); // Get the source URL or ID
+    }, frameParams)); // Get the source URL or ID
 
     var source = player.media.getAttribute('src'); // Get from <div> if needed
 
@@ -5713,22 +6135,27 @@ var vimeo = {
     var src = format(player.config.urls.vimeo.iframe, id, params);
     iframe.setAttribute('src', src);
     iframe.setAttribute('allowfullscreen', '');
-    iframe.setAttribute('allowtransparency', '');
-    iframe.setAttribute('allow', 'autoplay'); // Set the referrer policy if required
+    iframe.setAttribute('allow', 'autoplay,fullscreen,picture-in-picture'); // Set the referrer policy if required
 
-    if (!is$1.empty(config.referrerPolicy)) {
-      iframe.setAttribute('referrerPolicy', config.referrerPolicy);
-    } // Get poster, if already set
+    if (!is$1.empty(referrerPolicy)) {
+      iframe.setAttribute('referrerPolicy', referrerPolicy);
+    } // Inject the package
 
 
-    var poster = player.poster; // Inject the package
+    var poster = player.poster;
 
-    var wrapper = createElement('div', {
-      poster: poster,
-      class: player.config.classNames.embedContainer
-    });
-    wrapper.appendChild(iframe);
-    player.media = replaceElement(wrapper, player.media); // Get poster image
+    if (premium) {
+      iframe.setAttribute('data-poster', poster);
+      player.media = replaceElement(iframe, player.media);
+    } else {
+      var wrapper = createElement('div', {
+        class: player.config.classNames.embedContainer,
+        'data-poster': poster
+      });
+      wrapper.appendChild(iframe);
+      player.media = replaceElement(wrapper, player.media);
+    } // Get poster image
+
 
     fetch(format(player.config.urls.vimeo.api, id), 'json').then(function (response) {
       if (is$1.empty(response)) {
@@ -5812,6 +6239,9 @@ var vimeo = {
         player.embed.setPlaybackRate(input).then(function () {
           speed = input;
           triggerEvent.call(player, player.media, 'ratechange');
+        }).catch(function () {
+          // Cannot set Playback Rate, Video is probably not on Pro account
+          player.options.speed = [1];
         });
       }
     }); // Volume
@@ -6098,7 +6528,7 @@ var youtube = {
 
     var container = createElement('div', {
       id: id,
-      poster: poster
+      'data-poster': poster
     });
     player.media = replaceElement(container, player.media); // Id to poster wrapper
 
@@ -6417,14 +6847,12 @@ var media = {
         class: this.config.classNames.video
       }); // Wrap the video in a container
 
-      wrap(this.media, this.elements.wrapper); // Faux poster container
+      wrap(this.media, this.elements.wrapper); // Poster image container
 
-      if (this.isEmbed) {
-        this.elements.poster = createElement('div', {
-          class: this.config.classNames.poster
-        });
-        this.elements.wrapper.appendChild(this.elements.poster);
-      }
+      this.elements.poster = createElement('div', {
+        class: this.config.classNames.poster
+      });
+      this.elements.wrapper.appendChild(this.elements.poster);
     }
 
     if (this.isHTML5) {
@@ -6436,6 +6864,89 @@ var media = {
     }
   }
 };
+
+/**
+ * Returns a number whose value is limited to the given range.
+ *
+ * Example: limit the output of this computation to between 0 and 255
+ * (x * 255).clamp(0, 255)
+ *
+ * @param {Number} input
+ * @param {Number} min The lower boundary of the output range
+ * @param {Number} max The upper boundary of the output range
+ * @returns A number in the range [min, max]
+ * @type Number
+ */
+function clamp() {
+  var input = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+  var min = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+  var max = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 255;
+  return Math.min(Math.max(input, min), max);
+}
+
+var MediaFragment = /*#__PURE__*/function () {
+  function MediaFragment(player) {
+    var _this = this;
+
+    _classCallCheck(this, MediaFragment);
+
+    var config = player.config;
+    this.player = player;
+    this.source = player.currentSrc;
+    this.config = config.mediaFragment;
+    this.active = false;
+    this.startTime = 0;
+    this.duration = player.media.duration; // Wait until player has duration before setting media fragment
+
+    this.player.on('loadedmetadata', function () {
+      if (_this.player.duration && !_this.active) _this.load();
+    });
+  }
+
+  _createClass(MediaFragment, [{
+    key: "load",
+    value: function load() {
+      var mediaFragment = parseUrlHash(this.player.source).match('t=[0-9]+(.([0-9]+))?,[0-9]+(.([0-9]+))?');
+      if (!mediaFragment) return;
+      var config = this.player.config;
+
+      if (config.duration) {
+        this.player.debug.warn('Cannot have custom duration in conjunction with media fragments');
+        return;
+      }
+
+      var resourceTimes = mediaFragment[0].replace('t=', '').split(',');
+      var startTime = parseFloat(resourceTimes[0]);
+      var endTime = parseFloat(resourceTimes[1]) - parseFloat(resourceTimes[0]);
+      this.active = true;
+      this.startTime = clamp(startTime, 0, this.player.media.duration);
+      this.duration = clamp(endTime, 0, this.player.media.duration);
+    }
+  }, {
+    key: "getMediaTime",
+    value: function getMediaTime(input) {
+      if (!this.enabled || !this.active) return input;
+      return input + this.startTime;
+    }
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      if (!this.enabled) return;
+      var config = this.player.config;
+      this.active = false; // Reset start and duration back to default values
+
+      config.startTime = 0;
+      if (this.media) config.duration = this.media.duration;
+    }
+  }, {
+    key: "enabled",
+    get: function get() {
+      return this.config.enabled;
+    }
+  }]);
+
+  return MediaFragment;
+}();
 
 var destroy = function destroy(instance) {
   // Destroy our adsManager
@@ -6451,9 +6962,7 @@ var destroy = function destroy(instance) {
   instance.elements.container.remove();
 };
 
-var Ads =
-/*#__PURE__*/
-function () {
+var Ads = /*#__PURE__*/function () {
   /**
    * Ads constructor.
    * @param {Object} player
@@ -6553,6 +7062,8 @@ function () {
      * mobile devices, this initialization is done as the result of a user action.
      */
     value: function setupIMA() {
+      var _this4 = this;
+
       // Create the container for our advertisements
       this.elements.container = createElement('div', {
         class: this.player.config.classNames.ads
@@ -6565,7 +7076,16 @@ function () {
 
       google.ima.settings.setDisableCustomPlaybackForIOS10Plus(this.player.config.playsinline); // We assume the adContainer is the video container of the plyr element that will house the ads
 
-      this.elements.displayContainer = new google.ima.AdDisplayContainer(this.elements.container, this.player.media); // Request video ads to be pre-loaded
+      this.elements.displayContainer = new google.ima.AdDisplayContainer(this.elements.container, this.player.media); // Create ads loader
+
+      this.loader = new google.ima.AdsLoader(this.elements.displayContainer); // Listen and respond to ads loaded and error events
+
+      this.loader.addEventListener(google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED, function (event) {
+        return _this4.onAdsManagerLoaded(event);
+      }, false);
+      this.loader.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, function (error) {
+        return _this4.onAdError(error);
+      }, false); // Request video ads to be pre-loaded
 
       this.requestAds();
     }
@@ -6576,21 +7096,10 @@ function () {
   }, {
     key: "requestAds",
     value: function requestAds() {
-      var _this4 = this;
-
       var container = this.player.elements.container;
 
       try {
-        // Create ads loader
-        this.loader = new google.ima.AdsLoader(this.elements.displayContainer); // Listen and respond to ads loaded and error events
-
-        this.loader.addEventListener(google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED, function (event) {
-          return _this4.onAdsManagerLoaded(event);
-        }, false);
-        this.loader.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, function (error) {
-          return _this4.onAdError(error);
-        }, false); // Request video ads
-
+        // Request video ads
         var request = new google.ima.AdsRequest();
         request.adTagUrl = this.tagUrl; // Specify the linear and nonlinear slot sizes. This helps the SDK
         // to select the correct creative if multiple are returned
@@ -6769,7 +7278,13 @@ function () {
           // };
           // TODO: So there is still this thing where a video should only be allowed to start
           // playing when the IMA SDK is ready or has failed
-          this.loadAds();
+          if (this.player.ended) {
+            this.loadAds();
+          } else {
+            // The SDK won't allow new ads to be called without receiving a contentComplete()
+            this.loader.contentComplete();
+          }
+
           break;
 
         case google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED:
@@ -6905,7 +7420,7 @@ function () {
 
       this.playing = false; // Play video
 
-      this.player.media.play();
+      silencePromise(this.player.media.play());
     }
     /**
      * Pause our video
@@ -6962,7 +7477,9 @@ function () {
           _this11.on('loaded', resolve);
 
           _this11.player.debug.log(_this11.manager);
-        }); // Now request some new advertisements
+        }); // Now that the manager has been destroyed set it to also be un-initialized
+
+        _this11.initialized = false; // Now request some new advertisements
 
         _this11.requestAds();
       }).catch(function () {});
@@ -7075,6 +7592,1574 @@ function () {
   return Ads;
 }();
 
+var Editor = /*#__PURE__*/function () {
+  function Editor(player) {
+    _classCallCheck(this, Editor);
+
+    // Keep reference to parent
+    this.player = player;
+    this.config = player.config.editor;
+    this.loaded = false;
+    this.shown = false;
+    this.seeking = false;
+    this.timeline = {
+      lowerSeek: 10,
+      upperSeek: 90,
+      upperPlaying: 60,
+      scrollSpeed: 1.5
+    };
+    this.videoContainerWidth = 123;
+    this.videoContainerHeight = 67.5;
+    this.zoom = {
+      scale: 1
+    };
+    this.duration = 0;
+    this.numOfTimestamps = 5;
+    this.elements = {
+      container: {}
+    };
+    this.load();
+  } // Determine if Editor is enabled
+
+
+  _createClass(Editor, [{
+    key: "load",
+    value: function load() {
+      var _this = this;
+
+      on.call(this.player, document, function () {
+        _this.onChange();
+      }); // Player listeners
+
+      this.listeners(); // Update the UI
+
+      this.update();
+    }
+  }, {
+    key: "showEditor",
+    value: function showEditor() {
+      if (!is$1.element(this.elements.container) && is$1.element(this.player.elements.container)) {
+        this.createEditor();
+      }
+
+      toggleHidden(this.elements.container, false);
+    }
+  }, {
+    key: "hideEditor",
+    value: function hideEditor() {
+      toggleHidden(this.elements.container, true);
+    }
+  }, {
+    key: "createEditor",
+    value: function () {
+      var _createEditor = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var container;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                container = this.player.elements.container;
+                this.createContainer(container);
+                this.createControls();
+                this.createTimeline();
+                this.createTimeStamps();
+                this.createVideoTimeline();
+                this.createSeekHandle();
+                this.player.listeners.editor();
+                triggerEvent.call(this.player, this.player.media, 'editorloaded');
+
+              case 9:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function createEditor() {
+        return _createEditor.apply(this, arguments);
+      }
+
+      return createEditor;
+    }()
+  }, {
+    key: "createContainer",
+    value: function createContainer(container) {
+      var config = this.config; // If no container has been specified append to the video container
+
+      if (is$1.nullOrUndefined(config.target)) {
+        this.createNewContainer(container);
+      } else {
+        this.appendTargetContainer();
+      } // We need an element to setup
+
+
+      if (is$1.nullOrUndefined(container) || !is$1.element(container)) {
+        this.debug.error('Editor Creation failed: no suitable element passed');
+        return;
+      } // Add style hook
+
+
+      ui.addStyleHook.call(this.player, this.elements.container);
+    } // Create and append to video Container
+
+  }, {
+    key: "createNewContainer",
+    value: function createNewContainer(container) {
+      this.elements.container = createElement('div', {
+        class: this.player.config.classNames.editor.container
+      });
+      insertAfter(this.elements.container, container);
+    } // Append editor to specified Container
+
+  }, {
+    key: "appendTargetContainer",
+    value: function appendTargetContainer() {
+      var config = this.config,
+          elements = this.elements,
+          player = this.player;
+      elements.container = config.target; // String selector passed
+
+      if (is$1.string(elements.container)) {
+        elements.container = document.querySelectorAll(elements.container);
+      } // jQuery, NodeList or Array passed, use first element
+
+
+      if (window.jQuery && elements.container instanceof jQuery || is$1.nodeList(elements.container) || is$1.array(elements.container)) {
+        // eslint-disable-next-line
+        this.elements.container = elements.container[0];
+      } // Clone the original element so if the element gets destroyed we can return it to its original state
+
+
+      var clone = this.elements.container.cloneNode(true);
+      this.elements.original = clone; // set editor container class
+
+      this.elements.container.classList.add(player.config.classNames.editor.container);
+    }
+  }, {
+    key: "createControls",
+    value: function createControls() {
+      var container = this.elements.container;
+      var maxZoom = this.config.maxZoom; // Create controls container
+
+      container.controls = createElement('div', {
+        id: "plyr__editor__controls",
+        class: this.player.config.classNames.editor.controls
+      });
+      container.appendChild(container.controls); // Create time container
+
+      container.controls.timeContainer = createElement('div', {
+        class: "plyr__controls__item ".concat(this.player.config.classNames.editor.timeContainer)
+      });
+      container.controls.appendChild(container.controls.timeContainer); // Create time container - Seperate time container needed from video as each item needs a unqiue key
+
+      container.controls.timeContainer.time = controls.createTime.call(this.player, 'editorCurrentTime', {
+        class: "plyr__controls__item ".concat(this.player.config.classNames.editor.time)
+      });
+      container.controls.timeContainer.appendChild(container.controls.timeContainer.time); // Create zoom slider container
+
+      container.controls.zoomContainer = createElement('div', {
+        class: "plyr__controls__item ".concat(this.player.config.classNames.editor.zoomContainer)
+      });
+      container.controls.appendChild(container.controls.zoomContainer); // Create minus icon
+
+      container.controls.zoomContainer.zoomOut = controls.createButton.call(this.player, 'zoomOut', 'plyr__controls__item');
+      container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoomOut); // Create zoom slider
+
+      container.controls.zoomContainer.zoom = controls.createRange.call(this.player, 'zoom', {
+        id: "plyr__editor__zoom",
+        step: 0.1,
+        min: 1,
+        max: maxZoom,
+        value: 1,
+        'aria-valuemin': 1,
+        'aria-valuemax': maxZoom,
+        'aria-valuenow': 1
+      });
+      container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoom); // Create plus icon
+
+      container.controls.zoomContainer.zoomIn = controls.createButton.call(this.player, 'zoomIn', 'plyr__controls__item');
+      container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoomIn);
+    }
+  }, {
+    key: "createTimeline",
+    value: function createTimeline() {
+      var container = this.elements.container;
+      this.elements.container.timeline = createElement('div', {
+        class: this.player.config.classNames.editor.timeline
+      });
+      container.appendChild(this.elements.container.timeline);
+      this.elements.container.timeline.style.width = '100%';
+      this.elements.container.timeline.style.left = '0%';
+    }
+  }, {
+    key: "createTimeStamps",
+    value: function createTimeStamps() {
+      var step = this.player.duration / this.numOfTimestamps;
+      var timeline = this.elements.container.timeline;
+      var timeStamps = [];
+      timeline.timestampsContainer = createElement('div', {
+        class: this.player.config.classNames.editor.timeStampsContainer
+      });
+      timeline.appendChild(timeline.timestampsContainer);
+
+      for (var i = 0; i < this.numOfTimestamps; i += 1) {
+        var timeStamp = createElement('span', {
+          class: this.player.config.classNames.editor.timeStamp
+        }, controls.formatTime.call(this.player, Math.round(step * i))); // Append the element to the timeline
+
+        timeline.timestampsContainer.appendChild(timeStamp); // Add the element to the list of elements
+
+        timeStamps.push(timeStamp);
+      } // Add list of timestamps to elements object
+
+
+      timeline.timestampsContainer.timeStamps = timeStamps;
+    }
+  }, {
+    key: "updateTimestamps",
+    value: function updateTimestamps() {
+      var _this2 = this;
+
+      var timeline = this.elements.container.timeline;
+      var duration = this.player.duration;
+
+      if (this.player.duration === 0 || this.duration === duration || !is$1.element(timeline.timestampsContainer)) {
+        return;
+      } // Store the current player duration, to avoid setting the editor timestamps if the video length has not changed
+
+
+      this.duration = duration;
+      var step = duration / this.numOfTimestamps;
+      timeline.timestampsContainer.timeStamps.forEach(function (timestamp, i) {
+        // eslint-disable-next-line no-param-reassign
+        timestamp.innerText = controls.formatTime.call(_this2.player, Math.round(step * i));
+      });
+    }
+  }, {
+    key: "createVideoTimeline",
+    value: function createVideoTimeline() {
+      var timeline = this.elements.container.timeline; // Create video timeline wrapper
+
+      timeline.videoContainerParent = createElement('div', {
+        class: this.player.config.classNames.editor.videoContainerParent
+      });
+      timeline.appendChild(timeline.videoContainerParent); // Create video timeline
+
+      timeline.videoContainerParent.videoContainer = createElement('div', {
+        class: this.player.config.classNames.editor.videoContainer
+      });
+      timeline.videoContainerParent.appendChild(timeline.videoContainerParent.videoContainer);
+      this.setVideoTimelimeContent();
+    }
+  }, {
+    key: "setVideoTimelimeContent",
+    value: function setVideoTimelimeContent() {
+      var previewThumbnails = this.player.previewThumbnails;
+      var timeline = this.elements.container.timeline; // Total number of images needed to fill the timeline width
+
+      var clientRect = timeline.getBoundingClientRect();
+      var videoContainer = timeline.videoContainerParent.videoContainer;
+      var imageCount = Math.ceil(clientRect.width / this.videoContainerWidth);
+      var time = 0;
+
+      if (is$1.nullOrUndefined(videoContainer.previewThumbs)) {
+        videoContainer.previewThumbs = [];
+      } // Enable editor mode in preview thumbnails
+
+
+      if (this.previewThumbnailsReady) {
+        previewThumbnails.editor = true;
+      } // Append images to video timeline
+
+
+      for (var i = 0; i < imageCount; i += 1) {
+        var previewThumb = void 0;
+
+        if (is$1.nullOrUndefined(videoContainer.previewThumbs[i])) {
+          // Create new image wrapper
+          previewThumb = createElement('span', {
+            class: this.player.config.classNames.editor.previewThumb
+          }); // Append new image wrapper to the timeline
+
+          videoContainer.appendChild(previewThumb);
+          videoContainer.previewThumbs.push(previewThumb);
+        } else {
+          // Retrieve the existing container
+          previewThumb = videoContainer.previewThumbs[i];
+        } // If preview thumbnails is enabled append an image to the previewThumb
+
+
+        if (this.previewThumbnailsReady && time >= this.visibleWindow.start && time <= this.visibleWindow.end) {
+          // Append the image to the container
+          previewThumbnails.showImageAtCurrentTime(time, previewThumb);
+        }
+
+        time += this.player.duration / (clientRect.width / this.videoContainerWidth);
+      }
+
+      if (this.previewThumbnailsReady) {
+        // Disable editor mode in preview thumbnails
+        previewThumbnails.editor = false;
+      } // Once all images are loaded set the width of the parent video container to display them
+
+
+      videoContainer.style.width = "".concat(imageCount * this.videoContainerWidth, "px");
+    }
+  }, {
+    key: "createSeekHandle",
+    value: function createSeekHandle() {
+      var timeline = this.elements.container.timeline;
+      var duration = controls.formatTime.call(this.player, this.player.duration); // Create seek Container
+
+      timeline.seekHandle = createElement('div', {
+        class: this.player.config.classNames.editor.seekHandle,
+        role: 'slider',
+        'aria-valuemin': 0,
+        'aria-valuemax': duration,
+        'aria-label': i18n.get('seek', this.player.config)
+      }); // Create seek head
+
+      timeline.seekHandle.head = createElement('div', {
+        class: this.player.config.classNames.editor.seekHandleHead
+      }); // Create seek line
+
+      timeline.seekHandle.line = createElement('div', {
+        class: this.player.config.classNames.editor.seekHandleLine
+      });
+      timeline.appendChild(timeline.seekHandle);
+      timeline.seekHandle.appendChild(timeline.seekHandle.head);
+      timeline.seekHandle.appendChild(timeline.seekHandle.line);
+      this.setSeekPosition();
+    }
+  }, {
+    key: "setZoom",
+    value: function setZoom(event) {
+      var timeline = this.elements.container.timeline;
+      var maxZoom = this.config.maxZoom; // Zoom on seek handle position
+
+      var clientRect = timeline.getBoundingClientRect();
+      var xPos = timeline.seekHandle.getBoundingClientRect().left;
+      var percentage = 100 / clientRect.width * (xPos - clientRect.left);
+
+      if (!(event.type === 'wheel' || event.type === 'input' || event.type === 'click')) {
+        return;
+      } // Calculate zoom Delta for mousewheel
+
+
+      if (event.type === 'wheel') {
+        var delta = clamp(event.deltaY * -1, -1, 1);
+        this.zoom.scale += delta * 0.1 * this.zoom.scale; // Restrict bounds of zoom for wheel
+
+        if (this.zoom.scale === maxZoom && delta < 0 || this.zoom.scale === 1 && delta > 0) {
+          return;
+        } // Calculate zoom level based on zoom slider
+
+      } else if (event.type === 'input') {
+        var value = event.target.value;
+        this.zoom.scale = value;
+      } else if (event.type === 'click') {
+        if (event.target === this.elements.container.controls.zoomContainer.zoomIn) {
+          this.zoom.scale += 1;
+        } else {
+          this.zoom.scale -= 1;
+        }
+      } // Limit zoom to be between 1 and max times zoom
+
+
+      this.zoom.scale = clamp(this.zoom.scale, 1, maxZoom); // Apply zoom scale
+
+      timeline.style.width = "".concat(this.zoom.scale * 100, "%"); // Position the element based on the mouse position
+
+      timeline.style.left = "".concat(-(this.zoom.scale * 100 - 100) * percentage / 100, "%"); // Update slider
+
+      if (is$1.element(this.elements.container.controls.zoomContainer)) {
+        controls.setRange.call(this.player, this.elements.container.controls.zoomContainer.zoom, this.zoom.scale);
+      } // Update timeline images
+
+
+      this.setVideoTimelimeContent();
+    }
+  }, {
+    key: "setSeeking",
+    value: function setSeeking(event) {
+      var classList = event.target.classList;
+      var _this$player$config$c = this.player.config.classNames.trim,
+          leftThumb = _this$player$config$c.leftThumb,
+          rightThumb = _this$player$config$c.rightThumb; // Disable seeking event if selecting the trimming tool or a marker on the timeline
+
+      if ((event.type === 'mousedown' || event.type === 'touchstart') && classList.contains(leftThumb) || classList.contains(rightThumb)) {
+        return;
+      } // Only act on left mouse button (0), or touch device (event.button does not exist or is false)
+
+
+      if (!(is$1.nullOrUndefined(event.button) || event.button === false || event.button === 0)) {
+        return;
+      }
+
+      if (event.type === 'mousedown' || event.type === 'touchstart') {
+        this.seeking = true;
+      } else if (event.type === 'mouseup' || event.type === 'touchend') {
+        this.seeking = false;
+      }
+
+      this.triggerSeekEvent(event);
+    }
+  }, {
+    key: "triggerSeekEvent",
+    value: function triggerSeekEvent(event) {
+      if (this.seeking) {
+        if (this.previewThumbnailsReady) {
+          this.player.previewThumbnails.startScrubbing(event);
+        }
+
+        triggerEvent.call(this.player, this.player.media, 'seeking');
+        this.setSeekTime(event);
+      } else if (this.previewThumbnailsReady) {
+        this.player.previewThumbnails.endScrubbing(event);
+      }
+    }
+  }, {
+    key: "setSeekPosition",
+    value: function setSeekPosition() {
+      if (!this.active || this.seeking) {
+        return;
+      }
+
+      var timeline = this.elements.container.timeline;
+      var percentage = clamp(100 / this.player.duration * parseFloat(this.player.currentTime), 0, 100);
+      timeline.seekHandle.style.left = "".concat(percentage, "%");
+      this.setTimelineOffset();
+      var currentTime = controls.formatTime.call(this.player, this.player.currentTime);
+      var duration = controls.formatTime.call(this.player, this.player.duration);
+      var format = i18n.get('seekLabel', this.player.config); // Update aria values
+
+      timeline.seekHandle.setAttribute('aria-valuenow', currentTime);
+      timeline.seekHandle.setAttribute('aria-valuetext', format.replace('{currentTime}', currentTime).replace('{duration}', duration));
+    }
+  }, {
+    key: "setSeekTime",
+    value: function setSeekTime(event) {
+      if (!this.active || !this.seeking) {
+        return;
+      }
+
+      var type = event.type,
+          touches = event.touches,
+          pageX = event.pageX;
+
+      if (['mousedown', 'touchstart', 'mousemove', 'touchmove'].includes(type)) {
+        var timeline = this.elements.container.timeline;
+        var previewThumbnails = this.player.previewThumbnails;
+        var clientRect = timeline.getBoundingClientRect();
+        var xPos = type === 'touchmove' ? touches[0].pageX : pageX;
+        var percentage = clamp(100 / clientRect.width * (xPos - clientRect.left), 0, 100); // Set the editor seek position
+
+        timeline.seekHandle.style.left = "".concat(percentage, "%"); // Update the current video time
+
+        this.player.currentTime = this.player.duration * (percentage / 100); // Set video seek
+
+        controls.setRange.call(this.player, this.player.elements.inputs.seek, percentage); // Set the video seek position
+
+        triggerEvent.call(this.player, this.player.media, 'seeked'); // Show the seek thumbnail
+
+        if (this.previewThumbnailsReady) {
+          var seekTime = this.player.duration * (percentage / 100);
+          previewThumbnails.showImageAtCurrentTime(seekTime);
+        }
+      }
+    } // If the seek handle is near the end of the visible timeline window, shift the timeline
+
+  }, {
+    key: "setTimelineOffset",
+    value: function setTimelineOffset() {
+      var playing = this.player.playing;
+      var container = this.elements.container; // Values defining the speed of scrolling and at what points triggering the offset
+
+      var _this$timeline = this.timeline,
+          lowerSeek = _this$timeline.lowerSeek,
+          upperSeek = _this$timeline.upperSeek,
+          upperPlaying = _this$timeline.upperPlaying,
+          scrollSpeed = _this$timeline.scrollSpeed; // Retrieve the container positions for the container, timeline and seek handle
+
+      var clientRect = container.getBoundingClientRect();
+      var timelineRect = container.timeline.getBoundingClientRect();
+      var seekPos = container.timeline.seekHandle.getBoundingClientRect(); // Current position in the editor container
+
+      var zoom = parseFloat(container.timeline.style.width);
+      var offset = parseFloat(container.timeline.style.left);
+      var seekHandlePos = parseFloat(container.timeline.seekHandle.style.left); // Retrieve the hover position in the editor container, else retrieve the seek value
+
+      var percentage = 100 / clientRect.width * (seekPos.left - clientRect.left); // If playing set lower upper bound to when we shift the timeline
+
+      var upperBound = this.seeking ? upperSeek : upperPlaying; // Calculate the timeline offset position
+
+      if (percentage > upperBound && zoom - offset > 100) {
+        // If the seek handle is visibe move by scroll percentage else move into view
+        if (percentage <= 100) {
+          offset = Math.max(offset - (percentage - upperBound) / scrollSpeed, (zoom - 100) * -1);
+        } else {
+          offset = Math.max(offset - (percentage - upperBound), (zoom - 100) * -1);
+        }
+      } else if (percentage < lowerSeek) {
+        // If the seek handle is visibe move by scroll percentage else move into view
+        if (percentage >= 0) {
+          offset = Math.min(offset - (lowerSeek - percentage) / scrollSpeed * -1, 0);
+        } else {
+          offset = Math.min(offset - (lowerSeek - percentage) * -1, 0);
+        }
+      }
+
+      if (offset === parseFloat(container.timeline.style.left)) {
+        return;
+      } // Update the preview thumbnails
+
+
+      this.setVideoTimelimeContent(); // Apply the timeline seek offset
+
+      container.timeline.style.left = "".concat(offset, "%"); // Only adjust the seek position when playing or seeking as we don't want to adjust if the current time is updated
+
+      if (!(playing || this.seeking)) {
+        return;
+      } // Retrieve the position of the seek handle after the timeline shift
+
+
+      var seekPosUpdated = container.timeline.seekHandle.getBoundingClientRect().left;
+      var seekPercentage = clamp(seekHandlePos + 100 / timelineRect.width * (seekPos.left - seekPosUpdated), 0, 100);
+      container.timeline.seekHandle.style.left = "".concat(seekPercentage, "%"); // Show the corresponding preview thumbnail for the updated seek position
+
+      if (this.seeking && this.previewThumbnailsReady) {
+        var seekTime = this.player.duration * (seekPercentage / 100);
+        this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+      }
+    }
+  }, {
+    key: "listeners",
+    value: function listeners() {
+      var _this3 = this;
+
+      // If the duration changes after loading the editor, the corresponding timestamps need to be updated
+      // If the duration of the video or previewthumbnails has loaded, update
+      this.player.on('loadeddata loadedmetadata', function () {
+        if (_this3.player.media.duration) _this3.loaded = true;
+
+        if (_this3.loaded && _this3.shown) {
+          _this3.showEditor();
+
+          _this3.updateTimestamps();
+
+          _this3.setVideoTimelimeContent();
+        }
+      });
+      this.player.on('previewthumbnailsloaded', function () {
+        if (_this3.loaded && _this3.shown) {
+          _this3.setVideoTimelimeContent();
+        }
+      });
+    } // On toggle of the editor, trigger event
+
+  }, {
+    key: "onChange",
+    value: function onChange() {
+      if (!this.enabled) {
+        return;
+      } // Trigger an event
+
+
+      triggerEvent.call(this.player, this.player.media, this.shown ? 'entereditor' : 'exiteditor', false);
+    } // Update UI
+
+  }, {
+    key: "update",
+    value: function update() {
+      if (this.enabled) {
+        this.player.debug.log("trim enabled");
+      } else {
+        this.player.debug.log('Trimming is not supported');
+      }
+    }
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      // Remove the elements with listeners on
+      if (this.elements.container && !is$1.empty(this.elements.container)) {
+        replaceElement(this.elements.original, this.elements.container);
+        this.loaded = false;
+      }
+    } // Enter Editor
+
+  }, {
+    key: "enter",
+    value: function enter() {
+      if (!this.enabled) {
+        return;
+      }
+
+      this.shown = true;
+      this.showEditor();
+      this.onChange();
+    } // Exit Editor
+
+  }, {
+    key: "exit",
+    value: function exit() {
+      if (!this.enabled || !this.shown) {
+        return;
+      }
+
+      this.shown = false;
+      this.hideEditor();
+      this.onChange();
+    } // Toggle state
+
+  }, {
+    key: "toggle",
+    value: function toggle() {
+      if (!this.active) {
+        this.enter();
+      } else {
+        this.exit();
+      }
+    }
+  }, {
+    key: "enabled",
+    get: function get() {
+      var config = this.config,
+          player = this.player;
+      return config.enabled && player.isHTML5 && player.isVideo;
+    } // Get active state
+
+  }, {
+    key: "active",
+    get: function get() {
+      if (!this.enabled) {
+        return false;
+      }
+
+      return this.shown && is$1.element(this.player.elements.container);
+    }
+  }, {
+    key: "previewThumbnailsReady",
+    get: function get() {
+      var _this$player = this.player,
+          previewThumbnails = _this$player.previewThumbnails,
+          duration = _this$player.duration;
+      /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
+
+      return previewThumbnails && previewThumbnails.loaded && duration > 0;
+    }
+  }, {
+    key: "visibleWindow",
+    get: function get() {
+      var container = this.elements.container;
+      var duration = this.player.duration;
+      var containerRect = container.getBoundingClientRect();
+      var timelineRect = container.timeline.getBoundingClientRect();
+      var zoom = parseFloat(container.timeline.style.width);
+      var offset = parseFloat(container.timeline.style.left);
+      var start = Math.abs(offset / zoom) * duration;
+      var end = start + containerRect.width / timelineRect.width * duration;
+      return {
+        start: start,
+        end: end
+      };
+    }
+  }]);
+
+  return Editor;
+}();
+
+var Markers = /*#__PURE__*/function () {
+  function Markers(player) {
+    _classCallCheck(this, Markers);
+
+    // Keep reference to parent
+    this.player = player;
+    this.config = player.config.markers;
+    this.editing = null;
+    this.loaded = false;
+    this.preLoadedMarkers = [];
+    this.elements = {
+      markers: []
+    };
+    this.load();
+  } // Determine if Markers is enabled
+
+
+  _createClass(Markers, [{
+    key: "load",
+    value: function load() {
+      // Marker listeners
+      this.listeners(); // Update the UI
+
+      this.update();
+    }
+  }, {
+    key: "addMarker",
+    value: function addMarker(id, name) {
+      var time = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.player.currentTime;
+      var timeline = this.player.editor.elements.container.timeline;
+      var mediaFragment = this.player.mediaFragment; // For media fragments the start time can be different from the media's start time
+
+      var percentage = clamp(100 / this.player.duration * parseFloat(time), this.lowerBound, this.upperBound);
+      var markerTime = this.player.duration * (parseFloat(percentage) / 100);
+      var mediaMarkerTime = mediaFragment.getMediaTime(markerTime);
+
+      if (!this.loaded || !is$1.element(timeline)) {
+        this.preLoadedMarkers.push({
+          id: id,
+          name: name,
+          time: time
+        });
+        return;
+      }
+
+      var container = createElement('div', extend({
+        id: id,
+        class: this.player.config.classNames.markers.container,
+        'aria-valuemin': 0,
+        'aria-valuemax': this.player.duration,
+        'aria-valuenow': markerTime,
+        'aria-valuetext': controls.formatTime.call(this.player, markerTime),
+        'aria-label': i18n.get('marker', this.player.config)
+      }));
+      this.elements.markers.push(container);
+      timeline.appendChild(container); // Set the markers default position to be at the current seek point
+
+      container.style.left = "".concat(percentage, "%");
+      this.addMarkerListeners(container);
+      var marker = createElement('div', extend({
+        id: "".concat(id, "Marker"),
+        class: this.player.config.classNames.markers.marker
+      }));
+      container.appendChild(marker); // Add label to marker
+
+      var label = createElement('div', {
+        id: "".concat(id, "Label"),
+        class: this.player.config.classNames.markers.label
+      }, name);
+      marker.appendChild(label); // Marker added event
+
+      triggerEvent.call(this.player, this.player.media, 'markeradded', false, {
+        id: id,
+        time: mediaMarkerTime
+      });
+    }
+  }, {
+    key: "moveMarker",
+    value: function moveMarker(id) {
+      var currentTime = this.player.currentTime;
+      var marker = this.elements.markers.find(function (x) {
+        return x.id === id;
+      }); // Calculate marker position in percent
+
+      var percentage = clamp(currentTime / this.player.media.duration * 100, this.lowerBound, this.upperBound);
+      if (!marker) return; // Update the position of the marker
+
+      this.setMarkerPosition(marker, percentage, true);
+    }
+  }, {
+    key: "goToMarker",
+    value: function goToMarker(id) {
+      var marker = this.elements.markers.find(function (x) {
+        return x.id === id;
+      });
+      if (!marker) return; // Go to marker on timeline
+
+      this.player.currentTime = Number(marker.getAttribute('aria-valuenow'));
+    }
+  }, {
+    key: "removeMarker",
+    value: function removeMarker(id) {
+      this.elements.markers.forEach(function (marker) {
+        if (marker.id === id) {
+          marker.remove();
+        }
+      });
+    }
+  }, {
+    key: "removeMarkers",
+    value: function removeMarkers() {
+      this.elements.markers.forEach(function (marker) {
+        marker.remove();
+      });
+    }
+  }, {
+    key: "addMarkerListeners",
+    value: function addMarkerListeners(marker) {
+      var _this = this;
+
+      // Listen for marker selection
+      this.player.listeners.bind(marker, 'mousedown touchstart', function (event) {
+        _this.setEditing(event);
+      }); // Listen for marker deselection
+
+      this.player.listeners.bind(document.body, 'mouseup touchend', function (event) {
+        if (!is$1.nullOrUndefined(_this.editing)) {
+          _this.setEditing(event);
+        }
+      }); // Move marker if selected
+
+      this.player.listeners.bind(document.body, 'mousemove touchmove', function (event) {
+        if (!is$1.nullOrUndefined(_this.editing)) {
+          _this.setMarkerPositionByXPos(event);
+        }
+      });
+    }
+  }, {
+    key: "setEditing",
+    value: function setEditing(event) {
+      var mediaFragment = this.player.mediaFragment;
+      var type = event.type,
+          currentTarget = event.currentTarget;
+      var marker = this.editing;
+
+      if (type === 'mouseup' || type === 'touchend') {
+        var value = marker.getAttribute('aria-valuenow'); // For media fragments the start time can be different from the media's start time
+
+        var mediaValue = mediaFragment.getMediaTime(parseFloat(value));
+        triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
+          id: marker.id,
+          time: mediaValue
+        });
+        this.editing = null;
+      } else if (type === 'mousedown' || type === 'touchstart') {
+        this.editing = currentTarget;
+
+        if (this.previewThumbnailsReady) {
+          this.player.previewThumbnails.startScrubbing(event);
+        }
+      }
+    }
+  }, {
+    key: "setMarkerPositionByXPos",
+    value: function setMarkerPositionByXPos(event) {
+      if (is$1.nullOrUndefined(this.editing)) return; // Calculate hover position
+
+      var timeline = this.player.editor.elements.container.timeline;
+      var clientRect = timeline.getBoundingClientRect();
+      var xPos = event.type === 'touchmove' ? event.touches[0].pageX : event.pageX; // Calculate the position of the marker
+
+      var percentage = clamp(100 / clientRect.width * (xPos - clientRect.left), this.lowerBound, this.upperBound); // Selected marker element
+
+      var marker = this.editing; // Update the position of the marker
+
+      this.setMarkerPosition(marker, percentage, false);
+    }
+  }, {
+    key: "setMarkerPosition",
+    value: function setMarkerPosition(marker, percentage, triggerChange) {
+      var _this$player = this.player,
+          mediaFragment = _this$player.mediaFragment,
+          duration = _this$player.duration;
+      var clampedPercentage = clamp(parseFloat(percentage), this.lowerBound, this.upperBound);
+      var time = duration * (clampedPercentage / 100);
+      var mediaCurrentTime = mediaFragment.getMediaTime(time); // eslint-disable-next-line no-param-reassign
+
+      marker.style.left = "".concat(clampedPercentage, "%");
+      marker.setAttribute('aria-valuenow', time);
+      marker.setAttribute('aria-valuetext', controls.formatTime(this.player, time));
+      if (!triggerChange) return;
+      triggerEvent.call(this.player, this.player.media, 'markerchange', false, {
+        id: marker.id,
+        time: mediaCurrentTime
+      });
+    }
+  }, {
+    key: "listeners",
+    value: function listeners() {
+      var _this2 = this;
+
+      this.player.on('loadeddata loadedmetadata editorloaded', function () {
+        var _this2$player = _this2.player,
+            duration = _this2$player.duration,
+            editor = _this2$player.editor; // If markers have been added before the player has a duration add this markers
+
+        if (!duration || editor.active && !is$1.element(editor.elements.container.timeline)) {
+          return;
+        }
+
+        _this2.loaded = true;
+
+        if (_this2.preLoadedMarkers.length) {
+          _this2.preLoadedMarkers.forEach(function (marker) {
+            return _this2.addMarker(marker.id, marker.name, marker.time);
+          });
+
+          _this2.preLoadedMarkers = [];
+        }
+      });
+      this.player.on('trimchanging', function () {
+        if (!_this2.config.lockToTrimRegion) return;
+
+        _this2.elements.markers.forEach(function (marker) {
+          return _this2.setMarkerPosition(marker, marker.style.left, false);
+        });
+      });
+      this.player.on('trimchange', function () {
+        if (!_this2.config.lockToTrimRegion) return;
+
+        _this2.elements.markers.forEach(function (marker) {
+          return _this2.setMarkerPosition(marker, marker.style.left, true);
+        });
+      });
+    }
+  }, {
+    key: "toggleMarkers",
+    value: function toggleMarkers() {
+      var show = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+      this.elements.markers.forEach(function (marker) {
+        toggleHidden(marker, show);
+      });
+    } // Update UI
+
+  }, {
+    key: "update",
+    value: function update() {
+      if (this.enabled) {
+        this.player.debug.log("Video Markers enabled");
+      } else {
+        this.player.debug.log('Video markers is not supported');
+      }
+    }
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      // Remove the elements with listeners on
+      if (this.elements.markers && !is$1.empty(this.elements.markers)) {
+        // This should be cleaned up the by the editor
+        this.elements.markers = {};
+      }
+    }
+  }, {
+    key: "enabled",
+    get: function get() {
+      var config = this.config,
+          player = this.player;
+      return config.enabled && player.editor.enabled && player.isHTML5 && player.isVideo;
+    } // Get active state
+
+  }, {
+    key: "active",
+    get: function get() {
+      if (!this.enabled) {
+        return false;
+      }
+
+      return this.elements.markers.length > 0;
+    }
+  }, {
+    key: "lowerBound",
+    get: function get() {
+      var _this$player2 = this.player,
+          trim = _this$player2.trim,
+          duration = _this$player2.duration;
+      return trim.active && this.config.lockToTrimRegion ? trim.startTime / duration * 100 : 0;
+    }
+  }, {
+    key: "upperBound",
+    get: function get() {
+      var _this$player3 = this.player,
+          trim = _this$player3.trim,
+          duration = _this$player3.duration;
+      return trim.active && this.config.lockToTrimRegion ? trim.endTime / duration * 100 : 100;
+    }
+  }]);
+
+  return Markers;
+}();
+
+var Trim = /*#__PURE__*/function () {
+  function Trim(player) {
+    _classCallCheck(this, Trim);
+
+    // Keep reference to parent
+    this.player = player;
+    this.config = player.config.trim;
+    this.loaded = false;
+    this.trimming = false;
+    this.editing = false;
+    this.startTime = 0;
+    this.endTime = 0;
+    this.timeUpdateFunction = this.timeUpdate.bind(this);
+    this.elements = {
+      container: {}
+    };
+    this.load();
+  } // Determine if trim is enabled
+
+
+  _createClass(Trim, [{
+    key: "load",
+    value: function load() {
+      var _this = this;
+
+      // Handle event (incase user presses escape etc)
+      on.call(this.player, document, function () {
+        _this.onChange();
+      }); // Update the UI
+
+      this.update(); // Setup player listeners
+
+      this.listeners();
+    } // Store the trim start time in seconds (limit)
+
+  }, {
+    key: "setStartTime",
+    value: function setStartTime(percentage) {
+      var maxTrimLength = this.config.maxTrimLength;
+      var startTime = this.player.duration * (parseFloat(percentage) / 100);
+      this.startTime = maxTrimLength >= 0 ? Math.max(startTime, this.endTime - this.config.maxTrimLength) : startTime;
+    } // Store the trim end time in seconds
+
+  }, {
+    key: "setEndTime",
+    value: function setEndTime(percentage) {
+      var maxTrimLength = this.config.maxTrimLength;
+      var endTime = this.player.duration * (parseFloat(percentage) / 100);
+      this.endTime = maxTrimLength >= 0 ? Math.min(endTime, this.startTime + this.config.maxTrimLength) : endTime;
+    }
+  }, {
+    key: "getMaxTrimLength",
+    value: function getMaxTrimLength(startPercentage, endPercentage) {
+      var startTime = this.player.duration * (parseFloat(startPercentage) / 100);
+      var endTime = this.player.duration * (parseFloat(endPercentage) / 100);
+
+      if (this.config.maxTrimLength >= 0 && endTime - startTime >= this.config.maxTrimLength) {
+        return true;
+      }
+
+      return false;
+    } // Show the trim toolbar on the timeline
+
+  }, {
+    key: "showTrimTool",
+    value: function showTrimTool() {
+      if (this.player.editor && !this.player.editor.active) {
+        this.player.editor.enter();
+      }
+
+      if (is$1.empty(this.elements.container.bar)) {
+        this.createTrimTool();
+      }
+
+      toggleHidden(this.elements.container, false);
+    } // Hide the trim toolbar from the timeline
+
+  }, {
+    key: "hideTrimTool",
+    value: function hideTrimTool() {
+      if (this.config.closeEditor) {
+        this.player.editor.exit();
+      }
+
+      toggleHidden(this.elements.container, true);
+    } // Add trim toolbar to the timeline
+
+  }, {
+    key: "createTrimTool",
+    value: function createTrimTool() {
+      var container = this.player.elements.container;
+
+      if (is$1.element(container) && !is$1.element(this.elements.container) && this.loaded) {
+        this.createTrimContainer();
+        this.createTrimBar();
+        this.createTrimBarThumbs();
+        this.createShadedRegions();
+        this.createThumbTime();
+        triggerEvent.call(this.player, this.player.media, 'trimloaded');
+      }
+    } // Add trim container to the timeline
+
+  }, {
+    key: "createTrimContainer",
+    value: function createTrimContainer() {
+      this.elements.container = createElement('div', {
+        class: this.player.config.classNames.trim.container
+      });
+      this.player.editor.elements.container.timeline.appendChild(this.elements.container);
+    } // Add trim bar to the timeline
+
+  }, {
+    key: "createTrimBar",
+    value: function createTrimBar() {
+      // If offsetContainer is set to true, we want to offset the start time of the container
+      var offset = this.config.offsetContainer ? this.trimLength / 2 : 0; // Set the trim bar from the current seek time percentage to x percent after and limit the end percentage to 100%
+
+      var start = clamp(100 / this.player.duration * parseFloat(this.player.currentTime) - offset, this.lowerBound, this.upperBound);
+      var end = Math.min(parseFloat(start) + this.trimLength, this.upperBound); // Store the start and end video percentages in seconds
+
+      this.setStartTime(start);
+      this.setEndTime(end);
+      this.elements.container.bar = createElement('span', {
+        class: this.player.config.classNames.trim.trimTool
+      });
+      var bar = this.elements.container.bar;
+      bar.style.left = "".concat(start.toString(), "%");
+      bar.style.width = "".concat(end - start.toString(), "%");
+      this.elements.container.appendChild(bar);
+      triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
+    } // Add trim length thumbs to the timeline
+
+  }, {
+    key: "createTrimBarThumbs",
+    value: function createTrimBarThumbs() {
+      var _this2 = this;
+
+      var bar = this.elements.container.bar;
+      var trim = this.player.config.classNames.trim; // Create the trim bar thumb elements
+
+      bar.leftThumb = createElement('span', extend({
+        class: trim.leftThumb,
+        role: 'slider',
+        'aria-valuemin': 0,
+        'aria-valuemax': this.player.duration,
+        'aria-valuenow': this.startTime,
+        'aria-valuetext': controls.formatTime.call(this.player, this.startTime),
+        'aria-label': i18n.get('trimStart', this.player.config)
+      })); // Create the trim bar thumb elements
+
+      bar.rightThumb = createElement('span', extend({
+        class: trim.rightThumb,
+        role: 'slider',
+        'aria-valuemin': 0,
+        'aria-valuemax': this.player.duration,
+        'aria-valuenow': this.endTime,
+        'aria-valuetext': controls.formatTime.call(this.player, this.endTime),
+        'aria-label': i18n.get('trimEnd', this.player.config)
+      })); // Add the thumbs to the bar
+
+      bar.appendChild(bar.leftThumb);
+      bar.appendChild(bar.rightThumb); // Add listens for trim thumb (handle) selection
+
+      this.player.listeners.bind(bar.leftThumb, 'mousedown touchstart', function (event) {
+        if (bar) {
+          _this2.setEditing(event);
+        }
+      }); // Listen for trim thumb (handle) selection
+
+      this.player.listeners.bind(bar.rightThumb, 'mousedown touchstart', function (event) {
+        if (bar) {
+          _this2.setEditing(event);
+        }
+      }); // Move trim handles if selected
+
+      this.player.listeners.bind(document.body, 'mousemove touchmove', function (event) {
+        if (_this2.editing) {
+          _this2.setTrimLength(event);
+        }
+      }); // Stop trimming when handle is no longer selected
+
+      this.player.listeners.bind(document.body, 'mouseup touchend', function (event) {
+        if (_this2.editing) _this2.setEditing(event);
+      });
+    } // Add shaded out regions to show that this area is not being trimmed
+
+  }, {
+    key: "createShadedRegions",
+    value: function createShadedRegions() {
+      var container = this.elements.container; // Create two shaded regions on the timeline (before and after the trimming tool)
+
+      container.shadedRegions = [];
+      var shadedRegion = createElement('span', {
+        class: this.player.config.classNames.trim.shadedRegion
+      });
+      var shadedRegionClone = shadedRegion.cloneNode(true); // Store and append the shaded regions to the container
+
+      container.shadedRegions.push(shadedRegion);
+      container.shadedRegions.push(shadedRegionClone);
+      container.insertBefore(shadedRegion, container.bar);
+      container.insertBefore(shadedRegionClone, container.bar.nextSibling);
+      this.setShadedRegions();
+    }
+  }, {
+    key: "setShadedRegions",
+    value: function setShadedRegions() {
+      var shadedRegions = this.elements.container.shadedRegions;
+      var _this$elements$contai = this.elements.container.bar.style,
+          left = _this$elements$contai.left,
+          width = _this$elements$contai.width; // Retrieve the first and second shaded regions (should always be two regions)
+
+      if (shadedRegions.length < 1) {
+        return;
+      } // Set the position of the shaded regions relative to the position of the trimming tool
+
+
+      shadedRegions[0].style.width = left;
+      shadedRegions[1].style.left = "".concat(parseFloat(left) + parseFloat(width), "%");
+      shadedRegions[1].style.width = "".concat(100 - (parseFloat(left) + parseFloat(width)), "%");
+    }
+  }, {
+    key: "createThumbTime",
+    value: function createThumbTime() {
+      var _this$elements$contai2 = this.elements.container.bar,
+          leftThumb = _this$elements$contai2.leftThumb,
+          rightThumb = _this$elements$contai2.rightThumb; // Create HTML element, parent+span: time text (e.g., 01:32:00)
+
+      leftThumb.timeContainer = createElement('div', {
+        class: this.player.config.classNames.trim.timeContainer
+      });
+      rightThumb.timeContainer = createElement('div', {
+        class: this.player.config.classNames.trim.timeContainer
+      }); // Append the time element to the container
+
+      leftThumb.timeContainer.time = createElement('span', {}, controls.formatTime.call(this.player, this.startTime));
+      leftThumb.timeContainer.appendChild(leftThumb.timeContainer.time);
+      rightThumb.timeContainer.time = createElement('span', {}, controls.formatTime.call(this.player, this.endTime));
+      rightThumb.timeContainer.appendChild(rightThumb.timeContainer.time); // Append the time container to the bar
+
+      leftThumb.appendChild(leftThumb.timeContainer);
+      rightThumb.appendChild(rightThumb.timeContainer);
+    }
+  }, {
+    key: "setEditing",
+    value: function setEditing(event) {
+      var bar = this.elements.container.bar;
+      var _this$player$config$c = this.player.config.classNames.trim,
+          leftThumb = _this$player$config$c.leftThumb,
+          rightThumb = _this$player$config$c.rightThumb;
+      var type = event.type,
+          target = event.target;
+
+      if ((type === 'mouseup' || type === 'touchend') && this.editing === leftThumb) {
+        this.editing = null;
+        this.toggleTimeContainer(bar.leftThumb, false);
+
+        if (this.previewThumbnailsReady) {
+          this.player.previewThumbnails.endScrubbing(event);
+        }
+
+        triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
+      } else if ((type === 'mouseup' || type === 'touchend') && this.editing === rightThumb) {
+        this.editing = null;
+        this.toggleTimeContainer(bar.rightThumb, false);
+
+        if (this.previewThumbnailsReady) {
+          this.player.previewThumbnails.endScrubbing(event);
+        }
+
+        triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
+      } else if ((type === 'mousedown' || type === 'touchstart') && target.classList.contains(leftThumb)) {
+        this.editing = leftThumb;
+        this.toggleTimeContainer(bar.leftThumb, true);
+
+        if (this.previewThumbnailsReady) {
+          this.player.previewThumbnails.startScrubbing(event, true);
+        }
+      } else if ((type === 'mousedown' || type === 'touchstart') && target.classList.contains(rightThumb)) {
+        this.editing = rightThumb;
+        this.toggleTimeContainer(bar.rightThumb, true);
+
+        if (this.previewThumbnailsReady) {
+          this.player.previewThumbnails.startScrubbing(event, true);
+        }
+      }
+    }
+  }, {
+    key: "setTrimLength",
+    value: function setTrimLength(event) {
+      if (!this.editing) return; // Calculate hover position
+
+      var timeline = this.player.editor.elements.container.timeline;
+      var clientRect = timeline.getBoundingClientRect();
+      var xPos = event.type === 'touchmove' ? event.touches[0].pageX : event.pageX;
+      var percentage = clamp(100 / clientRect.width * (xPos - clientRect.left), this.lowerBound, this.upperBound);
+      var _this$player$config$c2 = this.player.config.classNames.trim,
+          leftThumb = _this$player$config$c2.leftThumb,
+          rightThumb = _this$player$config$c2.rightThumb; // Update the position of the trim range tool
+
+      if (this.editing === leftThumb) {
+        this.setLeftThumbPosition(percentage);
+      } else if (this.editing === rightThumb) {
+        this.setRightThumbPosition(percentage);
+      } // Show the seek thumbnail
+
+
+      if (this.previewThumbnailsReady) {
+        var seekTime = this.player.media.duration * (percentage / 100);
+        this.player.previewThumbnails.showImageAtCurrentTime(seekTime);
+      }
+
+      triggerEvent.call(this.player, this.player.media, 'trimchanging', false, this.trimTime);
+    }
+  }, {
+    key: "setTrimStart",
+    value: function setTrimStart() {
+      var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.player.currentTime;
+      var percentage = clamp(100 / this.player.duration * parseFloat(time), this.lowerBound, this.upperBound);
+      this.setLeftThumbPosition(percentage);
+      triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
+    }
+  }, {
+    key: "setTrimEnd",
+    value: function setTrimEnd() {
+      var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.player.currentTime;
+      var percentage = clamp(100 / this.player.duration * parseFloat(time), this.lowerBound, this.upperBound);
+      this.setRightThumbPosition(percentage);
+      triggerEvent.call(this.player, this.player.media, 'trimchange', false, this.trimTime);
+    }
+  }, {
+    key: "setLeftThumbPosition",
+    value: function setLeftThumbPosition(percentage) {
+      var bar = this.elements.container.bar;
+      var _bar$style = bar.style,
+          left = _bar$style.left,
+          width = _bar$style.width;
+      var leftThumbPos = parseFloat(left);
+      var rightThumbPos = leftThumbPos + parseFloat(width);
+      var rightThumbRelativePos = Math.max(parseFloat(width) - (percentage - leftThumbPos), 0);
+      var maxTrimLength = this.getMaxTrimLength(percentage, rightThumbPos); // Set the width to be in the position previously unless region is longer than max trim length
+
+      if (!maxTrimLength) bar.style.width = "".concat(rightThumbRelativePos, "%"); // Store and convert the start percentage to time
+
+      bar.style.left = "".concat(percentage, "%");
+      if (maxTrimLength) this.setEndTime(rightThumbPos);
+      this.setStartTime(percentage); // Prevent the end time being before the start time
+
+      if (this.startTime > this.endTime) this.setEndTime(percentage); // Set the timestamp of the current trim handle position
+
+      this.setThumbTimeStamps();
+      this.setThumbAriaData();
+      this.setShadedRegions();
+    }
+  }, {
+    key: "setRightThumbPosition",
+    value: function setRightThumbPosition(percentage) {
+      var bar = this.elements.container.bar;
+      var _bar$style2 = bar.style,
+          left = _bar$style2.left,
+          width = _bar$style2.width;
+      var leftThumbPos = parseFloat(left);
+      var rightThumbPos = leftThumbPos + parseFloat(width);
+      var maxTrimLength = this.getMaxTrimLength(leftThumbPos, percentage); // Update the width of trim bar (right thumb)
+
+      if (maxTrimLength) {
+        bar.style.left = "".concat(leftThumbPos + (percentage - rightThumbPos), "%");
+        this.setStartTime(leftThumbPos + (percentage - rightThumbPos));
+      } else {
+        // Update the width of trim bar (right thumb)
+        bar.style.width = "".concat(Math.max(percentage - leftThumbPos, 0), "%");
+      } // Store and convert the end position on the timeline as time
+
+
+      this.setEndTime(percentage); // Prevent the start time being after the end time
+
+      if (this.endTime < this.startTime) {
+        bar.style.left = "".concat(percentage, "%");
+        this.setStartTime("".concat(percentage, "%"));
+      } // Set the timestamp of the current trim handle position
+
+
+      this.setThumbTimeStamps();
+      this.setThumbAriaData();
+      this.setShadedRegions();
+    }
+  }, {
+    key: "setThumbTimeStamps",
+    value: function setThumbTimeStamps() {
+      var bar = this.elements.container.bar;
+      bar.leftThumb.timeContainer.time.innerText = controls.formatTime.call(this.player, this.startTime);
+      bar.rightThumb.timeContainer.time.innerText = controls.formatTime.call(this.player, this.endTime);
+    }
+  }, {
+    key: "setThumbAriaData",
+    value: function setThumbAriaData() {
+      var bar = this.elements.container.bar; // Update the aria-value and text
+
+      bar.leftThumb.setAttribute('aria-valuenow', this.startTime);
+      bar.leftThumb.setAttribute('aria-valuetext', controls.formatTime.call(this.player, this.startTime));
+      bar.rightThumb.setAttribute('aria-valuenow', this.endTime);
+      bar.rightThumb.setAttribute('aria-valuetext', controls.formatTime.call(this.player, this.endTime));
+    }
+  }, {
+    key: "toggleTimeContainer",
+    value: function toggleTimeContainer(element) {
+      var toggle = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+      if (!element.timeContainer) {
+        return;
+      }
+
+      var className = this.player.config.classNames.trim.timeContainerShown;
+      element.timeContainer.classList.toggle(className, toggle);
+    } // Set the seektime to the start of the trim timeline, if the seektime is outside of the region.
+
+  }, {
+    key: "timeUpdate",
+    value: function timeUpdate() {
+      if (!this.active || !this.trimming || !this.player.playing || this.editing) {
+        return;
+      }
+
+      var currentTime = this.player.currentTime;
+
+      if (currentTime < this.startTime || currentTime >= this.endTime) {
+        this.player.currentTime = this.startTime;
+
+        if (currentTime >= this.endTime) {
+          this.player.pause();
+        }
+      }
+    }
+  }, {
+    key: "listeners",
+    value: function listeners() {
+      var _this3 = this;
+
+      /* Prevent the trim tool from being added until the player is in a playable state
+             If the user has pressed the trim tool before this event has fired, show the tool
+          */
+      this.player.on('loadeddata loadedmetadata', function () {
+        if (_this3.player.media.duration) _this3.loaded = true;
+        if (_this3.trimming) _this3.showTrimTool();
+      });
+      /* Listen for time changes so we can reset the seek point to within the clip.
+             Additionally, use the reference to the binding so we can remove and create a new instance of this listener
+             when we change source
+          */
+
+      this.player.on('timeupdate', this.timeUpdateFunction);
+    } // On toggle of trim control, trigger event
+
+  }, {
+    key: "onChange",
+    value: function onChange() {
+      if (!this.enabled) {
+        return;
+      } // Update toggle button
+
+
+      var button = this.player.elements.buttons.trim;
+
+      if (is$1.element(button)) {
+        button.pressed = this.active;
+      } // Trigger an event
+
+
+      triggerEvent.call(this.player, this.player.media, this.trimming ? 'entertrim' : 'exittrim', false, this.trimTime);
+    } // Update UI
+
+  }, {
+    key: "update",
+    value: function update() {
+      if (this.enabled) {
+        this.player.debug.log("trim enabled");
+      } else {
+        this.player.debug.log('Trimming is not supported');
+      } // Add styling hook to show button
+
+
+      toggleClass(this.player.elements.container, this.player.config.classNames.trim.enabled, this.enabled);
+    }
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      // Remove the elements with listeners on
+      if (this.elements.container.bar && !is$1.empty(this.elements.container.bar)) {
+        this.elements.container.remove();
+      }
+
+      this.player.off('timeupdate', this.timeUpdateFunction);
+    } // Enter trim tool
+
+  }, {
+    key: "enter",
+    value: function enter() {
+      if (!this.enabled) {
+        return;
+      }
+
+      this.trimming = true;
+      this.showTrimTool();
+      this.onChange();
+    } // Exit trim tool
+
+  }, {
+    key: "exit",
+    value: function exit() {
+      if (!this.enabled) {
+        return;
+      }
+
+      this.trimming = false;
+      this.hideTrimTool();
+      this.onChange();
+    } // Toggle state
+
+  }, {
+    key: "toggle",
+    value: function toggle() {
+      if (!this.active) {
+        this.enter();
+      } else {
+        this.exit();
+      }
+    }
+  }, {
+    key: "enabled",
+    get: function get() {
+      var config = this.config;
+      return config.enabled && this.player.isHTML5 && this.player.isVideo;
+    } // Get active state
+
+  }, {
+    key: "active",
+    get: function get() {
+      if (!this.enabled) {
+        return false;
+      }
+
+      return this.trimming && is$1.element(this.elements.container);
+    } // Get the current trim time
+    // If trimming a media fragment the start can be different from the media's start time so use the media time
+
+  }, {
+    key: "trimTime",
+    get: function get() {
+      var mediaFragment = this.player.mediaFragment;
+      var startTime = mediaFragment.getMediaTime(this.startTime);
+      var endTime = mediaFragment.getMediaTime(this.endTime);
+      return {
+        startTime: startTime,
+        endTime: endTime
+      };
+    }
+  }, {
+    key: "trimLength",
+    get: function get() {
+      var maxTrimLength = this.config.maxTrimLength; // Default is 100% or the maximum trimming length
+
+      return maxTrimLength > 0 ? clamp(100 / this.player.duration * parseFloat(maxTrimLength), 0, 100) : 100;
+    } // Calculate the lower Limit of the trim region
+
+  }, {
+    key: "lowerBound",
+    get: function get() {
+      var lowerBound = this.config.lowerBound;
+      return lowerBound > 0 ? lowerBound / this.player.duration * 100 : 0;
+    } // Calculate the upper Limit of the trim region
+
+  }, {
+    key: "upperBound",
+    get: function get() {
+      var upperBound = this.config.upperBound;
+      return upperBound > 0 ? upperBound / this.player.duration * 100 : 100;
+    }
+  }, {
+    key: "previewThumbnailsReady",
+    get: function get() {
+      var _this$player = this.player,
+          previewThumbnails = _this$player.previewThumbnails,
+          duration = _this$player.duration;
+      /* Added check for preview thumbnails size as, it is be returned loaded even though there are no thumbnails */
+
+      return previewThumbnails && previewThumbnails.loaded && duration > 0;
+    }
+  }]);
+
+  return Trim;
+}();
+
 var parseVtt = function parseVtt(vttDataString) {
   var processedList = [];
   var frames = vttDataString.split(/\r\n\r\n|\n\n|\r\r/);
@@ -7145,9 +9230,7 @@ var fitRatio = function fitRatio(ratio, outer) {
   return result;
 };
 
-var PreviewThumbnails =
-/*#__PURE__*/
-function () {
+var PreviewThumbnails = /*#__PURE__*/function () {
   /**
    * PreviewThumbnails constructor.
    * @param {Plyr} player
@@ -7194,7 +9277,9 @@ function () {
 
         _this.determineContainerAutoSizing();
 
-        _this.loaded = true;
+        _this.loaded = true; // Trigger event
+
+        triggerEvent.call(_this.player, _this.player.media, 'previewthumbnailsloaded');
       });
     } // Download VTT files and parse them
 
@@ -7208,15 +9293,10 @@ function () {
 
         if (is$1.empty(src)) {
           throw new Error('Missing previewThumbnails.src config attribute');
-        } // If string, convert into single-element list
+        } // Resolve promise
 
 
-        var urls = is$1.string(src) ? [src] : src; // Loop through each src URL. Download and process the VTT file, storing the resulting data in this.thumbnails
-
-        var promises = urls.map(function (u) {
-          return _this2.getThumbnail(u);
-        });
-        Promise.all(promises).then(function () {
+        var sortAndResolve = function sortAndResolve() {
           // Sort smallest to biggest (e.g., [120p, 480p, 1080p])
           _this2.thumbnails.sort(function (x, y) {
             return x.height - y.height;
@@ -7225,43 +9305,102 @@ function () {
           _this2.player.debug.log('Preview thumbnails', _this2.thumbnails);
 
           resolve();
-        });
+        }; // Via callback()
+
+
+        if (is$1.function(src)) {
+          src(function (thumbnails) {
+            _this2.thumbnails = thumbnails;
+            sortAndResolve();
+          });
+        } // VTT urls
+        else {
+            // If string, convert into single-element list
+            var urls = is$1.string(src) ? [src] : src; // Loop through each src URL. Download and process the VTT file, storing the resulting data in this.thumbnails
+
+            var promises = urls.map(function (u) {
+              return _this2.getVttFile(u);
+            }); // Resolve
+
+            Promise.all(promises).then(sortAndResolve);
+          }
       });
     } // Process individual VTT file
 
   }, {
+    key: "getVttFile",
+    value: function () {
+      var _getVttFile = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(src) {
+        var response;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (!src.startsWith('WEBVTT')) {
+                  _context.next = 5;
+                  break;
+                }
+
+                _context.next = 3;
+                return this.getThumbnail(src);
+
+              case 3:
+                _context.next = 10;
+                break;
+
+              case 5:
+                _context.next = 7;
+                return fetch(src);
+
+              case 7:
+                response = _context.sent;
+                _context.next = 10;
+                return this.getThumbnail(response, src);
+
+              case 10:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function getVttFile(_x) {
+        return _getVttFile.apply(this, arguments);
+      }
+
+      return getVttFile;
+    }() // Process thumbnail
+
+  }, {
     key: "getThumbnail",
-    value: function getThumbnail(url) {
+    value: function getThumbnail(src, url) {
       var _this3 = this;
 
       return new Promise(function (resolve) {
-        fetch(url).then(function (response) {
-          var thumbnail = {
-            frames: parseVtt(response),
-            height: null,
-            urlPrefix: ''
-          }; // If the URLs don't start with '/', then we need to set their relative path to be the location of the VTT file
-          // If the URLs do start with '/', then they obviously don't need a prefix, so it will remain blank
-          // If the thumbnail URLs start with with none of '/', 'http://' or 'https://', then we need to set their relative path to be the location of the VTT file
+        var thumbnail = {
+          frames: parseVtt(src),
+          height: null,
+          urlPrefix: ''
+        }; // If the URLs don't start with '/', then we need to set their relative path to be the location of the VTT file
+        // If the URLs do start with '/', then they obviously don't need a prefix, so it will remain blank
+        // If the thumbnail URLs start with with none of '/', 'http://' or 'https://', then we need to set their relative path to be the location of the VTT file
 
-          if (!thumbnail.frames[0].text.startsWith('/') && !thumbnail.frames[0].text.startsWith('http://') && !thumbnail.frames[0].text.startsWith('https://')) {
-            thumbnail.urlPrefix = url.substring(0, url.lastIndexOf('/') + 1);
-          } // Download the first frame, so that we can determine/set the height of this thumbnailsDef
+        if (!thumbnail.frames[0].text.startsWith('/') && !thumbnail.frames[0].text.startsWith('http://') && !thumbnail.frames[0].text.startsWith('https://')) {
+          thumbnail.urlPrefix = url.substring(0, url.lastIndexOf('/') + 1);
+        } // Download the first frame, so that we can determine/set the height of this thumbnailsDef
 
 
-          var tempImage = new Image();
+        var tempImage = new Image();
+        tempImage.addEventListener('load', function () {
+          thumbnail.height = tempImage.naturalHeight;
+          thumbnail.width = tempImage.naturalWidth;
 
-          tempImage.onload = function () {
-            thumbnail.height = tempImage.naturalHeight;
-            thumbnail.width = tempImage.naturalWidth;
+          _this3.thumbnails.push(thumbnail);
 
-            _this3.thumbnails.push(thumbnail);
-
-            resolve();
-          };
-
-          tempImage.src = thumbnail.urlPrefix + thumbnail.frames[0].text;
+          resolve();
         });
+        tempImage.src = thumbnail.urlPrefix + thumbnail.frames[0].text;
       });
     }
   }, {
@@ -7282,26 +9421,26 @@ function () {
 
       if (event.type === 'touchmove') {
         // Calculate seek hover position as approx video seconds
-        this.seekTime = this.player.media.duration * (this.player.elements.inputs.seek.value / 100);
+        this.seekTime = this.player.duration * (this.player.elements.inputs.seek.value / 100);
       } else {
         // Calculate seek hover position as approx video seconds
         var clientRect = this.player.elements.progress.getBoundingClientRect();
         var percentage = 100 / clientRect.width * (event.pageX - clientRect.left);
-        this.seekTime = this.player.media.duration * (percentage / 100);
+        this.seekTime = this.player.duration * (percentage / 100);
 
         if (this.seekTime < 0) {
           // The mousemove fires for 10+px out to the left
           this.seekTime = 0;
         }
 
-        if (this.seekTime > this.player.media.duration - 1) {
+        if (this.seekTime > this.player.duration - 1) {
           // Took 1 second off the duration for safety, because different players can disagree on the real duration of a video
-          this.seekTime = this.player.media.duration - 1;
+          this.seekTime = this.player.duration - 1;
         }
 
         this.mousePosX = event.pageX; // Set time text inside image container
 
-        this.elements.thumb.time.innerText = formatTime(this.seekTime);
+        this.elements.thumb.time.innerText = controls.formatTime.call(this.player, this.seekTime);
       } // Download and show image
 
 
@@ -7315,12 +9454,17 @@ function () {
   }, {
     key: "startScrubbing",
     value: function startScrubbing(event) {
+      var overrideScrubbing = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
       // Only act on left mouse button (0), or touch device (event.button does not exist or is false)
       if (is$1.nullOrUndefined(event.button) || event.button === false || event.button === 0) {
         this.mouseDown = true; // Wait until media has a duration
 
         if (this.player.media.duration) {
-          this.toggleScrubbingContainer(true);
+          if (this.player.config.previewThumbnails.enableScrubbing || overrideScrubbing) {
+            this.toggleScrubbingContainer(true);
+          }
+
           this.toggleThumbContainer(false, true); // Download and show image
 
           this.showImageAtCurrentTime();
@@ -7334,7 +9478,7 @@ function () {
 
       this.mouseDown = false; // Hide scrubbing preview. But wait until the video has successfully seeked before hiding the scrubbing preview
 
-      if (Math.ceil(this.lastTime) === Math.ceil(this.player.media.currentTime)) {
+      if (Math.ceil(this.lastTime) === Math.ceil(this.player.currentTime)) {
         // The video was already seeked/loaded at the chosen time - hide immediately
         this.toggleScrubbingContainer(false);
       } else {
@@ -7364,7 +9508,7 @@ function () {
         _this5.toggleThumbContainer(false);
       });
       this.player.on('timeupdate', function () {
-        _this5.lastTime = _this5.player.media.currentTime;
+        _this5.lastTime = _this5.player.currentTime;
       });
     }
     /**
@@ -7374,7 +9518,8 @@ function () {
   }, {
     key: "render",
     value: function render() {
-      // Create HTML element: plyr__preview-thumbnail-container
+      if (!this.player.elements) return; // Create HTML element: plyr__preview-thumbnail-container
+
       this.elements.thumb.container = createElement('div', {
         class: this.player.config.classNames.previewThumbnails.thumbContainer
       }); // Wrapper for the image for styling
@@ -7417,21 +9562,26 @@ function () {
     value: function showImageAtCurrentTime() {
       var _this6 = this;
 
+      var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.seekTime;
+      var container = arguments.length > 1 ? arguments[1] : undefined;
+
       if (this.mouseDown) {
         this.setScrubbingContainerSize();
       } else {
         this.setThumbContainerSizeAndPos();
-      } // Find the desired thumbnail index
+      } // Adjust image time if the timeline is offset
+
+
+      var offsetTime = time + (this.player.mediaFragment.enabled && this.player.mediaFragment.startTime || 0); // Find the desired thumbnail index
       // TODO: Handle a video longer than the thumbs where thumbNum is null
 
-
       var thumbNum = this.thumbnails[0].frames.findIndex(function (frame) {
-        return _this6.seekTime >= frame.startTime && _this6.seekTime <= frame.endTime;
+        return offsetTime >= frame.startTime && offsetTime <= frame.endTime;
       });
       var hasThumb = thumbNum >= 0;
-      var qualityIndex = 0; // Show the thumb container if we're not scrubbing
+      var qualityIndex = 0; // Show the thumb container if we're not scrubbing and not setting a custom container
 
-      if (!this.mouseDown) {
+      if (!this.mouseDown && !container) {
         this.toggleThumbContainer(hasThumb);
       } // No matching thumb found
 
@@ -7445,11 +9595,11 @@ function () {
         if (_this6.loadedImages.includes(thumbnail.frames[thumbNum].text)) {
           qualityIndex = index;
         }
-      }); // Only proceed if either thumbnum or thumbfilename has changed
+      }); // Only proceed if either thumbnum, thumbfilename or container has changed
 
-      if (thumbNum !== this.showingThumb) {
+      if (thumbNum !== this.showingThumb || container) {
         this.showingThumb = thumbNum;
-        this.loadImage(qualityIndex);
+        this.loadImage(qualityIndex, container);
       }
     } // Show the image that's currently specified in this.showingThumb
 
@@ -7459,14 +9609,16 @@ function () {
       var _this7 = this;
 
       var qualityIndex = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+      var container = arguments.length > 1 ? arguments[1] : undefined;
       var thumbNum = this.showingThumb;
       var thumbnail = this.thumbnails[qualityIndex];
       var urlPrefix = thumbnail.urlPrefix;
       var frame = thumbnail.frames[thumbNum];
       var thumbFilename = thumbnail.frames[thumbNum].text;
       var thumbUrl = urlPrefix + thumbFilename;
+      var currentImageElement = container ? container.currentImageElement : this.currentImageElement;
 
-      if (!this.currentImageElement || this.currentImageElement.dataset.filename !== thumbFilename) {
+      if (!currentImageElement || currentImageElement.dataset.filename !== thumbFilename) {
         // If we're already loading a previous image, remove its onload handler - we don't want it to load after this one
         // Only do this if not using sprites. Without sprites we really want to show as many images as possible, as a best-effort
         if (this.loadingImage && this.usingSprites) {
@@ -7477,39 +9629,47 @@ function () {
 
 
         var previewImage = new Image();
-        previewImage.src = thumbUrl;
         previewImage.dataset.index = thumbNum;
         previewImage.dataset.filename = thumbFilename;
         this.showingThumbFilename = thumbFilename;
         this.player.debug.log("Loading image: ".concat(thumbUrl)); // For some reason, passing the named function directly causes it to execute immediately. So I've wrapped it in an anonymous function...
 
-        previewImage.onload = function () {
-          return _this7.showImage(previewImage, frame, qualityIndex, thumbNum, thumbFilename, true);
-        };
-
+        previewImage.addEventListener('load', function () {
+          _this7.showImage( // For the editor timeline, we need the most recent container however, if the event has changed between seeking and hover we should use the new container
+          container || _this7.currentImageContainer, previewImage, frame, qualityIndex, thumbNum, thumbFilename, true, !!container);
+        }, {
+          once: true
+        });
+        previewImage.src = thumbUrl;
         this.loadingImage = previewImage;
-        this.removeOldImages(previewImage);
+        this.removeOldImages(previewImage, container);
       } else {
         // Update the existing image
-        this.showImage(this.currentImageElement, frame, qualityIndex, thumbNum, thumbFilename, false);
-        this.currentImageElement.dataset.index = thumbNum;
-        this.removeOldImages(this.currentImageElement);
+        this.showImage(container || this.currentImageContainer, currentImageElement, frame, qualityIndex, thumbNum, thumbFilename, false, !!container);
+        currentImageElement.dataset.index = thumbNum;
+        this.removeOldImages(currentImageElement, container);
       }
     }
   }, {
     key: "showImage",
-    value: function showImage(previewImage, frame, qualityIndex, thumbNum, thumbFilename) {
-      var newImage = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : true;
+    value: function showImage(currentImageContainer, previewImage, frame, qualityIndex, thumbNum, thumbFilename) {
+      var newImage = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : true;
+      var container = arguments.length > 7 ? arguments[7] : undefined;
+      // Prevent if the player is destroyed after the image has loaded
+      if (is$1.empty(this.player.media)) return;
       this.player.debug.log("Showing thumb: ".concat(thumbFilename, ". num: ").concat(thumbNum, ". qual: ").concat(qualityIndex, ". newimg: ").concat(newImage));
       this.setImageSizeAndOffset(previewImage, frame);
+      currentImageContainer.appendChild(previewImage);
 
-      if (newImage) {
-        this.currentImageContainer.appendChild(previewImage);
+      if (container) {
+        // eslint-disable-next-line no-param-reassign
+        currentImageContainer.currentImageElement = previewImage;
+      } else {
         this.currentImageElement = previewImage;
+      }
 
-        if (!this.loadedImages.includes(thumbFilename)) {
-          this.loadedImages.push(thumbFilename);
-        }
+      if (!this.loadedImages.includes(thumbFilename)) {
+        this.loadedImages.push(thumbFilename);
       } // Preload images before and after the current one
       // Show higher quality of the same frame
       // Each step here has a short time delay, and only continues if still hovering/seeking the same spot. This is to protect slow connections from overloading
@@ -7520,24 +9680,25 @@ function () {
 
   }, {
     key: "removeOldImages",
-    value: function removeOldImages(currentImage) {
+    value: function removeOldImages(currentImage, container) {
       var _this8 = this;
 
-      // Get a list of all images, convert it from a DOM list to an array
-      Array.from(this.currentImageContainer.children).forEach(function (image) {
+      // This has to be set before the timeout - to prevent issues switching between hover and scrub
+      var currentImageContainer = container || this.currentImageContainer;
+      if (!currentImageContainer || !currentImageContainer.children.length) return; // Get a list of all images, convert it from a DOM list to an array
+
+      Array.from(currentImageContainer.children).forEach(function (image) {
         if (image.tagName.toLowerCase() !== 'img') {
           return;
         }
 
         var removeDelay = _this8.usingSprites ? 500 : 1000;
 
-        if (image.dataset.index !== currentImage.dataset.index && !image.dataset.deleting) {
+        if (image && image.dataset.index !== currentImage.dataset.index && !image.dataset.deleting) {
           // Wait 200ms, as the new image can take some time to show on certain browsers (even though it was downloaded before showing). This will prevent flicker, and show some generosity towards slower clients
           // First set attribute 'deleting' to prevent multi-handling of this on repeat firing of this function
           // eslint-disable-next-line no-param-reassign
-          image.dataset.deleting = true; // This has to be set before the timeout - to prevent issues switching between hover and scrub
-
-          var currentImageContainer = _this8.currentImageContainer;
+          image.dataset.deleting = true;
           setTimeout(function () {
             currentImageContainer.removeChild(image);
 
@@ -7657,7 +9818,9 @@ function () {
   }, {
     key: "determineContainerAutoSizing",
     value: function determineContainerAutoSizing() {
-      if (this.elements.thumb.imageContainer.clientHeight > 20 || this.elements.thumb.imageContainer.clientWidth > 20) {
+      var thumb = this.elements.thumb;
+
+      if (!is$1.empty(thumb) && (thumb.imageContainer.clientHeight > 20 || thumb.imageContainer.clientWidth > 20)) {
         // This will prevent auto sizing in this.setThumbContainerSizeAndPos()
         this.sizeSpecifiedInCSS = true;
       }
@@ -7723,10 +9886,11 @@ function () {
     value: function setImageSizeAndOffset(previewImage, frame) {
       if (!this.usingSprites) {
         return;
-      } // Find difference between height and preview container height
+      }
 
+      var container = this.editor ? this.player.editor.videoContainerHeight : this.thumbContainerHeight; // Find difference between height and preview container height
 
-      var multiplier = this.thumbContainerHeight / frame.h; // eslint-disable-next-line no-param-reassign
+      var multiplier = container / frame.h; // eslint-disable-next-line no-param-reassign
 
       previewImage.style.height = "".concat(previewImage.naturalHeight * multiplier, "px"); // eslint-disable-next-line no-param-reassign
 
@@ -7902,7 +10066,7 @@ var source = {
       } // Restore class hook
 
 
-      ui.addStyleHook.call(_this2); // Set new sources for html5
+      ui.addStyleHook.call(_this2, _this2.elements.container); // Set new sources for html5
 
       if (_this2.isHTML5) {
         source.insertElements.call(_this2, 'source', sources);
@@ -7918,8 +10082,10 @@ var source = {
         if (Object.keys(input).includes('tracks')) {
           source.insertElements.call(_this2, 'track', input.tracks);
         }
-      } // If HTML5 or embed but not fully supported, setupInterface and call ready now
+      } // Set up sync points
 
+
+      _this2.config.syncPoints = input.syncPoints; // If HTML5 or embed but not fully supported, setupInterface and call ready now
 
       if (_this2.isHTML5 || _this2.isEmbed && !_this2.supported.ui) {
         // Setup interface
@@ -7929,6 +10095,18 @@ var source = {
 
       if (_this2.isHTML5) {
         _this2.media.load();
+      } // Destroy media fragment
+
+
+      if (_this2.mediaFragment && _this2.mediaFragment.active) {
+        _this2.mediaFragment.destroy();
+
+        _this2.mediaFragment = null;
+      } // Create new instance of media fragment if still enabled
+
+
+      if (_this2.config.mediaFragment.enabled) {
+        _this2.mediaFragment = new MediaFragment(_this2);
       } // Update previewThumbnails config & reload plugin
 
 
@@ -7945,7 +10123,46 @@ var source = {
         if (_this2.config.previewThumbnails.enabled) {
           _this2.previewThumbnails = new PreviewThumbnails(_this2);
         }
-      } // Update the fullscreen support
+      } // Create new instance of trim plugin
+
+
+      if (_this2.editor && _this2.editor.loaded) {
+        _this2.editor.destroy();
+
+        _this2.editor = null;
+      } // Create new instance if it is still enabled
+
+
+      if (_this2.config.editor.enabled) {
+        _this2.editor = new Editor(_this2);
+      } // Create new instance of video markers
+
+
+      if (_this2.markers) {
+        _this2.markers.destroy();
+
+        _this2.markers = null;
+      } // Create new instance if it is still enabled
+
+
+      if (_this2.config.markers.enabled) {
+        _this2.markers = new Markers(_this2);
+      } // Create new instance of trim plugin
+
+
+      if (_this2.trim && _this2.trim.loaded) {
+        _this2.trim.destroy();
+
+        _this2.trim = null;
+      } // Create new instance if it is still enabled
+
+
+      if (_this2.config.trim.enabled) {
+        _this2.trim = new Trim(_this2);
+      } // Update trimming tool support
+
+
+      _this2.trim.update(); // Update the fullscreen support
 
 
       _this2.fullscreen.update();
@@ -7953,32 +10170,11 @@ var source = {
   }
 };
 
-/**
- * Returns a number whose value is limited to the given range.
- *
- * Example: limit the output of this computation to between 0 and 255
- * (x * 255).clamp(0, 255)
- *
- * @param {Number} input
- * @param {Number} min The lower boundary of the output range
- * @param {Number} max The upper boundary of the output range
- * @returns A number in the range [min, max]
- * @type Number
- */
-function clamp() {
-  var input = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-  var min = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-  var max = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 255;
-  return Math.min(Math.max(input, min), max);
-}
-
 // TODO: Use a WeakMap for private globals
 // const globals = new WeakMap();
 // Plyr instance
 
-var Plyr =
-/*#__PURE__*/
-function () {
+var Plyr = /*#__PURE__*/function () {
   function Plyr(target, options) {
     var _this = this;
 
@@ -8015,6 +10211,7 @@ function () {
 
     this.elements = {
       container: null,
+      fullscreen: null,
       captions: null,
       buttons: {},
       display: {},
@@ -8189,10 +10386,12 @@ function () {
         tabindex: 0
       });
       wrap(this.media, this.elements.container);
-    } // Add style hook
+    } // Migrate custom properties from media to container (so they work 😉)
 
 
-    ui.addStyleHook.call(this); // Setup media
+    ui.migrateStyles.call(this); // Add style hook
+
+    ui.addStyleHook.call(this, this.elements.container); // Setup media
 
     media.setup.call(this); // Listen for events if debugging
 
@@ -8200,9 +10399,19 @@ function () {
       on.call(this, this.elements.container, this.config.events.join(' '), function (event) {
         _this.debug.log("event: ".concat(event.type));
       });
-    } // Setup interface
-    // If embed but not fully supported, build interface now to avoid flash of controls
+    } // Media Fragment?
 
+
+    this.mediaFragment = new MediaFragment(this); // Setup Editor
+
+    this.editor = new Editor(this); // Setup video markers
+
+    this.markers = new Markers(this); // Setup trim
+
+    this.trim = new Trim(this); // Setup fullscreen
+
+    this.fullscreen = new Fullscreen(this); // Setup interface
+    // If embed but not fully supported, build interface now to avoid flash of controls
 
     if (this.isHTML5 || this.isEmbed && !this.supported.ui) {
       ui.build.call(this);
@@ -8211,9 +10420,7 @@ function () {
 
     this.listeners.container(); // Global listeners
 
-    this.listeners.global(); // Setup fullscreen
-
-    this.fullscreen = new Fullscreen(this); // Setup ads if provided
+    this.listeners.global(); // Setup ads if provided
 
     if (this.config.ads.enabled) {
       this.ads = new Ads(this);
@@ -8221,9 +10428,9 @@ function () {
 
 
     if (this.isHTML5 && this.config.autoplay) {
-      setTimeout(function () {
-        return _this.play();
-      }, 10);
+      this.once('canplay', function () {
+        return silencePromise(_this.play());
+      });
     } // Seek time will be recorded (in listeners.js) so we can prevent hiding controls for a few seconds after seek
 
 
@@ -8259,7 +10466,7 @@ function () {
         this.ads.managerPromise.then(function () {
           return _this2.ads.play();
         }).catch(function () {
-          return _this2.media.play();
+          return silencePromise(_this2.media.play());
         });
       } // Return the promise (for HTML5)
 
@@ -8344,6 +10551,24 @@ function () {
       this.currentTime += is$1.number(seekTime) ? seekTime : this.config.seekTime;
     }
     /**
+     * Rewind Frame
+     */
+
+  }, {
+    key: "frameRewind",
+    value: function frameRewind() {
+      this.currentTime -= 1 / this.config.frameRate;
+    }
+    /**
+     * Forward Frame
+     */
+
+  }, {
+    key: "frameForward",
+    value: function frameForward() {
+      this.currentTime += 1 / this.config.frameRate;
+    }
+    /**
      * Seek to a time
      * @param {Number} input - where to seek to in seconds. Defaults to 0 (the start)
      */
@@ -8419,7 +10644,7 @@ function () {
 
         var hiding = toggleClass(this.elements.container, this.config.classNames.hideControls, force); // Close menu
 
-        if (hiding && this.config.controls.includes('settings') && !is$1.empty(this.config.settings)) {
+        if (hiding && is$1.array(this.config.controls) && this.config.controls.includes('settings') && !is$1.empty(this.config.settings)) {
           controls.toggleMenu.call(this, false);
         } // Trigger event on change
 
@@ -8498,7 +10723,8 @@ function () {
             removeElement(_this3.elements.buttons.play);
             removeElement(_this3.elements.captions);
             removeElement(_this3.elements.controls);
-            removeElement(_this3.elements.wrapper); // Clear for GC
+            removeElement(_this3.elements.wrapper);
+            removeElement(_this3.editor.elements.container); // Clear for GC
 
             _this3.elements.buttons.play = null;
             _this3.elements.captions = null;
@@ -8511,12 +10737,15 @@ function () {
             callback();
           }
         } else {
-          // Unbind listeners
+          // Event
+          triggerEvent.call(_this3, _this3.elements.container, 'destroyed', true); // Unbind listeners
+
           unbindListeners.call(_this3); // Replace the container with the original element provided
 
-          replaceElement(_this3.elements.original, _this3.elements.container); // Event
+          replaceElement(_this3.elements.original, _this3.elements.container); // Destroy the editor (editor is inserted after the container element)
 
-          triggerEvent.call(_this3, _this3.elements.original, 'destroyed', true); // Callback
+          _this3.editor.destroy(); // Callback
+
 
           if (is$1.function(callback)) {
             callback.call(_this3.elements.original);
@@ -8643,7 +10872,7 @@ function () {
   }, {
     key: "ended",
     get: function get() {
-      return Boolean(this.media.ended);
+      return Boolean(this.media.ended || this.mediaFragment.active && this.currentTime >= this.duration && this.paused);
     }
   }, {
     key: "currentTime",
@@ -8654,9 +10883,11 @@ function () {
       } // Validate input
 
 
-      var inputIsValid = is$1.number(input) && input > 0; // Set
+      var inputIsValid = is$1.number(input) && input > 0; // Media fragment start time offset
 
-      this.media.currentTime = inputIsValid ? Math.min(input, this.duration) : 0; // Logging
+      var offset = this.mediaFragment.enabled && this.mediaFragment.startTime || 0; // Set
+
+      this.media.currentTime = inputIsValid ? Math.min(input + offset, this.duration + offset) : 0 + offset; // Logging
 
       this.debug.log("Seeking to ".concat(this.currentTime, " seconds"));
     }
@@ -8665,7 +10896,9 @@ function () {
      */
     ,
     get: function get() {
-      return Number(this.media.currentTime);
+      // Media fragment start time offset
+      var offset = this.mediaFragment.enabled && this.mediaFragment.startTime || 0;
+      return Number(this.media.currentTime - offset);
     }
     /**
      * Get buffered
@@ -8705,8 +10938,8 @@ function () {
   }, {
     key: "duration",
     get: function get() {
-      // Faux duration set via config
-      var fauxDuration = parseFloat(this.config.duration); // Media duration can be NaN or Infinity before the media has loaded
+      // Faux duration set via config or media fragment
+      var fauxDuration = parseFloat(this.config.duration || this.mediaFragment.enabled && this.mediaFragment.duration); // Media duration can be NaN or Infinity before the media has loaded
 
       var realDuration = (this.media || {}).duration;
       var duration = !is$1.number(realDuration) || realDuration === Infinity ? 0 : realDuration; // If config duration is funky, use regular duration
@@ -8912,7 +11145,7 @@ function () {
       var updateStorage = true;
 
       if (!options.includes(quality)) {
-        var value = closest(options, quality);
+        var value = closest$1(options, quality);
         this.debug.warn("Unsupported quality option: ".concat(quality, ", using ").concat(value, " instead"));
         quality = value; // Don't update storage if quality is not supported
 
@@ -8951,41 +11184,41 @@ function () {
       this.media.loop = toggle; // Set default to be a true toggle
 
       /* const type = ['start', 'end', 'all', 'none', 'toggle'].includes(input) ? input : 'toggle';
-       switch (type) {
-          case 'start':
-              if (this.config.loop.end && this.config.loop.end <= this.currentTime) {
-                  this.config.loop.end = null;
-              }
-              this.config.loop.start = this.currentTime;
-              // this.config.loop.indicator.start = this.elements.display.played.value;
-              break;
-           case 'end':
-              if (this.config.loop.start >= this.currentTime) {
-                  return this;
-              }
-              this.config.loop.end = this.currentTime;
-              // this.config.loop.indicator.end = this.elements.display.played.value;
-              break;
-           case 'all':
-              this.config.loop.start = 0;
-              this.config.loop.end = this.duration - 2;
-              this.config.loop.indicator.start = 0;
-              this.config.loop.indicator.end = 100;
-              break;
-           case 'toggle':
-              if (this.config.loop.active) {
-                  this.config.loop.start = 0;
-                  this.config.loop.end = null;
-              } else {
+            switch (type) {
+              case 'start':
+                  if (this.config.loop.end && this.config.loop.end <= this.currentTime) {
+                      this.config.loop.end = null;
+                  }
+                  this.config.loop.start = this.currentTime;
+                  // this.config.loop.indicator.start = this.elements.display.played.value;
+                  break;
+                case 'end':
+                  if (this.config.loop.start >= this.currentTime) {
+                      return this;
+                  }
+                  this.config.loop.end = this.currentTime;
+                  // this.config.loop.indicator.end = this.elements.display.played.value;
+                  break;
+                case 'all':
                   this.config.loop.start = 0;
                   this.config.loop.end = this.duration - 2;
-              }
-              break;
-           default:
-              this.config.loop.start = 0;
-              this.config.loop.end = null;
-              break;
-      } */
+                  this.config.loop.indicator.start = 0;
+                  this.config.loop.indicator.end = 100;
+                  break;
+                case 'toggle':
+                  if (this.config.loop.active) {
+                      this.config.loop.start = 0;
+                      this.config.loop.end = null;
+                  } else {
+                      this.config.loop.start = 0;
+                      this.config.loop.end = this.duration - 2;
+                  }
+                  break;
+                default:
+                  this.config.loop.start = 0;
+                  this.config.loop.end = null;
+                  break;
+          } */
     }
     /**
      * Get current loop state
@@ -9057,7 +11290,7 @@ function () {
         return null;
       }
 
-      return this.media.getAttribute('poster');
+      return this.media.getAttribute('poster') || this.media.getAttribute('data-poster');
     }
     /**
      * Get the current aspect ratio in use
