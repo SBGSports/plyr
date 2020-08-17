@@ -577,8 +577,9 @@ const controls = {
     // Always display hours if duration is over an hour
     const forceHours = getHours(this.duration) > 0;
 
+    // Display match time
     if (this.config.matchTime && this.config.syncPoints) {
-      return matchTime(time, this.config.syncPoints);
+      return matchTime(this.mediaFragment.getMediaTime(time), this.config.syncPoints);
     }
 
     return formatTime(time, forceHours, inverted);
