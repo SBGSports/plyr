@@ -389,7 +389,7 @@ class Editor {
     const xPos = timeline.seekHandle.getBoundingClientRect().left;
     const percentage = (100 / clientRect.width) * (xPos - clientRect.left);
 
-    if (!(event.type === 'wheel' || event.type === 'input' || event.type === 'click')) {
+    if (!(event.type === 'wheel' || event.type === 'input' || event.type === 'click' || event.type === 'keydown')) {
       return;
     }
 
@@ -407,8 +407,8 @@ class Editor {
     } else if (event.type === 'input') {
       const { value } = event.target;
       this.zoom.scale = value;
-    } else if (event.type === 'click') {
-      if (event.target === this.elements.container.controls.zoomContainer.zoomIn) {
+    } else if (event.type === 'click' || event.type === 'keydown') {
+      if (event.target === this.elements.container.controls.zoomContainer.zoomIn || event.keyCode === 187) {
         this.zoom.scale += 1;
       } else {
         this.zoom.scale -= 1;

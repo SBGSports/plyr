@@ -756,6 +756,8 @@ document then the shortcuts will work when any element has focus, apart from an 
 | `C`        | Toggle captions                        |
 | `L`        | Toggle loop                            |
 | `T`        | Toggle trimming tool                   |
+| `ctrl -`   | Zoom out editor timeline               |
+| `ctrl +`   | Zoom in editor timeline                |
 
 # Preview thumbnails
 
