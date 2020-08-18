@@ -121,6 +121,7 @@ const defaults = {
     enabled: true, // Allow Editor?
     target: null, // Target Container for Editor (if no container is specified, video editor will be appended to the video container)
     maxZoom: 8, // Default max zoom level
+    scrollToZoom: false,
   },
 
   markers: {

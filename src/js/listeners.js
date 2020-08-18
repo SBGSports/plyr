@@ -632,7 +632,7 @@ class Listeners {
       event => {
         event.preventDefault();
 
-        if (editor.active) {
+        if (editor.active && this.player.config.editor.scrollToZoom) {
           editor.setZoom(event);
         }
       },

@@ -10140,8 +10140,9 @@ typeof navigator === "object" && (function (global, factory) {
       // Allow Editor?
       target: null,
       // Target Container for Editor (if no container is specified, video editor will be appended to the video container)
-      maxZoom: 8 // Default max zoom level
-
+      maxZoom: 8,
+      // Default max zoom level
+      scrollToZoom: false
     },
     markers: {
       enabled: true,
@@ -11718,7 +11719,7 @@ typeof navigator === "object" && (function (global, factory) {
         this.bind(editor.elements.container, 'wheel', function (event) {
           event.preventDefault();
 
-          if (editor.active) {
+          if (editor.active && _this2.player.config.editor.scrollToZoom) {
             editor.setZoom(event);
           }
         }, 'editor', false);
