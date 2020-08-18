@@ -71,7 +71,31 @@ class Listeners {
       }
 
       // Which keycodes should we prevent default
-      const preventDefault = [32, 37, 38, 39, 40, 48, 49, 50, 51, 52, 53, 54, 56, 57, 67, 70, 73, 75, 76, 77, 79];
+      const preventDefault = [
+        32,
+        37,
+        38,
+        39,
+        40,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        56,
+        57,
+        67,
+        70,
+        73,
+        75,
+        76,
+        77,
+        79,
+        187,
+        189,
+      ];
 
       // If the code is found prevent default (e.g. prevent scrolling for arrows)
       if (preventDefault.includes(code)) {
@@ -90,6 +114,16 @@ class Listeners {
             // Arrow Back
             player.frameRewind();
             break;
+
+          // Plus key
+          case 187:
+            player.editor.setZoom(event);
+            break;
+          // Minus key
+          case 189:
+            player.editor.setZoom(event);
+            break;
+
           default:
             break;
         }
