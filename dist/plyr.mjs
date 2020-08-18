@@ -4858,7 +4858,7 @@ var Listeners = /*#__PURE__*/function () {
         } // Which keycodes should we prevent default
 
 
-        var preventDefault = [32, 37, 38, 39, 40, 48, 49, 50, 51, 52, 53, 54, 56, 57, 67, 70, 73, 75, 76, 77, 79]; // If the code is found prevent default (e.g. prevent scrolling for arrows)
+        var preventDefault = [32, 37, 38, 39, 40, 48, 49, 50, 51, 52, 53, 54, 56, 57, 67, 70, 73, 75, 76, 77, 79, 187, 189]; // If the code is found prevent default (e.g. prevent scrolling for arrows)
 
         if (preventDefault.includes(code)) {
           event.preventDefault();
@@ -4875,6 +4875,16 @@ var Listeners = /*#__PURE__*/function () {
             case 37:
               // Arrow Back
               player.frameRewind();
+              break;
+            // Plus key
+
+            case 187:
+              player.editor.setZoom(event);
+              break;
+            // Minus key
+
+            case 189:
+              player.editor.setZoom(event);
               break;
           }
 
@@ -7943,7 +7953,7 @@ var Editor = /*#__PURE__*/function () {
       var xPos = timeline.seekHandle.getBoundingClientRect().left;
       var percentage = 100 / clientRect.width * (xPos - clientRect.left);
 
-      if (!(event.type === 'wheel' || event.type === 'input' || event.type === 'click')) {
+      if (!(event.type === 'wheel' || event.type === 'input' || event.type === 'click' || event.type === 'keydown')) {
         return;
       } // Calculate zoom Delta for mousewheel
 
@@ -7959,8 +7969,8 @@ var Editor = /*#__PURE__*/function () {
       } else if (event.type === 'input') {
         var value = event.target.value;
         this.zoom.scale = value;
-      } else if (event.type === 'click') {
-        if (event.target === this.elements.container.controls.zoomContainer.zoomIn) {
+      } else if (event.type === 'click' || event.type === 'keydown') {
+        if (event.target === this.elements.container.controls.zoomContainer.zoomIn || event.keyCode === 187) {
           this.zoom.scale += 1;
         } else {
           this.zoom.scale -= 1;
