@@ -674,6 +674,7 @@ declare namespace Plyr {
     enabled?: boolean;
     target?: NodeList | HTMLElement | HTMLElement[] | string;
     maxZoom?: number;
+    scrollToZoom?: boolean;
   }
 
   interface MarkersOptions {
