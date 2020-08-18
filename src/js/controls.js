@@ -578,7 +578,7 @@ const controls = {
     const forceHours = getHours(this.duration) > 0;
 
     // Display match time
-    if (this.config.matchTime && this.config.syncPoints) {
+    if (this.config.matchTime && this.config.syncPoints && this.config.syncPoints.length) {
       return matchTime(this.mediaFragment.getMediaTime(time), this.config.syncPoints);
     }
 
