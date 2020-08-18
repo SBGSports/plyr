@@ -2217,7 +2217,7 @@ var controls = {
 
     var forceHours = getHours(this.duration) > 0; // Display match time
 
-    if (this.config.matchTime && this.config.syncPoints) {
+    if (this.config.matchTime && this.config.syncPoints && this.config.syncPoints.length) {
       return matchTime(this.mediaFragment.getMediaTime(time), this.config.syncPoints);
     }
 
@@ -10738,7 +10738,9 @@ var Plyr = /*#__PURE__*/function () {
           }
         } else {
           // Event
-          triggerEvent.call(_this3, _this3.elements.container, 'destroyed', true); // Unbind listeners
+          triggerEvent.call(_this3, _this3.elements.container, 'destroyed', true); // Cancel all network requests
+
+          html5.cancelRequests.call(_this3); // Unbind listeners
 
           unbindListeners.call(_this3); // Replace the container with the original element provided
 
