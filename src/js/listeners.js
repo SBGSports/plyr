@@ -117,11 +117,11 @@ class Listeners {
 
           // Plus key
           case 187:
-            player.editor.setZoom(event);
+            player.editor.setZoomByEvent(event);
             break;
           // Minus key
           case 189:
-            player.editor.setZoom(event);
+            player.editor.setZoomByEvent(event);
             break;
 
           default:
@@ -645,18 +645,18 @@ class Listeners {
     // Zoom Timeline
     this.bind(editor.elements.container.controls.zoomContainer.zoom, inputEvent, event => {
       if (editor.active) {
-        editor.setZoom(event);
+        editor.setZoomByEvent(event);
       }
     });
 
     // Zoom Out Control
     this.bind(editor.elements.container.controls.zoomContainer.zoomOut, 'click', event => {
-      editor.setZoom(event);
+      editor.setZoomByEvent(event);
     });
 
     // Zoom Out Control
     this.bind(editor.elements.container.controls.zoomContainer.zoomIn, 'click', event => {
-      editor.setZoom(event);
+      editor.setZoomByEvent(event);
     });
 
     // Zoom timeline
@@ -667,7 +667,7 @@ class Listeners {
         event.preventDefault();
 
         if (editor.active && this.player.config.editor.scrollToZoom) {
-          editor.setZoom(event);
+          editor.setZoomByEvent(event);
         }
       },
       'editor',

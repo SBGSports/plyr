@@ -381,13 +381,8 @@ class Editor {
     this.setSeekPosition();
   }
 
-  setZoom(event) {
-    const { timeline } = this.elements.container;
+  setZoomByEvent(event) {
     const { maxZoom } = this.config;
-    // Zoom on seek handle position
-    const clientRect = timeline.getBoundingClientRect();
-    const xPos = timeline.seekHandle.getBoundingClientRect().left;
-    const percentage = (100 / clientRect.width) * (xPos - clientRect.left);
 
     if (!(event.type === 'wheel' || event.type === 'input' || event.type === 'click' || event.type === 'keydown')) {
       return;
@@ -415,9 +410,18 @@ class Editor {
       }
     }
 
-    // Limit zoom to be between 1 and max times zoom
-    this.zoom.scale = clamp(this.zoom.scale, 1, maxZoom);
+    this.setZoom();
+  }
 
+  setZoom(scale = this.zoom.scale) {
+    const { maxZoom } = this.config;
+    const { timeline } = this.elements.container;
+    const clientRect = timeline.getBoundingClientRect();
+    const xPos = timeline.seekHandle.getBoundingClientRect().left;
+    const percentage = (100 / clientRect.width) * (xPos - clientRect.left);
+
+    // Limit zoom to be between 1 and max times zoom
+    this.zoom.scale = clamp(scale, 1, maxZoom);
     // Apply zoom scale
     timeline.style.width = `${this.zoom.scale * 100}%`;
     // Position the element based on the mouse position
