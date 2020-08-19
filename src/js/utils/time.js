@@ -48,7 +48,7 @@ export function matchTime(time, syncPoints) {
   const addedTime = minutesIntoPeriod >= secondsToMinutes(syncPoint.duration);
   const addedMinutes = minutesIntoPeriod - Math.min(minutesIntoPeriod, secondsToMinutes(syncPoint.duration));
   // Format time component to add leading zero
-  const format = value => `0${value}`.slice(-2);
+  const format = value => `${value.toString().length <= 1 ? '0' : ''}${value}`;
 
   return `${format(minutes)}${addedTime ? `+${format(addedMinutes)}` : ''}:${format(seconds)}`;
 }
