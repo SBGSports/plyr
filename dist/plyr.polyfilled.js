@@ -8075,7 +8075,7 @@ typeof navigator === "object" && (function (global, factory) {
     var addedMinutes = minutesIntoPeriod - Math.min(minutesIntoPeriod, secondsToMinutes(syncPoint.duration)); // Format time component to add leading zero
 
     var format = function format(value) {
-      return "0".concat(value).slice(-2);
+      return "".concat(value.toString().length <= 1 ? '0' : '').concat(value);
     };
 
     return "".concat(format(minutes)).concat(addedTime ? "+".concat(format(addedMinutes)) : '', ":").concat(format(seconds));
