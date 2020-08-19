@@ -137,6 +137,7 @@ const defaults = {
     lowerBound: -1, // Limit the start time of the trimming region in seconds
     upperBound: -1, // Limit the end time of the trimming region in seconds
     offsetContainer: false, // Offset the trimming container window, to center the window based on the current time
+    alwaysShowTimestamps: false, // By default thumb timestamps are only shown on hover, this will set them to always be displayed
   },
 
   mediaFragment: {
@@ -478,6 +479,7 @@ const defaults = {
       rightThumb: 'plyr__trim-tool__thumb-right',
       timeContainer: 'plyr__trim-tool__time-container',
       timeContainerShown: 'plyr__trim-tool__time-container--is-shown',
+      alwaysShowTimestamps: 'plyr__trim-tool__time-container--always-show-timestamps',
     },
     fullscreen: {
       enabled: 'plyr--fullscreen-enabled',
