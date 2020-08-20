@@ -10156,7 +10156,9 @@ var defaults$1 = {
     // Limit the start time of the trimming region in seconds
     upperBound: -1,
     // Limit the end time of the trimming region in seconds
-    offsetContainer: false // Offset the trimming container window, to center the window based on the current time
+    offsetContainer: false,
+    // Offset the trimming container window, to center the window based on the current time
+    alwaysShowTimestamps: false // By default thumb timestamps are only shown on hover, this will set them to always be displayed
 
   },
   mediaFragment: {
@@ -10419,7 +10421,8 @@ var defaults$1 = {
       leftThumb: 'plyr__trim-tool__thumb-left',
       rightThumb: 'plyr__trim-tool__thumb-right',
       timeContainer: 'plyr__trim-tool__time-container',
-      timeContainerShown: 'plyr__trim-tool__time-container--is-shown'
+      timeContainerShown: 'plyr__trim-tool__time-container--is-shown',
+      alwaysShowTimestamps: 'plyr__trim-tool__time-container--always-show-timestamps'
     },
     fullscreen: {
       enabled: 'plyr--fullscreen-enabled',
@@ -11213,12 +11216,12 @@ var Listeners = /*#__PURE__*/function () {
             // Plus key
 
             case 187:
-              player.editor.setZoom(event);
+              player.editor.setZoomByEvent(event);
               break;
             // Minus key
 
             case 189:
-              player.editor.setZoom(event);
+              player.editor.setZoomByEvent(event);
               break;
           }
 
@@ -11708,23 +11711,23 @@ var Listeners = /*#__PURE__*/function () {
 
       this.bind(editor.elements.container.controls.zoomContainer.zoom, inputEvent, function (event) {
         if (editor.active) {
-          editor.setZoom(event);
+          editor.setZoomByEvent(event);
         }
       }); // Zoom Out Control
 
       this.bind(editor.elements.container.controls.zoomContainer.zoomOut, 'click', function (event) {
-        editor.setZoom(event);
+        editor.setZoomByEvent(event);
       }); // Zoom Out Control
 
       this.bind(editor.elements.container.controls.zoomContainer.zoomIn, 'click', function (event) {
-        editor.setZoom(event);
+        editor.setZoomByEvent(event);
       }); // Zoom timeline
 
       this.bind(editor.elements.container, 'wheel', function (event) {
         event.preventDefault();
 
         if (editor.active && _this2.player.config.editor.scrollToZoom) {
-          editor.setZoom(event);
+          editor.setZoomByEvent(event);
         }
       }, 'editor', false);
       this.bind(timeline.seekHandle, 'mousedown mouseup keydown keyup touchstart touchend', function (event) {
@@ -15084,14 +15087,9 @@ var Editor = /*#__PURE__*/function () {
       this.setSeekPosition();
     }
   }, {
-    key: "setZoom",
-    value: function setZoom(event) {
-      var timeline = this.elements.container.timeline;
-      var maxZoom = this.config.maxZoom; // Zoom on seek handle position
-
-      var clientRect = timeline.getBoundingClientRect();
-      var xPos = timeline.seekHandle.getBoundingClientRect().left;
-      var percentage = 100 / clientRect.width * (xPos - clientRect.left);
+    key: "setZoomByEvent",
+    value: function setZoomByEvent(event) {
+      var maxZoom = this.config.maxZoom;
 
       if (!(event.type === 'wheel' || event.type === 'input' || event.type === 'click' || event.type === 'keydown')) {
         return;
@@ -15115,14 +15113,36 @@ var Editor = /*#__PURE__*/function () {
         } else {
           this.zoom.scale -= 1;
         }
-      } // Limit zoom to be between 1 and max times zoom
+      }
 
+      this.setZoom();
+    }
+  }, {
+    key: "setZoom",
+    value: function setZoom() {
+      var scale = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.zoom.scale;
+      var centerTimeline = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      if (!this.active) return;
+      var maxZoom = this.config.maxZoom;
+      var timeline = this.elements.container.timeline;
+      var containerRect = this.elements.container.getBoundingClientRect();
+      var clientRect = timeline.getBoundingClientRect();
+      var xPos = timeline.seekHandle.getBoundingClientRect().left;
+      var percentage = 100 / clientRect.width * (xPos - clientRect.left); // Limit zoom to be between 1 and max times zoom
 
-      this.zoom.scale = clamp(this.zoom.scale, 1, maxZoom); // Apply zoom scale
+      this.zoom.scale = clamp(scale, 1, maxZoom); // Apply zoom scale
 
       timeline.style.width = "".concat(this.zoom.scale * 100, "%"); // Position the element based on the mouse position
 
-      timeline.style.left = "".concat(-(this.zoom.scale * 100 - 100) * percentage / 100, "%"); // Update slider
+      if (centerTimeline) {
+        var updatedClientRect = timeline.getBoundingClientRect();
+        var timelinePos = percentage * this.zoom.scale;
+        var centerOffset = containerRect.width / updatedClientRect.width * 100 / 2 * this.zoom.scale;
+        timeline.style.left = "".concat(clamp(-(timelinePos - centerOffset), (this.zoom.scale * 100 - 100) * -1, 0), "%");
+      } else {
+        timeline.style.left = "".concat(-(this.zoom.scale * 100 - 100) * percentage / 100, "%");
+      } // Update slider
+
 
       if (is$1.element(this.elements.container.controls.zoomContainer)) {
         controls.setRange.call(this.player, this.elements.container.controls.zoomContainer.zoom, this.zoom.scale);
@@ -15945,13 +15965,15 @@ var Trim = /*#__PURE__*/function () {
     value: function createThumbTime() {
       var _this$elements$contai2 = this.elements.container.bar,
           leftThumb = _this$elements$contai2.leftThumb,
-          rightThumb = _this$elements$contai2.rightThumb; // Create HTML element, parent+span: time text (e.g., 01:32:00)
+          rightThumb = _this$elements$contai2.rightThumb;
+      var alwaysShowTimestamps = this.config.alwaysShowTimestamps;
+      var classNames = this.player.config.classNames; // Create HTML element, parent+span: time text (e.g., 01:32:00)
 
       leftThumb.timeContainer = createElement('div', {
-        class: this.player.config.classNames.trim.timeContainer
+        class: classNames.trim.timeContainer
       });
       rightThumb.timeContainer = createElement('div', {
-        class: this.player.config.classNames.trim.timeContainer
+        class: classNames.trim.timeContainer
       }); // Append the time element to the container
 
       leftThumb.timeContainer.time = createElement('span', {}, controls.formatTime.call(this.player, this.startTime));
@@ -15960,7 +15982,10 @@ var Trim = /*#__PURE__*/function () {
       rightThumb.timeContainer.appendChild(rightThumb.timeContainer.time); // Append the time container to the bar
 
       leftThumb.appendChild(leftThumb.timeContainer);
-      rightThumb.appendChild(rightThumb.timeContainer);
+      rightThumb.appendChild(rightThumb.timeContainer); // Toggle whether to always show time stamps or just on hover
+
+      toggleClass(leftThumb.timeContainer, classNames.trim.alwaysShowTimestamps, alwaysShowTimestamps);
+      toggleClass(rightThumb.timeContainer, classNames.trim.alwaysShowTimestamps, alwaysShowTimestamps);
     }
   }, {
     key: "setEditing",
