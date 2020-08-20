@@ -437,8 +437,9 @@ class Editor {
     // Position the element based on the mouse position
     if (centerTimeline) {
       const updatedClientRect = timeline.getBoundingClientRect();
-      const timelinePos = percentage * this.zoom.scale;
-      const centerOffset = (((containerRect.width / updatedClientRect.width) * 100) / 2) * this.zoom.scale;
+      const updatedXPos = timeline.seekHandle.getBoundingClientRect().left;
+      const timelinePos = (100 / updatedClientRect.width) * (updatedXPos - updatedClientRect.left) * this.zoom.scale;
+      const centerOffset = ((containerRect.width / updatedClientRect.width) * 100 * this.zoom.scale) / 2;
       timeline.style.left = `${clamp(-(timelinePos - centerOffset), (this.zoom.scale * 100 - 100) * -1, 0)}%`;
     } else {
       timeline.style.left = `${(-(this.zoom.scale * 100 - 100) * percentage) / 100}%`;
