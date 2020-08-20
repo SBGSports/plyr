@@ -7635,6 +7635,7 @@ typeof navigator === "object" && (function (global, factory) {
       };
       this.duration = 0;
       this.numOfTimestamps = 5;
+      this.imageBuffer = 0.05;
       this.elements = {
         container: {}
       };
@@ -7908,9 +7909,10 @@ typeof navigator === "object" && (function (global, factory) {
             // Retrieve the existing container
             previewThumb = videoContainer.previewThumbs[i];
           } // If preview thumbnails is enabled append an image to the previewThumb
+          // Use an image margin to handle seeking and loading of images
 
 
-          if (this.previewThumbnailsReady && time >= this.visibleWindow.start && time <= this.visibleWindow.end) {
+          if (this.previewThumbnailsReady && time >= this.visibleWindow.start - this.visibleWindow.start * this.imageBuffer && time <= this.visibleWindow.end + this.visibleWindow.end * this.imageBuffer) {
             // Append the image to the container
             previewThumbnails.showImageAtCurrentTime(time, previewThumb);
           }
@@ -7990,8 +7992,9 @@ typeof navigator === "object" && (function (global, factory) {
         var centerTimeline = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
         if (!this.active) return;
         var maxZoom = this.config.maxZoom;
+        var container = this.elements.container;
         var timeline = this.elements.container.timeline;
-        var containerRect = this.elements.container.getBoundingClientRect();
+        var containerRect = container.getBoundingClientRect();
         var clientRect = timeline.getBoundingClientRect();
         var xPos = timeline.seekHandle.getBoundingClientRect().left;
         var percentage = 100 / clientRect.width * (xPos - clientRect.left); // Limit zoom to be between 1 and max times zoom
@@ -8002,8 +8005,9 @@ typeof navigator === "object" && (function (global, factory) {
 
         if (centerTimeline) {
           var updatedClientRect = timeline.getBoundingClientRect();
-          var timelinePos = percentage * this.zoom.scale;
-          var centerOffset = containerRect.width / updatedClientRect.width * 100 / 2 * this.zoom.scale;
+          var updatedXPos = timeline.seekHandle.getBoundingClientRect().left;
+          var timelinePos = 100 / updatedClientRect.width * (updatedXPos - updatedClientRect.left) * this.zoom.scale;
+          var centerOffset = containerRect.width / updatedClientRect.width * 100 * this.zoom.scale / 2;
           timeline.style.left = "".concat(clamp(-(timelinePos - centerOffset), (this.zoom.scale * 100 - 100) * -1, 0), "%");
         } else {
           timeline.style.left = "".concat(-(this.zoom.scale * 100 - 100) * percentage / 100, "%");
