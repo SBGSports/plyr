@@ -288,14 +288,16 @@ class Trim {
 
   createThumbTime() {
     const { leftThumb, rightThumb } = this.elements.container.bar;
+    const { alwaysShowTimestamps } = this.config;
+    const { classNames } = this.player.config;
 
     // Create HTML element, parent+span: time text (e.g., 01:32:00)
     leftThumb.timeContainer = createElement('div', {
-      class: this.player.config.classNames.trim.timeContainer,
+      class: classNames.trim.timeContainer,
     });
 
     rightThumb.timeContainer = createElement('div', {
-      class: this.player.config.classNames.trim.timeContainer,
+      class: classNames.trim.timeContainer,
     });
 
     // Append the time element to the container
@@ -307,6 +309,10 @@ class Trim {
     // Append the time container to the bar
     leftThumb.appendChild(leftThumb.timeContainer);
     rightThumb.appendChild(rightThumb.timeContainer);
+
+    // Toggle whether to always show time stamps or just on hover
+    toggleClass(leftThumb.timeContainer, classNames.trim.alwaysShowTimestamps, alwaysShowTimestamps);
+    toggleClass(rightThumb.timeContainer, classNames.trim.alwaysShowTimestamps, alwaysShowTimestamps);
   }
 
   setEditing(event) {
