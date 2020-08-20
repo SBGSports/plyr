@@ -413,9 +413,13 @@ class Editor {
     this.setZoom();
   }
 
-  setZoom(scale = this.zoom.scale) {
+  setZoom(scale = this.zoom.scale, centerTimeline = false) {
+    if (!this.active) return;
+
     const { maxZoom } = this.config;
+    const { container } = this.elements;
     const { timeline } = this.elements.container;
+    const containerRect = container.getBoundingClientRect();
     const clientRect = timeline.getBoundingClientRect();
     const xPos = timeline.seekHandle.getBoundingClientRect().left;
     const percentage = (100 / clientRect.width) * (xPos - clientRect.left);
@@ -425,7 +429,14 @@ class Editor {
     // Apply zoom scale
     timeline.style.width = `${this.zoom.scale * 100}%`;
     // Position the element based on the mouse position
-    timeline.style.left = `${(-(this.zoom.scale * 100 - 100) * percentage) / 100}%`;
+    if (centerTimeline) {
+      const updatedClientRect = timeline.getBoundingClientRect();
+      const timelinePos = percentage * this.zoom.scale;
+      const centerOffset = (((containerRect.width / updatedClientRect.width) * 100) / 2) * this.zoom.scale;
+      timeline.style.left = `${clamp(-(timelinePos - centerOffset), (this.zoom.scale * 100 - 100) * -1, 0)}%`;
+    } else {
+      timeline.style.left = `${(-(this.zoom.scale * 100 - 100) * percentage) / 100}%`;
+    }
 
     // Update slider
     if (is.element(this.elements.container.controls.zoomContainer)) {
