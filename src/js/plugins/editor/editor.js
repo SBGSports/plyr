@@ -27,6 +27,7 @@ class Editor {
     };
     this.duration = 0;
     this.numOfTimestamps = 5;
+    this.imageBuffer = 0.05;
     this.elements = {
       container: {},
     };
@@ -335,7 +336,12 @@ class Editor {
       }
 
       // If preview thumbnails is enabled append an image to the previewThumb
-      if (this.previewThumbnailsReady && time >= this.visibleWindow.start && time <= this.visibleWindow.end) {
+      // Use an image margin to handle seeking and loading of images
+      if (
+        this.previewThumbnailsReady &&
+        time >= this.visibleWindow.start - this.visibleWindow.start * this.imageBuffer &&
+        time <= this.visibleWindow.end + this.visibleWindow.end * this.imageBuffer
+      ) {
         // Append the image to the container
         previewThumbnails.showImageAtCurrentTime(time, previewThumb);
       }
