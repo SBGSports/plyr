@@ -15564,6 +15564,7 @@ typeof navigator === "object" && (function (global, factory) {
         this.elements.markers.forEach(function (marker) {
           marker.remove();
         });
+        this.elements.markers = [];
       }
     }, {
       key: "addMarkerListeners",
@@ -15709,7 +15710,7 @@ typeof navigator === "object" && (function (global, factory) {
         // Remove the elements with listeners on
         if (this.elements.markers && !is$1.empty(this.elements.markers)) {
           // This should be cleaned up the by the editor
-          this.elements.markers = {};
+          this.elements.markers = [];
         }
       }
     }, {
@@ -16099,7 +16100,7 @@ typeof navigator === "object" && (function (global, factory) {
         if (!maxTrimLength) bar.style.width = "".concat(rightThumbRelativePos, "%"); // Store and convert the start percentage to time
 
         bar.style.left = "".concat(percentage, "%");
-        if (maxTrimLength) this.setEndTime(rightThumbPos);
+        if (maxTrimLength) this.setEndTime(percentage + parseFloat(width));
         this.setStartTime(percentage); // Prevent the end time being before the start time
 
         if (this.startTime > this.endTime) this.setEndTime(percentage); // Set the timestamp of the current trim handle position
