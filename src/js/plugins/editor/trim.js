@@ -402,7 +402,7 @@ class Trim {
 
     // Store and convert the start percentage to time
     bar.style.left = `${percentage}%`;
-    if (maxTrimLength) this.setEndTime(rightThumbPos);
+    if (maxTrimLength) this.setEndTime(percentage + parseFloat(width));
     this.setStartTime(percentage);
     // Prevent the end time being before the start time
     if (this.startTime > this.endTime) this.setEndTime(percentage);
