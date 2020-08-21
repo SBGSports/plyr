@@ -148,6 +148,8 @@ class Markers {
     this.elements.markers.forEach(marker => {
       marker.remove();
     });
+
+    this.elements.markers = [];
   }
 
   addMarkerListeners(marker) {
@@ -276,7 +278,7 @@ class Markers {
     // Remove the elements with listeners on
     if (this.elements.markers && !is.empty(this.elements.markers)) {
       // This should be cleaned up the by the editor
-      this.elements.markers = {};
+      this.elements.markers = [];
     }
   }
 }
