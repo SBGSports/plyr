@@ -180,7 +180,7 @@ const defaults = {
     'airplay',
     // 'download',
     // 'trim',
-    'angle-selector',
+    // 'angle-selector',
     'fullscreen',
   ],
   settings: ['captions', 'quality', 'speed'],

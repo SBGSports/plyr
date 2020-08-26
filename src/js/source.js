@@ -220,19 +220,6 @@ const source = {
       true,
     );
   },
-
-  changeAngle(angle) {
-    if (!angle || !this.sources) return;
-
-    const { sources } = this.sources.find(x => x.angle === angle);
-
-    if (!sources) {
-      this.debug.warn('No angle found');
-      return;
-    }
-
-    source.change.call(this, sources, angle);
-  },
 };
 
 export default source;
