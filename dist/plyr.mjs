@@ -3962,7 +3962,8 @@ var defaults$1 = {
   'progress', 'current-time', // 'duration',
   'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', // 'download',
   // 'trim',
-  'angle-selector', 'fullscreen'],
+  // 'angle-selector',
+  'fullscreen'],
   settings: ['captions', 'quality', 'speed'],
   // Localisation
   i18n: {
@@ -10363,21 +10364,6 @@ var source = {
 
       _this2.fullscreen.update();
     }, true);
-  },
-  changeAngle: function changeAngle(angle) {
-    if (!angle || !this.sources) return;
-
-    var _this$sources$find = this.sources.find(function (x) {
-      return x.angle === angle;
-    }),
-        sources = _this$sources$find.sources;
-
-    if (!sources) {
-      this.debug.warn('No angle found');
-      return;
-    }
-
-    source.change.call(this, sources, angle);
   }
 };
 
