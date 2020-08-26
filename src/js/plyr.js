@@ -34,6 +34,7 @@ import { clamp } from './utils/numbers';
 import { cloneDeep, extend } from './utils/objects';
 import { silencePromise } from './utils/promise';
 import { getAspectRatio, reduceAspectRatio, setAspectRatio, validateRatio } from './utils/style';
+import { matchToVideoTime, videoToMatchTime } from './utils/time';
 import { parseUrl } from './utils/urls';
 
 // Private properties
@@ -91,11 +92,19 @@ class Plyr {
       display: {},
       progress: {},
       inputs: {},
-      settings: {
-        popup: null,
-        menu: null,
-        panels: {},
-        buttons: {},
+      menu: {
+        settings: {
+          popup: null,
+          menu: null,
+          panels: {},
+          buttons: {},
+        },
+        angleSelector: {
+          popup: null,
+          menu: null,
+          panels: {},
+          buttons: {},
+        },
       },
     };
 
@@ -883,6 +892,30 @@ class Plyr {
   }
 
   /**
+   * Get list of avaiable sources
+   */
+  get sources() {
+    return this.media.sources;
+  }
+
+  /**
+   * Set new media angle
+   * @param {Object} input - The new angle name (see docs)
+   */
+  set angle(input) {
+    const { currentTime } = this;
+    const currentMatchTime = videoToMatchTime(currentTime, this.config.syncPoints);
+
+    source.change.call(this, this.media.sources, input);
+
+    if (this.config.matchTime && this.config.syncPoints) {
+      this.on('durationchange', () => {
+        if (this.duration) this.currentTime = matchToVideoTime(currentMatchTime, this.config.syncPoints);
+      });
+    }
+  }
+
+  /**
    * Get a download URL (either source or custom)
    */
   get download() {
@@ -1095,7 +1128,10 @@ class Plyr {
         this.config.controls.includes('settings') &&
         !is.empty(this.config.settings)
       ) {
-        controls.toggleMenu.call(this, false);
+        const menuItem = this.elements.menu.angleSelector;
+        const button = this.elements.buttons.angleSelector;
+
+        controls.toggleMenu.call(this, false, menuItem, button);
       }
 
       // Trigger event on change
