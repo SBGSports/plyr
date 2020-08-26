@@ -105,7 +105,7 @@ declare class Plyr {
   /**
    * Gets or sets the current source for the player.
    */
-  source: Plyr.SourceInfo;
+  source: Plyr.SourceInfo | Plyr.SourceInfo[];
 
   /**
    * Gets or sets the current poster image URL for the player.
@@ -281,6 +281,7 @@ declare namespace Plyr {
     | 'loadstart'
     | 'loadeddata'
     | 'loadedmetadata'
+    | 'durationchange'
     | 'canplay'
     | 'canplaythrough'
     | 'stalled'
@@ -753,6 +754,11 @@ declare namespace Plyr {
      * An array of Sync points. Used to specify key events in the video and can be used to match time.
      */
     syncPoints?: SyncPoint[];
+
+    /**
+     * Angle name.
+     */
+    angle?: string;
   }
 
   interface Source {
