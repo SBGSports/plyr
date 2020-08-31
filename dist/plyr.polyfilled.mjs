@@ -15459,7 +15459,7 @@ var Editor = /*#__PURE__*/function () {
       // If the duration changes after loading the editor, the corresponding timestamps need to be updated
       // If the duration of the video or previewthumbnails has loaded, update
       this.player.on('loadeddata loadedmetadata', function () {
-        if (_this3.player.media.duration) _this3.loaded = true;
+        if (_this3.player.media.duration > 0) _this3.loaded = true;
 
         if (_this3.loaded && _this3.shown) {
           _this3.showEditor();
@@ -15859,14 +15859,14 @@ var Markers = /*#__PURE__*/function () {
 
       if (!config) return;
       if (!(this.player.config.syncPoints && this.player.config.syncPoints.length) || !(config.config.syncPoints && config.config.syncPoints.length)) return;
-
-      if (config.markers.elements.markers) {
+      if (!config.markers.elements.markers) return;
+      this.player.once('editorloaded', function () {
         config.markers.elements.markers.forEach(function (marker) {
           if (!marker.getAttribute('aria-valuetext')) return;
 
-          _this3.addMarker(marker.id, marker.innerText, matchToVideoTime(marker.getAttribute('aria-valuetext'), _this3.player.config.syncPoints));
+          _this3.addMarker(marker.id, marker.innerText, matchToVideoTime(marker.getAttribute('aria-valuetext'), _this3.player.config.syncPoints) - _this3.player.mediaFragment.startTime);
         });
-      }
+      });
     } // Update UI
 
   }, {
@@ -16423,12 +16423,12 @@ var Trim = /*#__PURE__*/function () {
 
       if (config.trim.trimming) {
         this.enter();
-        var previousStartTime = videoToMatchTime(config.trim.startTime, config.config.syncPoints);
-        var previousEndTime = videoToMatchTime(config.trim.endTime, config.config.syncPoints);
-        this.player.on('trimloaded', function () {
-          _this4.setTrimStart(matchToVideoTime(previousStartTime, _this4.player.config.syncPoints));
+        var previousStartTime = config.trim.elements.container.bar.leftThumb.getAttribute('aria-valuetext');
+        var previousEndTime = config.trim.elements.container.bar.rightThumb.getAttribute('aria-valuetext');
+        this.player.once('trimloaded', function () {
+          _this4.setTrimStart(matchToVideoTime(previousStartTime, _this4.player.config.syncPoints) - _this4.player.mediaFragment.startTime);
 
-          _this4.setTrimEnd(matchToVideoTime(previousEndTime, _this4.player.config.syncPoints));
+          _this4.setTrimEnd(matchToVideoTime(previousEndTime, _this4.player.config.syncPoints) - _this4.player.mediaFragment.startTime);
         });
       }
     }

@@ -615,7 +615,7 @@ class Editor {
     // If the duration changes after loading the editor, the corresponding timestamps need to be updated
     // If the duration of the video or previewthumbnails has loaded, update
     this.player.on('loadeddata loadedmetadata', () => {
-      if (this.player.media.duration) this.loaded = true;
+      if (this.player.media.duration > 0) this.loaded = true;
       if (this.loaded && this.shown) {
         this.showEditor();
         this.updateTimestamps();
