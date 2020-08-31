@@ -904,7 +904,7 @@ class Plyr {
    */
   set angle(input) {
     const { currentTime } = this;
-    const currentMatchTime = videoToMatchTime(currentTime, this.config.syncPoints);
+    const currentMatchTime = videoToMatchTime(this.mediaFragment.getMediaTime(currentTime), this.config.syncPoints);
 
     source.change.call(this, this.media.sources, input);
 
