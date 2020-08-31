@@ -5,6 +5,7 @@ import i18n from '../../utils/i18n';
 import is from '../../utils/is';
 import { clamp } from '../../utils/numbers';
 import { extend } from '../../utils/objects';
+import { matchToVideoTime } from '../../utils/time';
 
 class Markers {
   constructor(player) {
@@ -222,7 +223,7 @@ class Markers {
     // eslint-disable-next-line no-param-reassign
     marker.style.left = `${clampedPercentage}%`;
     marker.setAttribute('aria-valuenow', time);
-    marker.setAttribute('aria-valuetext', controls.formatTime(this.player, time));
+    marker.setAttribute('aria-valuetext', controls.formatTime.call(this.player, time));
 
     if (!triggerChange) return;
 
@@ -243,7 +244,9 @@ class Markers {
       this.loaded = true;
 
       if (this.preLoadedMarkers.length) {
-        this.preLoadedMarkers.forEach(marker => this.addMarker(marker.id, marker.name, marker.time));
+        this.preLoadedMarkers.forEach(marker => {
+          this.addMarker(marker.id, marker.name, marker.time);
+        });
         this.preLoadedMarkers = [];
       }
     });
@@ -263,6 +266,29 @@ class Markers {
     this.elements.markers.forEach(marker => {
       toggleHidden(marker, show);
     });
+  }
+
+  // Load config after changing of source (only do this for sources which have sync points)
+  loadConfig(config) {
+    if (!config) return;
+
+    if (
+      !(this.player.config.syncPoints && this.player.config.syncPoints.length) ||
+      !(config.config.syncPoints && config.config.syncPoints.length)
+    )
+      return;
+
+    if (config.markers.elements.markers) {
+      config.markers.elements.markers.forEach(marker => {
+        if (!marker.getAttribute('aria-valuetext')) return;
+
+        this.addMarker(
+          marker.id,
+          marker.innerText,
+          matchToVideoTime(marker.getAttribute('aria-valuetext'), this.player.config.syncPoints),
+        );
+      });
+    }
   }
 
   // Update UI

@@ -102,7 +102,6 @@ class Editor {
     this.createVideoTimeline();
     this.createSeekHandle();
     this.player.listeners.editor();
-    triggerEvent.call(this.player, this.player.media, 'editorloaded');
   }
 
   createContainer(container) {
@@ -621,6 +620,7 @@ class Editor {
         this.showEditor();
         this.updateTimestamps();
         this.setVideoTimelimeContent();
+        triggerEvent.call(this.player, this.player.media, 'editorloaded');
       }
     });
 
@@ -647,6 +647,21 @@ class Editor {
       this.player.debug.log(`trim enabled`);
     } else {
       this.player.debug.log('Trimming is not supported');
+    }
+  }
+
+  // Load config after changing of source
+  loadConfig(config, duration) {
+    if (!config) return;
+
+    if (config.editor.shown) {
+      this.enter();
+    }
+
+    if (config.editor.zoom.scale > 1) {
+      this.player.on('editorloaded', () => {
+        this.setZoom((config.editor.zoom.scale / duration) * this.player.duration, true);
+      });
     }
   }
 

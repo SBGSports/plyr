@@ -2,6 +2,8 @@
 // Plyr source update
 // ==========================================================================
 
+import _ from 'lodash';
+
 import { providers } from './config/types';
 import html5 from './html5';
 import media from './media';
@@ -43,6 +45,10 @@ const source = {
       this.debug.warn('Invalid source format');
       return;
     }
+
+    // Store instance of the player to be loaded after changing source
+    const playerClone = _.cloneDeep(this);
+    const durationClone = this.duration;
 
     // Cancel current network requests
     html5.cancelRequests.call(this);
@@ -178,7 +184,7 @@ const source = {
           }
         }
 
-        // Create new instance of trim plugin
+        // Create new instance of the editor plugin
         if (this.editor && this.editor.loaded) {
           this.editor.destroy();
           this.editor = null;
@@ -187,6 +193,7 @@ const source = {
         // Create new instance if it is still enabled
         if (this.config.editor.enabled) {
           this.editor = new Editor(this);
+          this.editor.loadConfig(playerClone, durationClone);
         }
 
         // Create new instance of video markers
@@ -198,6 +205,7 @@ const source = {
         // Create new instance if it is still enabled
         if (this.config.markers.enabled) {
           this.markers = new Markers(this);
+          this.markers.loadConfig(playerClone);
         }
 
         // Create new instance of trim plugin
@@ -209,6 +217,7 @@ const source = {
         // Create new instance if it is still enabled
         if (this.config.trim.enabled) {
           this.trim = new Trim(this);
+          this.trim.loadConfig(playerClone);
         }
 
         // Update trimming tool support
