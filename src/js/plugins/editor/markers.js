@@ -278,17 +278,20 @@ class Markers {
     )
       return;
 
-    if (config.markers.elements.markers) {
+    if (!config.markers.elements.markers) return;
+
+    this.player.once('editorloaded', () => {
       config.markers.elements.markers.forEach(marker => {
         if (!marker.getAttribute('aria-valuetext')) return;
 
         this.addMarker(
           marker.id,
           marker.innerText,
-          matchToVideoTime(marker.getAttribute('aria-valuetext'), this.player.config.syncPoints),
+          matchToVideoTime(marker.getAttribute('aria-valuetext'), this.player.config.syncPoints) -
+            this.player.mediaFragment.startTime,
         );
       });
-    }
+    });
   }
 
   // Update UI

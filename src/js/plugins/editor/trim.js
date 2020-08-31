@@ -541,12 +541,16 @@ class Trim {
     if (config.trim.trimming) {
       this.enter();
 
-      const previousStartTime = videoToMatchTime(config.trim.startTime, config.config.syncPoints);
-      const previousEndTime = videoToMatchTime(config.trim.endTime, config.config.syncPoints);
+      const previousStartTime = config.trim.elements.container.bar.leftThumb.getAttribute('aria-valuetext');
+      const previousEndTime = config.trim.elements.container.bar.rightThumb.getAttribute('aria-valuetext');
 
-      this.player.on('trimloaded', () => {
-        this.setTrimStart(matchToVideoTime(previousStartTime, this.player.config.syncPoints));
-        this.setTrimEnd(matchToVideoTime(previousEndTime, this.player.config.syncPoints));
+      this.player.once('trimloaded', () => {
+        this.setTrimStart(
+          matchToVideoTime(previousStartTime, this.player.config.syncPoints) - this.player.mediaFragment.startTime,
+        );
+        this.setTrimEnd(
+          matchToVideoTime(previousEndTime, this.player.config.syncPoints) - this.player.mediaFragment.startTime,
+        );
       });
     }
   }
