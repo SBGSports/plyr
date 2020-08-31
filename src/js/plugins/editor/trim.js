@@ -9,6 +9,7 @@ import i18n from '../../utils/i18n';
 import is from '../../utils/is';
 import { clamp } from '../../utils/numbers';
 import { extend } from '../../utils/objects';
+import { matchToVideoTime, videoToMatchTime } from '../../utils/time';
 
 class Trim {
   constructor(player) {
@@ -525,6 +526,29 @@ class Trim {
 
     // Add styling hook to show button
     toggleClass(this.player.elements.container, this.player.config.classNames.trim.enabled, this.enabled);
+  }
+
+  // Load config after changing of source (only do this for sources which have sync points)
+  loadConfig(config) {
+    if (!config) return;
+
+    if (
+      !(this.player.config.syncPoints && this.player.config.syncPoints.length) ||
+      !(config.config.syncPoints && config.config.syncPoints.length)
+    )
+      return;
+
+    if (config.trim.trimming) {
+      this.enter();
+
+      const previousStartTime = videoToMatchTime(config.trim.startTime, config.config.syncPoints);
+      const previousEndTime = videoToMatchTime(config.trim.endTime, config.config.syncPoints);
+
+      this.player.on('trimloaded', () => {
+        this.setTrimStart(matchToVideoTime(previousStartTime, this.player.config.syncPoints));
+        this.setTrimEnd(matchToVideoTime(previousEndTime, this.player.config.syncPoints));
+      });
+    }
   }
 
   destroy() {
