@@ -28721,7 +28721,7 @@ var Plyr = /*#__PURE__*/function () {
       var _this5 = this;
 
       var currentTime = this.currentTime;
-      var currentMatchTime = videoToMatchTime(currentTime, this.config.syncPoints);
+      var currentMatchTime = videoToMatchTime(this.mediaFragment.getMediaTime(currentTime), this.config.syncPoints);
       source.change.call(this, this.media.sources, input);
 
       if (this.config.matchTime && this.config.syncPoints) {
