@@ -548,6 +548,11 @@ declare namespace Plyr {
     displayDuration?: boolean;
 
     /**
+     * The preload attribute specifies if and how the video should be loaded when the page loads.
+     */
+    preload?: 'none' | 'metadata' | 'auto';
+
+    /**
      * Display the current time as a countdown rather than an incremental counter.
      */
     invertTime?: boolean;
