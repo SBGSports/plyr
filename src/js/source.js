@@ -113,6 +113,9 @@ const source = {
           if (this.config.playsinline) {
             this.media.setAttribute('playsinline', '');
           }
+          if (this.config.preload) {
+            this.media.setAttribute('preload', this.config.preload);
+          }
         }
 
         // Restore class hook
