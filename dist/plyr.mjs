@@ -19772,6 +19772,10 @@ var source = {
         if (_this2.config.playsinline) {
           _this2.media.setAttribute('playsinline', '');
         }
+
+        if (_this2.config.preload) {
+          _this2.media.setAttribute('preload', _this2.config.preload);
+        }
       } // Restore class hook
 
 
