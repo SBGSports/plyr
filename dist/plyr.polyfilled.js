@@ -4444,7 +4444,7 @@ typeof navigator === "object" && (function (global, factory) {
     var checkIfURLSearchParamsSupported = function checkIfURLSearchParamsSupported() {
       try {
         var URLSearchParams = global.URLSearchParams;
-        return new URLSearchParams('?a=1').toString() === 'a=1' && typeof URLSearchParams.prototype.set === 'function';
+        return new URLSearchParams('?a=1').toString() === 'a=1' && typeof URLSearchParams.prototype.set === 'function' && typeof URLSearchParams.prototype.entries === 'function';
       } catch (e) {
         return false;
       }
@@ -4568,7 +4568,11 @@ typeof navigator === "object" && (function (global, factory) {
           anchorElement.href = anchorElement.href; // force href to refresh
         }
 
-        if (anchorElement.protocol === ':' || !/:/.test(anchorElement.href)) {
+        var inputElement = doc.createElement('input');
+        inputElement.type = 'url';
+        inputElement.value = url;
+
+        if (anchorElement.protocol === ':' || !/:/.test(anchorElement.href) || !inputElement.checkValidity() && !base) {
           throw new TypeError('Invalid URL');
         }
 
@@ -14206,6 +14210,25 @@ typeof navigator === "object" && (function (global, factory) {
       var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
       var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
 
+      function define(obj, key, value) {
+        Object.defineProperty(obj, key, {
+          value: value,
+          enumerable: true,
+          configurable: true,
+          writable: true
+        });
+        return obj[key];
+      }
+
+      try {
+        // IE 8 has a broken Object.defineProperty that only works on DOM objects.
+        define({}, "");
+      } catch (err) {
+        define = function define(obj, key, value) {
+          return obj[key] = value;
+        };
+      }
+
       function wrap(innerFn, outerFn, self, tryLocsList) {
         // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
         var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
@@ -14279,14 +14302,14 @@ typeof navigator === "object" && (function (global, factory) {
       var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype);
       GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
       GeneratorFunctionPrototype.constructor = GeneratorFunction;
-      GeneratorFunctionPrototype[toStringTagSymbol] = GeneratorFunction.displayName = "GeneratorFunction"; // Helper for defining the .next, .throw, and .return methods of the
+      GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"); // Helper for defining the .next, .throw, and .return methods of the
       // Iterator interface in terms of a single ._invoke method.
 
       function defineIteratorMethods(prototype) {
         ["next", "throw", "return"].forEach(function (method) {
-          prototype[method] = function (arg) {
+          define(prototype, method, function (arg) {
             return this._invoke(method, arg);
-          };
+          });
         });
       }
 
@@ -14302,10 +14325,7 @@ typeof navigator === "object" && (function (global, factory) {
           Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
         } else {
           genFun.__proto__ = GeneratorFunctionPrototype;
-
-          if (!(toStringTagSymbol in genFun)) {
-            genFun[toStringTagSymbol] = "GeneratorFunction";
-          }
+          define(genFun, toStringTagSymbol, "GeneratorFunction");
         }
 
         genFun.prototype = Object.create(Gp);
@@ -14561,7 +14581,7 @@ typeof navigator === "object" && (function (global, factory) {
 
 
       defineIteratorMethods(Gp);
-      Gp[toStringTagSymbol] = "Generator"; // A Generator should always return itself as the iterator object when the
+      define(Gp, toStringTagSymbol, "Generator"); // A Generator should always return itself as the iterator object when the
       // @@iterator function is called on it. Some browsers' implementations of the
       // iterator prototype chain incorrectly implement this, causing the Generator
       // object to not be returned from this call. This ensures that doesn't happen.
