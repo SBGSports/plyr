@@ -224,6 +224,7 @@ const defaults = {
     settings: 'Settings',
     pip: 'PIP',
     menuBack: 'Go back to previous menu',
+    angleSelector: 'Angle Selector',
     speed: 'Speed',
     normal: 'Normal',
     quality: 'Quality',
@@ -389,6 +390,7 @@ const defaults = {
       pip: '[data-plyr="pip"]',
       airplay: '[data-plyr="airplay"]',
       settings: '[data-plyr="settings"]',
+      angleSelector: '[data-plyr="angle-selector"]',
       loop: '[data-plyr="loop"]',
     },
     inputs: {

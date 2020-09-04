@@ -10287,8 +10287,7 @@ var defaults$1 = {
   'progress', 'current-time', // 'duration',
   'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', // 'download',
   // 'trim',
-  // 'angle-selector',
-  'fullscreen'],
+  'angle-selector', 'fullscreen'],
   settings: ['captions', 'quality', 'speed'],
   // Localisation
   i18n: {
@@ -10329,6 +10328,7 @@ var defaults$1 = {
     settings: 'Settings',
     pip: 'PIP',
     menuBack: 'Go back to previous menu',
+    angleSelector: 'Angle Selector',
     speed: 'Speed',
     normal: 'Normal',
     quality: 'Quality',
@@ -10427,6 +10427,7 @@ var defaults$1 = {
       pip: '[data-plyr="pip"]',
       airplay: '[data-plyr="airplay"]',
       settings: '[data-plyr="settings"]',
+      angleSelector: '[data-plyr="angle-selector"]',
       loop: '[data-plyr="loop"]'
     },
     inputs: {
