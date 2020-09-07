@@ -1828,6 +1828,7 @@ const controls = {
     if (!is.empty(this.elements.buttons)) {
       const addProperty = button => {
         const className = this.config.classNames.controlPressed;
+
         Object.defineProperty(button, 'pressed', {
           enumerable: true,
           get() {
