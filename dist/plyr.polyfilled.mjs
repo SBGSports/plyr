@@ -10254,8 +10254,16 @@ var defaults$1 = {
     // Limit the end time of the trimming region in seconds
     offsetContainer: false,
     // Offset the trimming container window, to center the window based on the current time
-    alwaysShowTimestamps: false // By default thumb timestamps are only shown on hover, this will set them to always be displayed
+    alwaysShowTimestamps: false,
+    // By default thumb timestamps are only shown on hover, this will set them to always be displayed
+    zoom: {
+      enabled: false,
+      // Zoom the editor timeline to the trim container
+      preRoll: 0,
+      // Time in seconds to show before the trimming window
+      postRoll: 0 // Time in seconds to show after the trimming window
 
+    }
   },
   mediaFragment: {
     enabled: true // Enable media fragments?
@@ -15321,6 +15329,28 @@ var Editor = /*#__PURE__*/function () {
       this.setVideoTimelimeContent();
     }
   }, {
+    key: "setZoomWindow",
+    value: function setZoomWindow(lowerBound, upperBound) {
+      if (!this.active) return;
+      var maxZoom = this.config.maxZoom;
+      var timeline = this.elements.container.timeline;
+      var scale = this.player.duration / (upperBound - lowerBound); // Limit zoom to be between 1 and max times zoom
+
+      this.zoom.scale = clamp(scale, 1, maxZoom); // Apply zoom scale
+
+      timeline.style.width = "".concat(this.zoom.scale * 100, "%"); // Position the element based on the lower and upper bound values
+
+      var percentage = lowerBound / this.player.duration * this.zoom.scale * 100;
+      timeline.style.left = "".concat(clamp(-percentage, (this.zoom.scale * 100 - 100) * -1, 0), "%"); // Update slider
+
+      if (is$1.element(this.elements.container.controls.zoomContainer)) {
+        controls.setRange.call(this.player, this.elements.container.controls.zoomContainer.zoom, this.zoom.scale);
+      } // Update timeline images
+
+
+      this.setVideoTimelimeContent();
+    }
+  }, {
     key: "setSeeking",
     value: function setSeeking(event) {
       var classList = event.target.classList;
@@ -16027,6 +16057,10 @@ var Trim = /*#__PURE__*/function () {
         this.createTrimTool();
       }
 
+      if (this.config.zoom.enabled) {
+        this.setTimelineZoom();
+      }
+
       toggleHidden(this.elements.container, false);
     } // Hide the trim toolbar from the timeline
 
@@ -16371,6 +16405,14 @@ var Trim = /*#__PURE__*/function () {
 
       var className = this.player.config.classNames.trim.timeContainerShown;
       element.timeContainer.classList.toggle(className, toggle);
+    }
+  }, {
+    key: "setTimelineZoom",
+    value: function setTimelineZoom() {
+      var _this$config$zoom = this.config.zoom,
+          preRoll = _this$config$zoom.preRoll,
+          postRoll = _this$config$zoom.postRoll;
+      this.player.editor.setZoomWindow(this.startTime - preRoll, this.endTime + postRoll);
     } // Set the seektime to the start of the trim timeline, if the seektime is outside of the region.
 
   }, {
