@@ -9,7 +9,7 @@ import i18n from '../../utils/i18n';
 import is from '../../utils/is';
 import { clamp } from '../../utils/numbers';
 import { extend } from '../../utils/objects';
-import { matchToVideoTime, videoToMatchTime } from '../../utils/time';
+import { matchToVideoTime } from '../../utils/time';
 
 class Trim {
   constructor(player) {
@@ -124,6 +124,9 @@ class Trim {
     }
     if (is.empty(this.elements.container.bar)) {
       this.createTrimTool();
+    }
+    if (this.config.zoom.enabled) {
+      this.setTimelineZoom();
     }
     toggleHidden(this.elements.container, false);
   }
@@ -466,6 +469,11 @@ class Trim {
 
     const className = this.player.config.classNames.trim.timeContainerShown;
     element.timeContainer.classList.toggle(className, toggle);
+  }
+
+  setTimelineZoom() {
+    const { preRoll, postRoll } = this.config.zoom;
+    this.player.editor.setZoomWindow(this.startTime - preRoll, this.endTime + postRoll);
   }
 
   // Set the seektime to the start of the trim timeline, if the seektime is outside of the region.

@@ -696,6 +696,11 @@ declare namespace Plyr {
     upperBound?: number;
     offsetContainer?: boolean;
     alwaysShowTimestamps?: boolean;
+    zoom: {
+      enabled?: boolean;
+      preRoll: number;
+      postRoll: number;
+    };
   }
 
   interface TrimTime {

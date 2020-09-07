@@ -457,6 +457,30 @@ class Editor {
     this.setVideoTimelimeContent();
   }
 
+  setZoomWindow(lowerBound, upperBound) {
+    if (!this.active || !lowerBound || !upperBound) return;
+
+    const { maxZoom } = this.config;
+    const { timeline } = this.elements.container;
+    const scale = this.player.duration / (upperBound - lowerBound);
+
+    // Limit zoom to be between 1 and max times zoom
+    this.zoom.scale = clamp(scale, 1, maxZoom);
+    // Apply zoom scale
+    timeline.style.width = `${this.zoom.scale * 100}%`;
+    // Position the element based on the lower and upper bound values
+    const percentage = (lowerBound / this.player.duration) * (this.zoom.scale * 100);
+    timeline.style.left = `${clamp(-percentage, (this.zoom.scale * 100 - 100) * -1, 0)}%`;
+
+    // Update slider
+    if (is.element(this.elements.container.controls.zoomContainer)) {
+      controls.setRange.call(this.player, this.elements.container.controls.zoomContainer.zoom, this.zoom.scale);
+    }
+
+    // Update timeline images
+    this.setVideoTimelimeContent();
+  }
+
   setSeeking(event) {
     const { classList } = event.target;
     const { leftThumb, rightThumb } = this.player.config.classNames.trim;
