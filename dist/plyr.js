@@ -3984,7 +3984,8 @@ typeof navigator === "object" && (function (global, factory) {
     'progress', 'current-time', // 'duration',
     'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', // 'download',
     // 'trim',
-    'angle-selector', 'fullscreen'],
+    // 'angle-selector',
+    'fullscreen'],
     settings: ['captions', 'quality', 'speed'],
     // Localisation
     i18n: {
@@ -7944,7 +7945,7 @@ typeof navigator === "object" && (function (global, factory) {
         });
         container.controls.appendChild(container.controls.zoomContainer); // Create minus icon
 
-        container.controls.zoomContainer.zoomOut = controls.createButton.call(this.player, 'zoomOut', 'plyr__controls__item');
+        container.controls.zoomContainer.zoomOut = controls.createButton.call(this.player, 'zoom-out', 'plyr__controls__item');
         container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoomOut); // Create zoom slider
 
         container.controls.zoomContainer.zoom = controls.createRange.call(this.player, 'zoom', {
@@ -7959,7 +7960,7 @@ typeof navigator === "object" && (function (global, factory) {
         });
         container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoom); // Create plus icon
 
-        container.controls.zoomContainer.zoomIn = controls.createButton.call(this.player, 'zoomIn', 'plyr__controls__item');
+        container.controls.zoomContainer.zoomIn = controls.createButton.call(this.player, 'zoom-in', 'plyr__controls__item');
         container.controls.zoomContainer.appendChild(container.controls.zoomContainer.zoomIn);
       }
     }, {
@@ -8403,8 +8404,14 @@ typeof navigator === "object" && (function (global, factory) {
       key: "destroy",
       value: function destroy() {
         // Remove the elements with listeners on
-        if (this.elements.container && !is$1.empty(this.elements.container)) {
-          replaceElement(this.elements.original, this.elements.container);
+        if (this.loaded) {
+          if (is$1.element(this.elements.original)) {
+            replaceElement(this.elements.original, this.elements.container);
+          } // Remove reference to buttons
+
+
+          this.player.elements.buttons.zoomOut = null;
+          this.player.elements.buttons.zoomIn = null;
           this.loaded = false;
         }
       } // Enter Editor
