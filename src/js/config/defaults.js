@@ -138,6 +138,11 @@ const defaults = {
     upperBound: -1, // Limit the end time of the trimming region in seconds
     offsetContainer: false, // Offset the trimming container window, to center the window based on the current time
     alwaysShowTimestamps: false, // By default thumb timestamps are only shown on hover, this will set them to always be displayed
+    zoom: {
+      enabled: false, // Zoom the editor timeline to the trim container
+      preRoll: 0, // Time in seconds to show before the trimming window
+      postRoll: 0, // Time in seconds to show after the trimming window
+    },
   },
 
   mediaFragment: {
