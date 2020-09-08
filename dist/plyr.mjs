@@ -8187,7 +8187,7 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "setZoomWindow",
     value: function setZoomWindow(lowerBound, upperBound) {
-      if (!this.active) return;
+      if (!this.active || !lowerBound || !upperBound) return;
       var maxZoom = this.config.maxZoom;
       var timeline = this.elements.container.timeline;
       var scale = this.player.duration / (upperBound - lowerBound); // Limit zoom to be between 1 and max times zoom
@@ -8196,7 +8196,7 @@ var Editor = /*#__PURE__*/function () {
 
       timeline.style.width = "".concat(this.zoom.scale * 100, "%"); // Position the element based on the lower and upper bound values
 
-      var percentage = lowerBound / this.player.duration * this.zoom.scale * 100;
+      var percentage = lowerBound / this.player.duration * (this.zoom.scale * 100);
       timeline.style.left = "".concat(clamp(-percentage, (this.zoom.scale * 100 - 100) * -1, 0), "%"); // Update slider
 
       if (is$1.element(this.elements.container.controls.zoomContainer)) {
@@ -8913,7 +8913,7 @@ var Trim = /*#__PURE__*/function () {
         this.createTrimTool();
       }
 
-      if (this.config.zoom.enabled) {
+      if (this.config.zoom && this.config.zoom.enabled) {
         this.setTimelineZoom();
       }
 
