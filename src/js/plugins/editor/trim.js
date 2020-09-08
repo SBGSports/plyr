@@ -125,7 +125,7 @@ class Trim {
     if (is.empty(this.elements.container.bar)) {
       this.createTrimTool();
     }
-    if (this.config.zoom.enabled) {
+    if (this.config.zoom && this.config.zoom.enabled) {
       this.setTimelineZoom();
     }
     toggleHidden(this.elements.container, false);
