@@ -9346,17 +9346,26 @@ var Trim = /*#__PURE__*/function () {
 
       if (!config) return;
       if (!(this.player.config.syncPoints && this.player.config.syncPoints.length) || !(config.config.syncPoints && config.config.syncPoints.length)) return;
+      if (!config.trim.trimming) return;
+      this.enter();
 
-      if (config.trim.trimming) {
-        this.enter();
-        var previousStartTime = config.trim.elements.container.bar.leftThumb.getAttribute('aria-valuetext');
-        var previousEndTime = config.trim.elements.container.bar.rightThumb.getAttribute('aria-valuetext');
-        this.player.once('trimloaded', function () {
-          _this4.setTrimStart(matchToVideoTime(previousStartTime, _this4.player.config.syncPoints) - _this4.player.mediaFragment.startTime);
-
-          _this4.setTrimEnd(matchToVideoTime(previousEndTime, _this4.player.config.syncPoints) - _this4.player.mediaFragment.startTime);
-        });
+      if (config.config.trim.lowerBound > 0) {
+        var previousLowerBound = videoToMatchTime(config.config.trim.lowerBound, config.config.syncPoints);
+        this.config.lowerBound = matchToVideoTime(previousLowerBound, this.player.config.syncPoints);
       }
+
+      if (config.config.trim.upperBound > 0) {
+        var previousUpperBound = videoToMatchTime(config.config.trim.upperBound, config.config.syncPoints);
+        this.config.upperBound = matchToVideoTime(previousUpperBound, this.player.config.syncPoints);
+      }
+
+      var previousStartTime = config.trim.elements.container.bar.leftThumb.getAttribute('aria-valuetext');
+      var previousEndTime = config.trim.elements.container.bar.rightThumb.getAttribute('aria-valuetext');
+      this.player.once('trimloaded', function () {
+        _this4.setTrimStart(matchToVideoTime(previousStartTime, _this4.player.config.syncPoints) - _this4.player.mediaFragment.startTime);
+
+        _this4.setTrimEnd(matchToVideoTime(previousEndTime, _this4.player.config.syncPoints) - _this4.player.mediaFragment.startTime);
+      });
     }
   }, {
     key: "destroy",
