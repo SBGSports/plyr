@@ -9,7 +9,7 @@ import i18n from '../../utils/i18n';
 import is from '../../utils/is';
 import { clamp } from '../../utils/numbers';
 import { extend } from '../../utils/objects';
-import { matchToVideoTime } from '../../utils/time';
+import { matchToVideoTime, videoToMatchTime } from '../../utils/time';
 
 class Trim {
   constructor(player) {
@@ -546,21 +546,31 @@ class Trim {
     )
       return;
 
-    if (config.trim.trimming) {
-      this.enter();
+    if (!config.trim.trimming) return;
 
-      const previousStartTime = config.trim.elements.container.bar.leftThumb.getAttribute('aria-valuetext');
-      const previousEndTime = config.trim.elements.container.bar.rightThumb.getAttribute('aria-valuetext');
+    this.enter();
 
-      this.player.once('trimloaded', () => {
-        this.setTrimStart(
-          matchToVideoTime(previousStartTime, this.player.config.syncPoints) - this.player.mediaFragment.startTime,
-        );
-        this.setTrimEnd(
-          matchToVideoTime(previousEndTime, this.player.config.syncPoints) - this.player.mediaFragment.startTime,
-        );
-      });
+    if (config.config.trim.lowerBound > 0) {
+      const previousLowerBound = videoToMatchTime(config.config.trim.lowerBound, config.config.syncPoints);
+      this.config.lowerBound = matchToVideoTime(previousLowerBound, this.player.config.syncPoints);
     }
+
+    if (config.config.trim.upperBound > 0) {
+      const previousUpperBound = videoToMatchTime(config.config.trim.upperBound, config.config.syncPoints);
+      this.config.upperBound = matchToVideoTime(previousUpperBound, this.player.config.syncPoints);
+    }
+
+    const previousStartTime = config.trim.elements.container.bar.leftThumb.getAttribute('aria-valuetext');
+    const previousEndTime = config.trim.elements.container.bar.rightThumb.getAttribute('aria-valuetext');
+
+    this.player.once('trimloaded', () => {
+      this.setTrimStart(
+        matchToVideoTime(previousStartTime, this.player.config.syncPoints) - this.player.mediaFragment.startTime,
+      );
+      this.setTrimEnd(
+        matchToVideoTime(previousEndTime, this.player.config.syncPoints) - this.player.mediaFragment.startTime,
+      );
+    });
   }
 
   destroy() {
