@@ -899,6 +899,13 @@ class Plyr {
   }
 
   /**
+   * Get current angle
+   */
+  get angle() {
+    return this.media.angle;
+  }
+
+  /**
    * Set new media angle
    * @param {Object} input - The new angle name (see docs)
    */
