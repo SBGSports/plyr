@@ -10412,7 +10412,8 @@ typeof navigator === "object" && (function (global, factory) {
     'statechange', // Quality
     'qualitychange', // Ads
     'adsloaded', 'adscontentpause', 'adscontentresume', 'adstarted', 'adsmidpoint', 'adscomplete', 'adsallcomplete', 'adsimpression', 'adsclick', // Preview thumbnails
-    'previewthumbnailsloaded', // Editor
+    'previewthumbnailsloaded', // Angle
+    'angleChange', // Editor
     'entereditor', 'exiteditor', 'editorloaded', 'zoomchange', // Markers
     'markeradded', 'markerchange', // Trimming
     'entertrim', 'exittrim', 'trimloaded', 'trimchanging', 'trimchange'],
@@ -28800,18 +28801,28 @@ typeof navigator === "object" && (function (global, factory) {
         return this.media.sources;
       }
       /**
-       * Set new media angle
-       * @param {Object} input - The new angle name (see docs)
+       * Get current angle
        */
 
     }, {
       key: "angle",
+      get: function get() {
+        return this.media.angle;
+      }
+      /**
+       * Set new media angle
+       * @param {Object} input - The new angle name (see docs)
+       */
+      ,
       set: function set(input) {
         var _this5 = this;
 
         var currentTime = this.currentTime;
         var currentMatchTime = videoToMatchTime(this.mediaFragment.getMediaTime(currentTime), this.config.syncPoints);
         source.change.call(this, this.media.sources, input);
+        triggerEvent.call(this, this.media, 'angleChange', false, {
+          angle: input
+        });
 
         if (this.config.matchTime && this.config.syncPoints) {
           this.on('durationchange', function () {
