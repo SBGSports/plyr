@@ -899,6 +899,13 @@ class Plyr {
   }
 
   /**
+   * Get current angle
+   */
+  get angle() {
+    return this.media.angle;
+  }
+
+  /**
    * Set new media angle
    * @param {Object} input - The new angle name (see docs)
    */
@@ -907,6 +914,7 @@ class Plyr {
     const currentMatchTime = videoToMatchTime(this.mediaFragment.getMediaTime(currentTime), this.config.syncPoints);
 
     source.change.call(this, this.media.sources, input);
+    triggerEvent.call(this, this.media, 'angleChange', false, { angle: input });
 
     if (this.config.matchTime && this.config.syncPoints) {
       this.on('durationchange', () => {
