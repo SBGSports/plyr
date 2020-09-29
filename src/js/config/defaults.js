@@ -351,6 +351,9 @@ const defaults = {
     // Preview thumbnails
     'previewthumbnailsloaded',
 
+    // Angle
+    'angleChange',
+
     // Editor
     'entereditor',
     'exiteditor',

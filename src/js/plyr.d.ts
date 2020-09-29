@@ -289,6 +289,7 @@ declare namespace Plyr {
     | 'emptied'
     | 'cuechange'
     | 'error'
+    | 'angleChange'
     | 'entereditor'
     | 'exiteditor'
     | 'editorloaded'
