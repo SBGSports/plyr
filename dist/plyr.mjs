@@ -9662,24 +9662,34 @@ var PreviewThumbnails = /*#__PURE__*/function () {
                 return this.getThumbnail(src);
 
               case 3:
-                _context.next = 10;
+                _context.next = 16;
                 break;
 
               case 5:
-                _context.next = 7;
+                _context.prev = 5;
+                _context.next = 8;
                 return fetch(src);
 
-              case 7:
+              case 8:
                 response = _context.sent;
-                _context.next = 10;
+                _context.next = 11;
                 return this.getThumbnail(response, src);
 
-              case 10:
+              case 11:
+                _context.next = 16;
+                break;
+
+              case 13:
+                _context.prev = 13;
+                _context.t0 = _context["catch"](5);
+                this.player.debug.warn("Error retrieving VTT File");
+
+              case 16:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, this);
+        }, _callee, this, [[5, 13]]);
       }));
 
       function getVttFile(_x) {
