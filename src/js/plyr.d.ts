@@ -105,7 +105,7 @@ declare class Plyr {
   /**
    * Gets or sets the current source for the player.
    */
-  source: Plyr.SourceInfo;
+  source: Plyr.SourceInfo | Plyr.SourceInfo[];
 
   /**
    * Gets or sets the current poster image URL for the player.
@@ -281,6 +281,7 @@ declare namespace Plyr {
     | 'loadstart'
     | 'loadeddata'
     | 'loadedmetadata'
+    | 'durationchange'
     | 'canplay'
     | 'canplaythrough'
     | 'stalled'
@@ -288,6 +289,7 @@ declare namespace Plyr {
     | 'emptied'
     | 'cuechange'
     | 'error'
+    | 'angleChange'
     | 'entereditor'
     | 'exiteditor'
     | 'editorloaded'
@@ -547,6 +549,11 @@ declare namespace Plyr {
     displayDuration?: boolean;
 
     /**
+     * The preload attribute specifies if and how the video should be loaded when the page loads.
+     */
+    preload?: 'none' | 'metadata' | 'auto';
+
+    /**
      * Display the current time as a countdown rather than an incremental counter.
      */
     invertTime?: boolean;
@@ -674,6 +681,7 @@ declare namespace Plyr {
     enabled?: boolean;
     target?: NodeList | HTMLElement | HTMLElement[] | string;
     maxZoom?: number;
+    scrollToZoom?: boolean;
   }
 
   interface MarkersOptions {
@@ -688,6 +696,12 @@ declare namespace Plyr {
     lowerBound?: number;
     upperBound?: number;
     offsetContainer?: boolean;
+    alwaysShowTimestamps?: boolean;
+    zoom?: {
+      enabled?: boolean;
+      preRoll: number;
+      postRoll: number;
+    };
   }
 
   interface TrimTime {
@@ -751,6 +765,11 @@ declare namespace Plyr {
      * An array of Sync points. Used to specify key events in the video and can be used to match time.
      */
     syncPoints?: SyncPoint[];
+
+    /**
+     * Angle name.
+     */
+    angle?: string;
   }
 
   interface Source {

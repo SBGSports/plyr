@@ -12,6 +12,7 @@ import { getProviderByUrl, providers, types } from './config/types';
 import Console from './console';
 import controls from './controls';
 import Fullscreen from './fullscreen';
+import html5 from './html5';
 import Listeners from './listeners';
 import media from './media';
 import MediaFragment from './mediaFragment';
@@ -33,6 +34,7 @@ import { clamp } from './utils/numbers';
 import { cloneDeep, extend } from './utils/objects';
 import { silencePromise } from './utils/promise';
 import { getAspectRatio, reduceAspectRatio, setAspectRatio, validateRatio } from './utils/style';
+import { matchToVideoTime, videoToMatchTime } from './utils/time';
 import { parseUrl } from './utils/urls';
 
 // Private properties
@@ -90,11 +92,19 @@ class Plyr {
       display: {},
       progress: {},
       inputs: {},
-      settings: {
-        popup: null,
-        menu: null,
-        panels: {},
-        buttons: {},
+      menu: {
+        settings: {
+          popup: null,
+          menu: null,
+          panels: {},
+          buttons: {},
+        },
+        angleSelector: {
+          popup: null,
+          menu: null,
+          panels: {},
+          buttons: {},
+        },
       },
     };
 
@@ -882,6 +892,38 @@ class Plyr {
   }
 
   /**
+   * Get list of avaiable sources
+   */
+  get sources() {
+    return this.media.sources;
+  }
+
+  /**
+   * Get current angle
+   */
+  get angle() {
+    return this.media.angle;
+  }
+
+  /**
+   * Set new media angle
+   * @param {Object} input - The new angle name (see docs)
+   */
+  set angle(input) {
+    const { currentTime } = this;
+    const currentMatchTime = videoToMatchTime(this.mediaFragment.getMediaTime(currentTime), this.config.syncPoints);
+
+    source.change.call(this, this.media.sources, input);
+    triggerEvent.call(this, this.media, 'angleChange', false, { angle: input });
+
+    if (this.config.matchTime && this.config.syncPoints) {
+      this.on('durationchange', () => {
+        if (this.duration) this.currentTime = matchToVideoTime(currentMatchTime, this.config.syncPoints);
+      });
+    }
+  }
+
+  /**
    * Get a download URL (either source or custom)
    */
   get download() {
@@ -1094,7 +1136,10 @@ class Plyr {
         this.config.controls.includes('settings') &&
         !is.empty(this.config.settings)
       ) {
-        controls.toggleMenu.call(this, false);
+        const menuItem = this.elements.menu.angleSelector;
+        const button = this.elements.buttons.angleSelector;
+
+        controls.toggleMenu.call(this, false, menuItem, button);
       }
 
       // Trigger event on change
@@ -1179,6 +1224,9 @@ class Plyr {
       } else {
         // Event
         triggerEvent.call(this, this.elements.container, 'destroyed', true);
+
+        // Cancel all network requests
+        html5.cancelRequests.call(this);
 
         // Unbind listeners
         unbindListeners.call(this);
