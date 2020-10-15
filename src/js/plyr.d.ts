@@ -399,6 +399,16 @@ declare namespace Plyr {
      * Indicates whether media fragments are enabled.
      */
     readonly enabled: boolean;
+
+    /**
+     * Indicates the media fragment start time.
+     */
+    startTime: number;
+
+    /**
+     * Indicates the media fragment duration.
+     */
+    duration: number;
   }
 
   interface FullscreenControl {
