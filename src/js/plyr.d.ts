@@ -108,6 +108,11 @@ declare class Plyr {
   source: Plyr.SourceInfo | Plyr.SourceInfo[];
 
   /**
+   * Gets or sets the current config for the player.
+   */
+  config: Plyr.Options;
+
+  /**
    * Gets or sets the current poster image URL for the player.
    */
   poster: string;
