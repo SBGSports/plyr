@@ -409,6 +409,11 @@ declare namespace Plyr {
      * Indicates the media fragment duration.
      */
     duration: number;
+
+    /**
+     * Returns the media time
+     */
+    getMediaTime(time: number): number;
   }
 
   interface FullscreenControl {
