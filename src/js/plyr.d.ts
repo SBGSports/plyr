@@ -374,6 +374,11 @@ declare namespace Plyr {
     readonly active: boolean;
 
     /**
+     * Indicates if the trimming tool has loaded.
+     */
+    readonly loaded: boolean;
+
+    /**
      * Enter trimming tool.
      */
     enter(): void;
@@ -387,6 +392,21 @@ declare namespace Plyr {
      * Toggle trimming tool.
      */
     toggle(): void;
+
+    /**
+     * Set the position of the trimming window start.
+     */
+    setTrimStart(time: number): void;
+
+    /**
+     * Set the position of the trimming window end.
+     */
+    setTrimEnd(time: number): void;
+
+    /**
+     * Set the timeline to be zoomed to the trimming window.
+     */
+    setTimelineZoom(): void;
   }
 
   interface MediaFragment {
