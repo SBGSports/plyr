@@ -108,6 +108,11 @@ declare class Plyr {
   source: Plyr.SourceInfo | Plyr.SourceInfo[];
 
   /**
+   * Gets or sets the current the current angle.
+   */
+  angle: string;
+
+  /**
    * Gets or sets the current config for the player.
    */
   config: Plyr.Options;
