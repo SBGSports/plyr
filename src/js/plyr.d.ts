@@ -729,6 +729,10 @@ declare namespace Plyr {
     lockToTrimRegion?: boolean;
   }
 
+  interface MarkerTime {
+    time: number;
+  }
+
   interface TrimOptions {
     enabled?: boolean;
     closeEditor?: boolean;
